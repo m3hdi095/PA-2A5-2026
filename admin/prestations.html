@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Prestations — UpcycleConnect Admin</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&family=Montserrat:wght@300;400;500;600;700&family=Roboto:wght@300;400;500&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="css/style.css"/>
+</head>
+<body>
+
+<div class="page-title-row">
+  <div>
+    <h1>
+      <div class="page-title-icon green">
+        <svg viewBox="0 0 24 24"><path d="M17 12h-5v5h5v-5zM16 1v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2h-1V1h-2zm3 18H5V8h14v11z"/></svg>
+      </div>
+      Prestations
+    </h1>
+    <p class="page-title-sub">Formations, ateliers et événements proposés</p>
+  </div>
+  <div class="page-title-actions">
+    <button class="btn btn-outline btn-sm" id="btnGrid" title="Vue cartes">
+      <svg viewBox="0 0 24 24"><path d="M3 3h7v7H3zm0 11h7v7H3zm11-11h7v7h-7zm0 11h7v7h-7z"/></svg>
+    </button>
+    <button class="btn btn-outline btn-sm" id="btnList" title="Vue liste">
+      <svg viewBox="0 0 24 24"><path d="M3 13h2v-2H3v2zm0 4h2v-2H3v2zm0-8h2V7H3v2zm4 4h14v-2H7v2zm0 4h14v-2H7v2zM7 7v2h14V7H7z"/></svg>
+    </button>
+    <button class="btn btn-primary" id="btnAdd">
+      <svg viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
+      Ajouter
+    </button>
+  </div>
+</div>
+
+<!-- FILTERS -->
+<div class="filters-bar">
+  <div class="filter-wrap">
+    <svg viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
+    <input type="text" class="filter-input" id="searchInput" placeholder="Rechercher une prestation..."/>
+  </div>
+  <select class="filter-select" id="typeFilter">
+    <option value="">Tous les types</option>
+    <option value="formation">Formation</option>
+    <option value="atelier">Atelier</option>
+    <option value="evenement">Événement</option>
+  </select>
+  <select class="filter-select" id="statusFilter">
+    <option value="">Tous les statuts</option>
+    <option value="publie">Publié</option>
+    <option value="brouillon">Brouillon</option>
+    <option value="annule">Annulé</option>
+    <option value="complet">Complet</option>
+  </select>
+</div>
+
+<!-- VUE LISTE -->
+<div id="listView" class="card" style="display:none">
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Titre</th>
+          <th>Type</th>
+          <th>Date</th>
+          <th>Places</th>
+          <th>Prix</th>
+          <th>Statut</th>
+          <th style="text-align:right">Actions</th>
+        </tr>
+      </thead>
+      <tbody id="prestationsBody"></tbody>
+    </table>
+  </div>
+  <div class="pagination" id="pagination"><span class="page-info" id="pageInfo"></span></div>
+</div>
+
+<!-- VUE CARTES -->
+<div id="gridView" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px" id="gridView">
+</div>
+
+<!-- MODAL -->
+<div class="modal-overlay" id="prestModal">
+  <div class="modal-box" style="max-width:640px">
+    <div class="modal-header">
+      <div class="modal-title" id="modalTitle">
+        <svg viewBox="0 0 24 24"><path d="M17 12h-5v5h5v-5zM16 1v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2h-1V1h-2zm3 18H5V8h14v11z"/></svg>
+        Ajouter une prestation
+      </div>
+      <button class="modal-close" id="modalClose">&times;</button>
+    </div>
+    <div class="modal-body">
+      <form id="prestForm" novalidate>
+        <input type="hidden" id="prestId"/>
+        <div class="form-group">
+          <label class="form-label">Titre <span class="form-required">*</span></label>
+          <input type="text" id="titre" class="form-control" required/>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Description</label>
+          <textarea id="description" class="form-control" rows="2"></textarea>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Type</label>
+            <select id="type" class="form-control">
+              <option value="formation">Formation</option>
+              <option value="atelier">Atelier</option>
+              <option value="evenement">Événement</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Statut</label>
+            <select id="statut" class="form-control">
+              <option value="brouillon">Brouillon</option>
+              <option value="publie">Publié</option>
+              <option value="annule">Annulé</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Date début</label>
+            <input type="datetime-local" id="date_debut" class="form-control"/>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Date fin</label>
+            <input type="datetime-local" id="date_fin" class="form-control"/>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Prix (€)</label>
+            <input type="number" step="0.01" min="0" id="prix" class="form-control" placeholder="0 = gratuit"/>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Places max</label>
+            <input type="number" min="1" id="places_max" class="form-control"/>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Lieu</label>
+            <input type="text" id="lieu" class="form-control" placeholder="Paris 10e, En ligne..."/>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Catégorie</label>
+            <select id="categorie_id" class="form-control">
+              <option value="">— Choisir —</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-actions">
+          <button type="button" class="btn btn-outline" id="cancelBtn">Annuler</button>
+          <button type="submit" class="btn btn-primary">
+            <svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
+            Enregistrer
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script src="js/layout.js" data-page="prestations"></script>
+<script src="js/prestations.js"></script>
+</body>
+</html>

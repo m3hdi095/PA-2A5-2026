@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Paramètres — UpcycleConnect Admin</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&family=Montserrat:wght@300;400;500;600;700&family=Roboto:wght@300;400;500&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="css/style.css"/>
+  <style>
+    .settings-layout { display: grid; grid-template-columns: 220px 1fr; gap: 24px; align-items: start; }
+    .settings-nav { background: white; border: 1.5px solid var(--neutral-200); border-radius: var(--radius-lg); overflow: hidden; position: sticky; top: calc(var(--topbar-h) + 20px); }
+    .settings-nav-item {
+      display: flex; align-items: center; gap: 10px;
+      padding: 13px 18px; font-size: 13px; font-weight: 500;
+      color: var(--neutral-500); cursor: pointer; border: none; background: none;
+      width: 100%; text-align: left; font-family: 'Montserrat',sans-serif;
+      border-left: 3px solid transparent; transition: all .2s;
+    }
+    .settings-nav-item svg { width: 16px; height: 16px; fill: currentColor; flex-shrink: 0; }
+    .settings-nav-item:hover { background: var(--neutral-50); color: var(--neutral-700); }
+    .settings-nav-item.active { color: var(--uc-forest); background: var(--uc-teal-pale); border-left-color: var(--uc-teal); font-weight: 600; }
+    .settings-panel { display: none; }
+    .settings-panel.active { display: block; animation: pageIn .3s ease; }
+    .settings-section { margin-bottom: 28px; }
+    .settings-section h3 { font-family:'Poppins',sans-serif; font-size:15px; font-weight:600; color:var(--neutral-900); margin-bottom:16px; padding-bottom:10px; border-bottom:1px solid var(--neutral-100); }
+    .toggle-row { display:flex; align-items:center; justify-content:space-between; padding:12px 0; border-bottom:1px solid var(--neutral-100); }
+    .toggle-row:last-child { border-bottom:none; }
+    .toggle-label { font-size:13.5px; color:var(--neutral-700); }
+    .toggle-sub { font-size:11px; color:var(--neutral-400); margin-top:2px; }
+    .toggle { position:relative; width:44px; height:24px; flex-shrink:0; }
+    .toggle input { opacity:0; width:0; height:0; }
+    .toggle-slider { position:absolute; inset:0; background:var(--neutral-200); border-radius:12px; cursor:pointer; transition:.3s; }
+    .toggle-slider::before { content:''; position:absolute; height:18px; width:18px; left:3px; top:3px; background:white; border-radius:50%; transition:.3s; box-shadow:0 1px 4px rgba(0,0,0,.2); }
+    .toggle input:checked + .toggle-slider { background:var(--uc-teal); }
+    .toggle input:checked + .toggle-slider::before { transform:translateX(20px); }
+    @media(max-width:700px) { .settings-layout { grid-template-columns:1fr; } .settings-nav { position:static; } }
+  </style>
+</head>
+<body>
+
+<div class="page-title-row">
+  <div>
+    <h1>
+      <div class="page-title-icon green">
+        <svg viewBox="0 0 24 24"><path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58a.49.49 0 0 0 .12-.61l-1.92-3.32a.49.49 0 0 0-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54a.484.484 0 0 0-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96a.48.48 0 0 0-.59.22L2.74 8.87a.47.47 0 0 0 .12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58a.47.47 0 0 0-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.04.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/></svg>
+      </div>
+      Paramètres
+    </h1>
+    <p class="page-title-sub">Configuration de la plateforme UpcycleConnect</p>
+  </div>
+</div>
+
+<div class="settings-layout">
+
+  <!-- NAV -->
+  <nav class="settings-nav">
+    <button class="settings-nav-item active" data-panel="general">
+      <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
+      Général
+    </button>
+    <button class="settings-nav-item" data-panel="paiement">
+      <svg viewBox="0 0 24 24"><path d="M20 4H4c-1.11 0-1.99.89-1.99 2L2 18c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V6c0-1.11-.89-2-2-2zm0 14H4v-6h16v6zm0-10H4V6h16v2z"/></svg>
+      Paiements
+    </button>
+    <button class="settings-nav-item" data-panel="notifications">
+      <svg viewBox="0 0 24 24"><path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2zm6-6v-5c0-3.07-1.64-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.63 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z"/></svg>
+      Notifications
+    </button>
+    <button class="settings-nav-item" data-panel="securite">
+      <svg viewBox="0 0 24 24"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm0 10.99h7c-.53 4.12-3.28 7.79-7 8.94V12H5V6.3l7-3.11v8.8z"/></svg>
+      Sécurité
+    </button>
+    <button class="settings-nav-item" data-panel="langues">
+      <svg viewBox="0 0 24 24"><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zm6.93 6h-2.95c-.32-1.25-.78-2.45-1.38-3.56 1.84.63 3.37 1.91 4.33 3.56zM12 4.04c.83 1.2 1.48 2.53 1.91 3.96h-3.82c.43-1.43 1.08-2.76 1.91-3.96zM4.26 14C4.1 13.36 4 12.69 4 12s.1-1.36.26-2h3.38c-.08.66-.14 1.32-.14 2 0 .68.06 1.34.14 2H4.26zm.82 2h2.95c.32 1.25.78 2.45 1.38 3.56-1.84-.63-3.37-1.9-4.33-3.56zm2.95-8H5.08c.96-1.66 2.49-2.93 4.33-3.56C8.81 5.55 8.35 6.75 8.03 8zM12 19.96c-.83-1.2-1.48-2.53-1.91-3.96h3.82c-.43 1.43-1.08 2.76-1.91 3.96zM14.34 14H9.66c-.09-.66-.16-1.32-.16-2 0-.68.07-1.35.16-2h4.68c.09.65.16 1.32.16 2 0 .68-.07 1.34-.16 2zm.25 5.56c.6-1.11 1.06-2.31 1.38-3.56h2.95c-.96 1.65-2.49 2.93-4.33 3.56zM16.36 14c.08-.66.14-1.32.14-2 0-.68-.06-1.34-.14-2h3.38c.16.64.26 1.31.26 2s-.1 1.36-.26 2h-3.38z"/></svg>
+      Langues
+    </button>
+    <button class="settings-nav-item" data-panel="compte">
+      <svg viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+      Mon compte
+    </button>
+  </nav>
+
+  <!-- PANELS -->
+  <div>
+
+    <!-- GÉNÉRAL -->
+    <div class="settings-panel active card" id="panel-general">
+      <div class="card-body">
+        <div class="settings-section">
+          <h3>Informations de la plateforme</h3>
+          <div class="form-group">
+            <label class="form-label">Nom de la plateforme</label>
+            <input type="text" class="form-control" value="UpcycleConnect"/>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Email de contact</label>
+              <input type="email" class="form-control" value="contact@upcycleconnect.fr"/>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Téléphone</label>
+              <input type="tel" class="form-control" value="+33 1 00 00 00 00"/>
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Adresse du siège</label>
+            <input type="text" class="form-control" value="174 rue La Fayette, Paris 10e"/>
+          </div>
+        </div>
+        <div class="settings-section">
+          <h3>Options générales</h3>
+          <div class="toggle-row">
+            <div>
+              <div class="toggle-label">Mode maintenance</div>
+              <div class="toggle-sub">Désactive l'accès public au site</div>
+            </div>
+            <label class="toggle"><input type="checkbox"/><span class="toggle-slider"></span></label>
+          </div>
+          <div class="toggle-row">
+            <div>
+              <div class="toggle-label">Inscriptions ouvertes</div>
+              <div class="toggle-sub">Autoriser les nouveaux comptes</div>
+            </div>
+            <label class="toggle"><input type="checkbox" checked/><span class="toggle-slider"></span></label>
+          </div>
+          <div class="toggle-row">
+            <div>
+              <div class="toggle-label">Validation manuelle des annonces</div>
+              <div class="toggle-sub">Chaque annonce passe par un admin avant publication</div>
+            </div>
+            <label class="toggle"><input type="checkbox" checked/><span class="toggle-slider"></span></label>
+          </div>
+        </div>
+        <button class="btn btn-primary" onclick="save()">
+          <svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
+          Enregistrer
+        </button>
+      </div>
+    </div>
+
+    <!-- PAIEMENTS -->
+    <div class="settings-panel card" id="panel-paiement">
+      <div class="card-body">
+        <div class="settings-section">
+          <h3>Stripe</h3>
+          <div class="form-group">
+            <label class="form-label">Clé publique (pk_)</label>
+            <input type="text" class="form-control" value="pk_test_51..."/>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Clé secrète (sk_)</label>
+            <input type="password" class="form-control" value="sk_test_51..."/>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Webhook secret</label>
+            <input type="password" class="form-control" value="whsec_..."/>
+          </div>
+        </div>
+        <div class="settings-section">
+          <h3>Règles de tarification</h3>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Commission ventes (%)</label>
+              <input type="number" class="form-control" value="7" min="5" max="10"/>
+            </div>
+            <div class="form-group">
+              <label class="form-label">TVA appliquée (%)</label>
+              <input type="number" class="form-control" value="20" readonly style="background:var(--neutral-50)"/>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Abonnement particulier (€/mois)</label>
+              <input type="number" class="form-control" value="0"/>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Abonnement pro (€/mois)</label>
+              <input type="number" class="form-control" value="30"/>
+            </div>
+          </div>
+        </div>
+        <button class="btn btn-primary" onclick="save()">
+          <svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
+          Enregistrer
+        </button>
+      </div>
+    </div>
+
+    <!-- NOTIFICATIONS -->
+    <div class="settings-panel card" id="panel-notifications">
+      <div class="card-body">
+        <div class="settings-section">
+          <h3>OneSignal (push notifications)</h3>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">App ID</label>
+              <input type="text" class="form-control" placeholder="xxxxxxxx-xxxx-xxxx"/>
+            </div>
+            <div class="form-group">
+              <label class="form-label">API Key REST</label>
+              <input type="password" class="form-control" placeholder="os_key_..."/>
+            </div>
+          </div>
+        </div>
+        <div class="settings-section">
+          <h3>Email (SMTP)</h3>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Serveur SMTP</label>
+              <input type="text" class="form-control" value="smtp.upcycleconnect.fr"/>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Port</label>
+              <input type="number" class="form-control" value="587"/>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Utilisateur</label>
+              <input type="text" class="form-control" value="no-reply@upcycleconnect.fr"/>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Mot de passe</label>
+              <input type="password" class="form-control" placeholder="••••••••"/>
+            </div>
+          </div>
+        </div>
+        <div class="settings-section">
+          <h3>Déclencheurs de notification</h3>
+          <div class="toggle-row">
+            <div><div class="toggle-label">Nouvelle annonce validée</div></div>
+            <label class="toggle"><input type="checkbox" checked/><span class="toggle-slider"></span></label>
+          </div>
+          <div class="toggle-row">
+            <div><div class="toggle-label">Conteneur presque plein (&gt;80%)</div></div>
+            <label class="toggle"><input type="checkbox" checked/><span class="toggle-slider"></span></label>
+          </div>
+          <div class="toggle-row">
+            <div><div class="toggle-label">Nouvelle inscription formation</div></div>
+            <label class="toggle"><input type="checkbox" checked/><span class="toggle-slider"></span></label>
+          </div>
+          <div class="toggle-row">
+            <div><div class="toggle-label">Paiement reçu</div></div>
+            <label class="toggle"><input type="checkbox" checked/><span class="toggle-slider"></span></label>
+          </div>
+        </div>
+        <button class="btn btn-primary" onclick="save()">Enregistrer</button>
+      </div>
+    </div>
+
+    <!-- SÉCURITÉ -->
+    <div class="settings-panel card" id="panel-securite">
+      <div class="card-body">
+        <div class="settings-section">
+          <h3>Clé JWT</h3>
+          <div class="form-group">
+            <label class="form-label">Secret JWT</label>
+            <div style="display:flex;gap:8px">
+              <input type="password" id="jwtSecret" class="form-control" value="UC_SECRET_KEY_CHANGE_ME_IN_PROD"/>
+              <button class="btn btn-outline" onclick="document.getElementById('jwtSecret').type=document.getElementById('jwtSecret').type==='password'?'text':'password'">👁</button>
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Durée de session (secondes)</label>
+            <input type="number" class="form-control" value="3600"/>
+          </div>
+        </div>
+        <div class="settings-section">
+          <h3>Options de sécurité</h3>
+          <div class="toggle-row">
+            <div><div class="toggle-label">HTTPS forcé</div><div class="toggle-sub">Redirige HTTP → HTTPS</div></div>
+            <label class="toggle"><input type="checkbox" checked/><span class="toggle-slider"></span></label>
+          </div>
+          <div class="toggle-row">
+            <div><div class="toggle-label">Limite de tentatives de connexion</div><div class="toggle-sub">Blocage après 5 échecs</div></div>
+            <label class="toggle"><input type="checkbox" checked/><span class="toggle-slider"></span></label>
+          </div>
+          <div class="toggle-row">
+            <div><div class="toggle-label">Logs d'accès admin</div></div>
+            <label class="toggle"><input type="checkbox" checked/><span class="toggle-slider"></span></label>
+          </div>
+        </div>
+        <button class="btn btn-primary" onclick="save()">Enregistrer</button>
+      </div>
+    </div>
+
+    <!-- LANGUES -->
+    <div class="settings-panel card" id="panel-langues">
+      <div class="card-body">
+        <div class="settings-section">
+          <h3>Langues disponibles</h3>
+          <p style="font-size:13px;color:var(--neutral-500);margin-bottom:16px">Les langues sont gérées via des fichiers JSON dans <code style="background:var(--neutral-100);padding:2px 6px;border-radius:4px">lang/</code> — aucune modification du code nécessaire.</p>
+          <div id="langList" style="display:flex;flex-direction:column;gap:10px"></div>
+          <button class="btn btn-outline btn-sm" style="margin-top:16px" onclick="addLang()">
+            <svg viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
+            Ajouter une langue
+          </button>
+        </div>
+        <div class="settings-section">
+          <h3>Langue par défaut</h3>
+          <select class="form-control" style="max-width:220px">
+            <option>🇫🇷 Français</option>
+            <option>🇬🇧 English</option>
+            <option>🇪🇸 Español</option>
+          </select>
+        </div>
+        <button class="btn btn-primary" style="margin-top:16px" onclick="save()">Enregistrer</button>
+      </div>
+    </div>
+
+    <!-- MON COMPTE -->
+    <div class="settings-panel card" id="panel-compte">
+      <div class="card-body">
+        <div class="settings-section">
+          <h3>Informations personnelles</h3>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Nom complet</label>
+              <input type="text" class="form-control" id="myNom" value="Admin UpcycleConnect"/>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Email</label>
+              <input type="email" class="form-control" id="myEmail" value="admin@upcycleconnect.fr"/>
+            </div>
+          </div>
+        </div>
+        <div class="settings-section">
+          <h3>Changer le mot de passe</h3>
+          <div class="form-group">
+            <label class="form-label">Mot de passe actuel</label>
+            <input type="password" class="form-control" placeholder="••••••••"/>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Nouveau mot de passe</label>
+              <input type="password" class="form-control" placeholder="••••••••"/>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Confirmation</label>
+              <input type="password" class="form-control" placeholder="••••••••"/>
+            </div>
+          </div>
+        </div>
+        <button class="btn btn-primary" onclick="save()">Enregistrer les modifications</button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script src="js/layout.js" data-page="settings"></script>
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  checkAuth();
+
+  // Pre-fill from localStorage
+  try {
+    const user = JSON.parse(localStorage.getItem('uc_user')||'{}');
+    if (user.nom)   document.getElementById('myNom').value   = user.nom;
+    if (user.email) document.getElementById('myEmail').value = user.email;
+  } catch(e) {}
+
+  // Nav tabs
+  document.querySelectorAll('.settings-nav-item').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.settings-nav-item').forEach(b=>b.classList.remove('active'));
+      document.querySelectorAll('.settings-panel').forEach(p=>p.classList.remove('active'));
+      btn.classList.add('active');
+      document.getElementById('panel-'+btn.dataset.panel).classList.add('active');
+    });
+  });
+
+  // Languages list
+  const langs = [
+    { code:'fr', label:'🇫🇷 Français',  active:true },
+    { code:'en', label:'🇬🇧 English',   active:true },
+    { code:'es', label:'🇪🇸 Español',   active:false },
+  ];
+  const langList = document.getElementById('langList');
+  langList.innerHTML = langs.map(l => `
+    <div style="display:flex;align-items:center;gap:12px;padding:10px 14px;background:var(--neutral-50);border-radius:var(--radius);border:1.5px solid var(--neutral-200)">
+      <span style="font-size:14px;flex:1">${l.label}</span>
+      <span class="badge ${l.active?'badge-green':'badge-gray'}">${l.active?'Actif':'Inactif'}</span>
+      <code style="font-size:11px;background:var(--neutral-200);padding:2px 6px;border-radius:4px">lang/${l.code}.json</code>
+      <button class="btn btn-ghost btn-icon" style="color:var(--danger)" onclick="this.closest('div').remove();showToast('Langue retirée','warning')">
+        <svg viewBox="0 0 24 24"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>
+      </button>
+    </div>
+  `).join('');
+});
+
+window.save = () => showToast('Paramètres enregistrés !', 'success');
+window.addLang = () => {
+  const code = prompt('Code ISO (ex: de, it, pt) :');
+  if (!code) return;
+  showToast(`Créer lang/${code}.json dans votre projet`, 'warning');
+};
+</script>
+</body>
+</html>

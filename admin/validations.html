@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Validations — UpcycleConnect Admin</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&family=Montserrat:wght@300;400;500;600;700&family=Roboto:wght@300;400;500&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="css/style.css"/>
+</head>
+<body>
+
+<div class="page-title-row">
+  <div>
+    <h1>
+      <div class="page-title-icon green">
+        <svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
+      </div>
+      Validations en attente
+    </h1>
+    <p class="page-title-sub">Approuver ou refuser les demandes soumises par les utilisateurs</p>
+  </div>
+  <div class="page-title-actions">
+    <span id="totalBadge" class="badge badge-orange" style="font-size:13px;padding:6px 14px"></span>
+  </div>
+</div>
+
+<!-- TABS -->
+<div style="display:flex;gap:4px;background:white;border:1.5px solid var(--neutral-200);border-radius:12px;padding:4px;width:fit-content;margin-bottom:24px">
+  <button class="val-tab active" data-tab="annonces">
+    <svg viewBox="0 0 24 24" style="width:14px;height:14px;fill:currentColor"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"/></svg>
+    Annonces <span class="tab-count" id="countAnnonces">0</span>
+  </button>
+  <button class="val-tab" data-tab="conteneurs">
+    <svg viewBox="0 0 24 24" style="width:14px;height:14px;fill:currentColor"><path d="M20 7H4c-1.1 0-2 .9-2 2v6c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V9c0-1.1-.9-2-2-2zm0 8H4V9h16v6z"/></svg>
+    Dépôts conteneurs <span class="tab-count" id="countConteneurs">0</span>
+  </button>
+  <button class="val-tab" data-tab="formations">
+    <svg viewBox="0 0 24 24" style="width:14px;height:14px;fill:currentColor"><path d="M17 12h-5v5h5v-5zM16 1v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2h-1V1h-2zm3 18H5V8h14v11z"/></svg>
+    Formations <span class="tab-count" id="countFormations">0</span>
+  </button>
+</div>
+
+<!-- CONTENT -->
+<div id="valItems" style="display:flex;flex-direction:column;gap:12px"></div>
+
+<!-- MODAL détail -->
+<div class="modal-overlay" id="detailModal">
+  <div class="modal-box">
+    <div class="modal-header">
+      <div class="modal-title" id="detailTitle">Détail</div>
+      <button class="modal-close" id="detailClose">&times;</button>
+    </div>
+    <div class="modal-body" id="detailBody"></div>
+  </div>
+</div>
+
+<style>
+.val-tab {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 9px 16px;
+  border: none;
+  background: none;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--neutral-500);
+  cursor: pointer;
+  font-family: 'Montserrat', sans-serif;
+  transition: all .2s;
+}
+.val-tab:hover { background: var(--neutral-100); color: var(--neutral-700); }
+.val-tab.active { background: var(--uc-green); color: white; }
+.val-tab.active .tab-count { background: rgba(255,255,255,.25); color: white; }
+.tab-count {
+  background: var(--neutral-100);
+  color: var(--neutral-500);
+  font-size: 11px;
+  font-weight: 700;
+  padding: 1px 7px;
+  border-radius: 20px;
+  transition: all .2s;
+}
+
+.val-card {
+  background: white;
+  border: 1.5px solid var(--neutral-200);
+  border-radius: var(--radius-lg);
+  padding: 18px 22px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  transition: border-color .2s, box-shadow .2s;
+  animation: slideIn .3s ease;
+}
+.val-card:hover { border-color: var(--green-300); box-shadow: var(--shadow-sm); }
+@keyframes slideIn {
+  from { opacity:0; transform:translateY(6px); }
+  to   { opacity:1; transform:translateY(0); }
+}
+.val-type-icon {
+  width: 44px; height: 44px;
+  border-radius: var(--radius);
+  background: var(--uc-teal-pale);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 20px;
+  flex-shrink: 0;
+}
+.val-info { flex: 1; }
+.val-title { font-weight: 600; font-size: 14px; color: var(--neutral-900); margin-bottom: 3px; }
+.val-meta  { font-size: 12px; color: var(--neutral-400); }
+.val-date  { font-size: 11px; color: var(--neutral-300); white-space: nowrap; }
+.val-actions { display: flex; gap: 8px; }
+</style>
+
+<script src="js/layout.js" data-page="validations"></script>
+<script>
+const MOCK_VAL = {
+  annonces: [
+    { id:1, titre:'Lot de palettes bois',  type:'don',   auteur:'Marie Dupont',   date:'2026-03-13', emoji:'🪵', desc:'5 palettes EUR en bon état, idéales pour mobilier DIY. Localisées Paris 11e.' },
+    { id:2, titre:'Vieux vélos (x3)',       type:'don',   auteur:'Henri Petit',    date:'2026-03-12', emoji:'🚲', desc:'3 vélos de ville en état variable. Pièces récupérables. À Ivry-sur-Seine.' },
+    { id:3, titre:'Tissu lin naturel',      type:'vente', auteur:'Clara Noel',     date:'2026-03-11', emoji:'🧵', desc:'2 kg de chutes de lin naturel, teinture végétale. Prix demandé : 20 €.' },
+  ],
+  conteneurs: [
+    { id:4, titre:'Dépôt Box 10ème',         type:'conteneur', auteur:'Lucie Moreau',  date:'2026-03-13', emoji:'📦', desc:'Demande de dépôt : 1 carton de bocaux en verre (6 pièces). Box Lafayette.' },
+    { id:5, titre:'Dépôt Box Montreuil',     type:'conteneur', auteur:'Paul Gauthier', date:'2026-03-10', emoji:'📦', desc:'Dépôt de chutes de cuir (1 kg). Box Montreuil, demande validée en interne.' },
+  ],
+  formations: [
+    { id:6, titre:'Initiation macramé', type:'formation', auteur:'Sophie Martin', date:'2026-03-09', emoji:'🎨', desc:'Nouvelle formation proposée par Sophie Martin. 10 places, Paris 11e, 12 avril. Tarif : 30€.' },
+  ],
+};
+
+let activeTab = 'annonces';
+
+function renderTab(tab) {
+  activeTab = tab;
+  const items = MOCK_VAL[tab] || [];
+  const container = document.getElementById('valItems');
+
+  if (!items.length) {
+    container.innerHTML = `<div class="empty-state card" style="padding:60px">
+      <svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
+      <p>Aucune validation en attente dans cette catégorie</p>
+    </div>`;
+    return;
+  }
+
+  container.innerHTML = items.map(v => `
+    <div class="val-card" id="valCard${v.id}">
+      <div class="val-type-icon">${v.emoji}</div>
+      <div class="val-info">
+        <div class="val-title">${v.titre}</div>
+        <div class="val-meta">
+          <strong>${v.auteur}</strong> · 
+          <span class="badge badge-orange" style="font-size:10px">${v.type}</span>
+        </div>
+      </div>
+      <div class="val-date">${new Date(v.date).toLocaleDateString('fr-FR',{day:'2-digit',month:'short'})}</div>
+      <div class="val-actions">
+        <button class="btn btn-outline btn-sm" onclick="showDetail(${v.id})">Détail</button>
+        <button class="btn btn-primary btn-sm" onclick="approve(${v.id}, '${tab}')">
+          <svg viewBox="0 0 24 24" style="width:13px;height:13px"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
+          Approuver
+        </button>
+        <button class="btn btn-danger btn-sm" onclick="reject(${v.id}, '${tab}')">
+          <svg viewBox="0 0 24 24" style="width:13px;height:13px"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+          Refuser
+        </button>
+      </div>
+    </div>
+  `).join('');
+}
+
+function updateCounts() {
+  const total = Object.values(MOCK_VAL).reduce((a,b)=>a+b.length,0);
+  document.getElementById('countAnnonces').textContent   = MOCK_VAL.annonces.length;
+  document.getElementById('countConteneurs').textContent = MOCK_VAL.conteneurs.length;
+  document.getElementById('countFormations').textContent = MOCK_VAL.formations.length;
+  document.getElementById('totalBadge').textContent = `${total} en attente`;
+}
+
+function showDetail(id) {
+  const all = [...MOCK_VAL.annonces,...MOCK_VAL.conteneurs,...MOCK_VAL.formations];
+  const v   = all.find(x=>x.id===id);
+  if (!v) return;
+  document.getElementById('detailTitle').textContent = v.titre;
+  document.getElementById('detailBody').innerHTML = `
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px">
+      <div style="font-size:40px">${v.emoji}</div>
+      <div>
+        <div style="font-weight:600;font-size:15px;color:var(--neutral-900)">${v.titre}</div>
+        <div style="font-size:12px;color:var(--neutral-400)">Par <strong>${v.auteur}</strong> — ${new Date(v.date).toLocaleDateString('fr-FR')}</div>
+      </div>
+    </div>
+    <div style="background:var(--neutral-50);border-radius:var(--radius);padding:14px;margin-bottom:16px;font-size:13.5px;color:var(--neutral-700);line-height:1.6">${v.desc}</div>
+    <div class="form-actions">
+      <button class="btn btn-outline" onclick="closeDetail()">Fermer</button>
+      <button class="btn btn-danger" onclick="reject(${v.id},'${activeTab}');closeDetail()">Refuser</button>
+      <button class="btn btn-primary" onclick="approve(${v.id},'${activeTab}');closeDetail()">Approuver</button>
+    </div>
+  `;
+  document.getElementById('detailModal').classList.add('open');
+}
+window.closeDetail = () => document.getElementById('detailModal').classList.remove('open');
+
+window.approve = (id, tab) => {
+  MOCK_VAL[tab] = MOCK_VAL[tab].filter(v=>v.id!==id);
+  const card = document.getElementById(`valCard${id}`);
+  if (card) {
+    card.style.borderColor = 'var(--uc-teal)';
+    card.style.background  = 'var(--uc-teal-pale)';
+    setTimeout(()=>card.remove(), 400);
+  }
+  showToast('Approuvé avec succès !', 'success');
+  updateCounts();
+  setTimeout(()=>renderTab(tab), 450);
+};
+
+window.reject = (id, tab) => {
+  MOCK_VAL[tab] = MOCK_VAL[tab].filter(v=>v.id!==id);
+  const card = document.getElementById(`valCard${id}`);
+  if (card) {
+    card.style.borderColor = '#ef5350';
+    card.style.background  = 'var(--danger-bg)';
+    setTimeout(()=>card.remove(), 400);
+  }
+  showToast('Demande refusée', 'warning');
+  updateCounts();
+  setTimeout(()=>renderTab(tab), 450);
+};
+
+window.showDetail = showDetail;
+
+document.addEventListener('DOMContentLoaded', () => {
+  checkAuth();
+  updateCounts();
+  renderTab('annonces');
+
+  document.querySelectorAll('.val-tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      document.querySelectorAll('.val-tab').forEach(t=>t.classList.remove('active'));
+      tab.classList.add('active');
+      renderTab(tab.dataset.tab);
+    });
+  });
+
+  document.getElementById('detailClose').addEventListener('click', closeDetail);
+  document.getElementById('detailModal').addEventListener('click', e => {
+    if (e.target===document.getElementById('detailModal')) closeDetail();
+  });
+});
+</script>
+</body>
+</html>
