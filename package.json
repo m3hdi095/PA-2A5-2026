@@ -1,0 +1,13 @@
+{
+  "name": "upcycleconnect",
+  "version": "1.0.0",
+  "description": "UpcycleConnect - Plateforme d'upcycling et d'economie circulaire - Again2",
+  "type": "module",
+  "scripts": {
+    "serve": "node serve.mjs",
+    "screenshot": "node screenshot.mjs http://localhost:3000"
+  },
+  "dependencies": {
+    "puppeteer": "^22.0.0"
+  }
+}
