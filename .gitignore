@@ -1,0 +1,91 @@
+
+# Outils locaux / éditeur
+
+.vscode/
+
+.cursor/
+
+.idea/
+
+*.code-workspace
+
+# Dépendances Node
+
+node_modules/
+
+package-lock.json
+
+# Outils de développement local
+
+serve.mjs
+
+screenshot.mjs
+
+capture.mjs
+
+# Captures / screenshots
+
+screenshots/
+
+capture/
+
+captures/
+
+# À ne jamais commiter
+
+api-go/.env
+
+!api-go/.env.example
+
+# Fichiers temporaires
+
+*.log
+
+tmp/
+
+temp/
+
+.DS_Store
+
+Thumbs.db
+
+# Go.mod orphelin à la racine (le vrai module est dans api-go/)
+
+/go.mod
+
+# Fichiers de conception 
+
+mcd_upcycleconnect.drawio
+
+charte-graphique.pdf
+
+# Brand assets non utilisées
+
+brand_assets/Charte\ graphique\ PA.png
+
+brand_assets/AGAIN.png
+
+brand_assets/Logo_again_vert.png
+
+brand_assets/logo_again_blanc.png
+
+brand_assets/logo_again_transparent.png
+
+brand_assets/logo_again_*.png
+
+brand_assets/Design\ sans\ titre.png
+
+brand_assets/Design_sans_titre-removebg-preview.png
+
+brand_assets/Arborescence.drawio.png
+
+brand_assets/inspiration_*.jpeg
+
+brand_assets/inspiration_*.jpg
+
+brand_assets/connexion\ *.png
+
+brand_assets/layout-dashboard.png
+
+brand_assets/*-solid.png
+
