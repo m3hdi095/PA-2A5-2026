@@ -37,6 +37,10 @@ api-go/.env
 
 !api-go/.env.example
 
+# binaire go compilé (go build -o api)
+
+api-go/api
+
 # Fichiers temporaires
 
 *.log
