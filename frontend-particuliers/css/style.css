@@ -1,0 +1,88 @@
+@import '../../shared/uc-design.css';
+
+/* espace particuliers uniquement, le reste vient de shared/uc-design.css */
+
+/*  PART LAYOUT WRAPPER  */
+body.part-layout { display: flex; overflow-x: hidden; }
+
+/*  LOGIN HERO : brand photo background  */
+.login-hero {
+  background:
+    linear-gradient(160deg, var(--hero-overlay-start) 0%, var(--hero-overlay-mid) 60%, var(--hero-overlay-end) 100%),
+    url('../../brand_assets/projet4.jpeg');
+  background-size: cover;
+  background-position: center;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Logo flottant en haut, séparé du contenu centré */
+.login-hero-logo {
+  position: absolute;
+  top: 36px;
+  left: 56px;
+  height: 52px;
+  width: auto;
+  margin-bottom: 0;
+  z-index: 2;
+  filter: drop-shadow(0 2px 14px rgba(0,0,0,.32));
+}
+
+/* Cartes de rôle - panneau gauche login (maquette) */
+.login-role-cards {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  position: relative;
+  z-index: 1;
+  margin-top: 8px;
+}
+.login-role-card {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  background: rgba(255,255,255,.1);
+  border: 1px solid rgba(255,255,255,.15);
+  border-radius: 12px;
+  padding: 14px 16px;
+  transition: background 200ms ease, transform 200ms ease;
+}
+.login-role-card:hover {
+  background: rgba(255,255,255,.17);
+  transform: translateX(4px);
+}
+.login-role-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: rgba(178,222,195,.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--green-200);
+  font-size: 15px;
+  flex-shrink: 0;
+}
+.login-role-name {
+  font-family: var(--font-heading);
+  font-size: 13.5px;
+  font-weight: 700;
+  color: #fff;
+  margin-bottom: 2px;
+}
+.login-role-desc {
+  font-size: 11.5px;
+  color: rgba(255,255,255,.6);
+  line-height: 1.4;
+}
+
+/*  PART-SPECIFIC RESPONSIVE  */
+@media (max-width: 900px) {
+  .login-page { grid-template-columns: 1fr; }
+  .login-hero { display: none; }
+}
+@media (max-width: 768px) {
+  .annonces-grid  { grid-template-columns: 1fr; }
+  .formations-grid { grid-template-columns: 1fr; }
+  .page-title-row { flex-direction: column; align-items: flex-start; }
+}

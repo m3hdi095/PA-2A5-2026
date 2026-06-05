@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Formations & Ateliers | Espace Particuliers</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=Montserrat:wght@400;500;600&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="css/style.css"/>
+</head>
+<body>
+
+<div class="page-title-row animate-in">
+  <div>
+    <h1>
+      <div class="page-title-icon teal">
+        <i class="fa-solid fa-graduation-cap" aria-hidden="true"></i>
+      </div>
+      <span data-i18n="page_formations_title">Formations &amp; Ateliers</span>
+    </h1>
+    <p class="page-title-sub" data-i18n="formation_no_events" style="--placeholder:''">Apprenez, créez et participez aux événements upcycling de votre communauté</p>
+  </div>
+  <div class="page-title-actions">
+    <a href="planning.html" class="btn btn-outline btn-sm">
+      <i class="fa-solid fa-calendar-days" aria-hidden="true"></i>
+      <span data-i18n="nav_planning">Planning</span>
+    </a>
+  </div>
+</div>
+
+<!-- Filtre type -->
+<div class="animate-in" style="display:flex;gap:4px;background:white;border:1.5px solid var(--border);border-radius:var(--radius-lg);padding:4px;width:fit-content">
+  <button class="filtre-tab active" data-val="" onclick="setFiltre(this,'')">
+    <span data-i18n="filter_tous_types">Tout</span> <span class="tab-count">8</span>
+  </button>
+  <button class="filtre-tab" data-val="formation" onclick="setFiltre(this,'formation')">
+    <span data-i18n="formation_type_formation">Formations</span> <span class="tab-count">3</span>
+  </button>
+  <button class="filtre-tab" data-val="atelier" onclick="setFiltre(this,'atelier')">
+    <span data-i18n="formation_type_atelier">Ateliers</span> <span class="tab-count">3</span>
+  </button>
+  <button class="filtre-tab" data-val="evenement" onclick="setFiltre(this,'evenement')">
+    <span data-i18n="formation_type_evenement">Événements</span> <span class="tab-count">2</span>
+  </button>
+</div>
+
+<style>
+.filtre-tab { display:flex;align-items:center;gap:7px;padding:9px 16px;border:none;background:none;border-radius:var(--radius);font-family:'Poppins',sans-serif;font-size:13px;font-weight:600;color:var(--text-muted);cursor:pointer;transition:background .18s,color .18s; }
+.filtre-tab:hover { background:var(--teal-50);color:var(--teal-700); }
+.filtre-tab.active { background:var(--teal-700);color:#fff; }
+.filtre-tab.active .tab-count { background:rgba(255,255,255,.2);color:#fff; }
+.tab-count { background:var(--teal-50);color:var(--text-muted);font-size:11px;font-weight:700;padding:1px 7px;border-radius:var(--radius-pill); }
+</style>
+
+<div id="formations-container" class="formations-grid"></div>
+
+<script src="js/layout.js"></script>
+<script src="js/formations.js"></script>
+<script>
+function setFiltre(btn, val) {
+  document.querySelectorAll('.filtre-tab').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  const fEl = document.getElementById('f-type');
+  if (fEl) { fEl.value = val; fEl.dispatchEvent(new Event('change')); }
+}
+</script>
+<!-- Input caché pour le filtre JS -->
+<select id="f-type" style="display:none"></select>
+
+</body>
+</html>

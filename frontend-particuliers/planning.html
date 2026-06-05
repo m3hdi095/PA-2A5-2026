@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Planning | Espace Particuliers</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=Montserrat:wght@400;500;600&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="css/style.css"/>
+</head>
+<body>
+
+<div class="page-title-row animate-in">
+  <div>
+    <h1>
+      <div class="page-title-icon teal">
+        <i class="fa-solid fa-calendar-days" aria-hidden="true"></i>
+      </div>
+      <span data-i18n="planning_title">Mon planning</span>
+    </h1>
+    <p class="page-title-sub" data-i18n="planning_subtitle">Événements, ateliers et formations à venir dans votre agenda</p>
+  </div>
+  <div class="page-title-actions">
+    <a href="formations.html" class="btn btn-outline btn-sm">
+      <i class="fa-solid fa-graduation-cap" aria-hidden="true"></i>
+      <span data-i18n="planning_btn_atelier">Trouver un atelier</span>
+    </a>
+  </div>
+</div>
+
+<div class="card animate-in">
+  <div class="card-header">
+    <h2><i class="fa-solid fa-calendar-days" aria-hidden="true"></i> <span data-i18n="planning_events_title">Événements à venir</span></h2>
+    <div style="display:flex;gap:6px">
+      <span class="badge badge-green"><i class="fa-solid fa-circle-check"></i> <span data-i18n="planning_badge_inscrit">Inscrit</span></span>
+      <span class="badge badge-formation">Formation</span>
+      <span class="badge badge-atelier">Atelier</span>
+      <span class="badge badge-evenement">Événement</span>
+    </div>
+  </div>
+  <div class="card-body" id="planning-container"></div>
+</div>
+
+<script src="js/layout.js"></script>
+<script src="js/planning.js"></script>
+
+</body>
+</html>
