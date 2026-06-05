@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Modération | Espace Salariés</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=Montserrat:wght@400;500;600&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" crossorigin="anonymous"/>
+  <link rel="stylesheet" href="css/style.css"/>
+</head>
+<body>
+
+<div class="page-title-row animate-in">
+  <div>
+    <h1>
+      <div class="page-title-icon teal"><i class="fa-solid fa-shield-halved"></i></div>
+      <span data-i18n="mod_title">Modération des forums</span>
+    </h1>
+    <p class="page-title-sub" data-i18n="mod_subtitle">Gérez les signalements et les contenus communautaires</p>
+  </div>
+  <div class="page-title-actions">
+    <span class="badge badge-warning" style="font-size:13px;padding:8px 14px" id="badge-signalements" data-i18n="loading">
+      Chargement…
+    </span>
+  </div>
+</div>
+
+<div class="card animate-in">
+  <div class="card-header"><h2><i class="fa-solid fa-flag"></i> <span data-i18n="mod_signalements_title">Signalements en attente</span></h2></div>
+  <div class="card-body" style="display:flex;flex-direction:column;gap:0;padding:0" id="signalements-list">
+    <div style="text-align:center;padding:40px;color:var(--text-muted)">
+      <i class="fa-solid fa-spinner fa-spin" style="font-size:24px;color:var(--green-300)"></i>
+    </div>
+  </div>
+</div>
+
+<div class="card animate-in" style="margin-top:16px">
+  <div class="card-header"><h2><i class="fa-solid fa-comment-dots"></i> <span data-i18n="mod_messages_title">Derniers messages du forum</span></h2></div>
+  <div class="card-body" style="display:flex;flex-direction:column;gap:0;padding:0" id="messages-list"></div>
+</div>
+
+<script src="js/layout.js"></script>
+<script src="js/moderation.js"></script>
+</body>
+</html>

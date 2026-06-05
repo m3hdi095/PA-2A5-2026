@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Mon profil | Espace Salariés</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=Montserrat:wght@400;500;600&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" crossorigin="anonymous"/>
+  <link rel="stylesheet" href="css/style.css"/>
+</head>
+<body>
+
+<div class="page-title-row animate-in">
+  <div>
+    <h1><div class="page-title-icon teal"><i class="fa-solid fa-user"></i></div><span data-i18n="profil_title">Mon profil</span></h1>
+    <p class="page-title-sub" data-i18n="profil_subtitle">Gérez vos informations personnelles</p>
+  </div>
+</div>
+
+<div class="profil-layout animate-in">
+
+  <!-- Sidebar identité -->
+  <div class="card profil-sidebar">
+    <div style="text-align:center;padding:28px 20px">
+      <div class="user-avatar profil-avatar-large" style="margin:0 auto 14px" id="profil-avatar">S</div>
+      <div style="font-weight:700;font-size:1rem;color:var(--text)" id="profil-nom">Salarié</div>
+      <div style="font-size:12px;color:var(--text-muted);margin-top:4px" id="profil-poste">Collaborateur</div>
+    </div>
+    <div style="padding:0 20px 20px;display:flex;flex-direction:column;gap:8px">
+      <button class="btn btn-primary" style="width:100%;justify-content:center" onclick="document.getElementById('form-infos').requestSubmit()">
+        <i class="fa-solid fa-save"></i> <span data-i18n="btn_sauvegarder">Sauvegarder</span>
+      </button>
+      <button class="btn btn-danger btn-sm" style="width:100%;justify-content:center" onclick="clearToken();window.location.href='index.html'">
+        <i class="fa-solid fa-right-from-bracket"></i> <span data-i18n="nav_logout">Se déconnecter</span>
+      </button>
+    </div>
+  </div>
+
+  <div style="display:flex;flex-direction:column;gap:16px">
+
+    <!-- Informations personnelles -->
+    <div class="card animate-in">
+      <div class="card-header"><h2><i class="fa-solid fa-user"></i> <span data-i18n="profil_infos_title">Informations personnelles</span></h2></div>
+      <div class="card-body">
+        <form id="form-infos" novalidate style="display:flex;flex-direction:column;gap:14px">
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label" for="input-prenom" data-i18n="form_prenom">Prénom</label>
+              <input type="text" id="input-prenom" class="form-control" placeholder="Marie"/>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="input-nom" data-i18n="form_nom">Nom</label>
+              <input type="text" id="input-nom" class="form-control" placeholder="Dupont"/>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label" for="input-email" data-i18n="form_email">Email</label>
+              <input type="email" id="input-email" class="form-control" readonly
+                     style="background:var(--green-25);color:var(--text-muted)"/>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="input-tel" data-i18n="form_tel">Téléphone</label>
+              <input type="tel" id="input-tel" class="form-control" placeholder="06 00 00 00 00"/>
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="input-poste" data-i18n="form_poste">Poste / fonction</label>
+            <input type="text" id="input-poste" class="form-control" placeholder="Responsable formations"/>
+          </div>
+          <div class="form-actions">
+            <button type="submit" class="btn btn-primary">
+              <i class="fa-solid fa-check"></i> <span data-i18n="btn_save">Enregistrer</span>
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Sécurité -->
+    <div class="card animate-in">
+      <div class="card-header"><h2><i class="fa-solid fa-shield"></i> <span data-i18n="profil_securite_title">Sécurité</span></h2></div>
+      <div class="card-body">
+        <form id="form-pwd" novalidate style="display:flex;flex-direction:column;gap:14px">
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label" for="pwd-actuel" data-i18n="form_pwd_actuel">Mot de passe actuel</label>
+              <input type="password" id="pwd-actuel" class="form-control" placeholder="••••••••"/>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="pwd-nouveau" data-i18n="form_pwd_nouveau">Nouveau mot de passe</label>
+              <input type="password" id="pwd-nouveau" class="form-control" placeholder="Min. 8 caractères"/>
+            </div>
+          </div>
+          <div class="form-actions">
+            <button type="submit" class="btn btn-outline">
+              <i class="fa-solid fa-lock"></i> <span data-i18n="btn_change_pwd">Changer le mot de passe</span>
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Zone danger -->
+    <div class="card animate-in" style="border-color:var(--danger-bg)">
+      <div class="card-header" style="background:var(--danger-bg)">
+        <h2 style="color:var(--danger-text)">
+          <i class="fa-solid fa-triangle-exclamation"></i> <span data-i18n="profil_zone_critique">Zone critique</span>
+        </h2>
+      </div>
+      <div class="card-body" style="display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap">
+        <div>
+          <div style="font-family:Poppins,sans-serif;font-weight:700;color:var(--text);margin-bottom:3px" data-i18n="profil_desactiver_titre">Désactiver mon compte</div>
+          <div style="font-size:12.5px;color:var(--text-soft)" data-i18n="profil_desactiver_sub">Soft delete RGPD, données conservées 30 jours.</div>
+        </div>
+        <button class="btn btn-danger" onclick="demanderSuppression()">
+          <i class="fa-solid fa-trash"></i> <span data-i18n="btn_desactiver_compte">Désactiver le compte</span>
+        </button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script src="js/layout.js"></script>
+<script src="js/profil.js"></script>
+</body>
+</html>

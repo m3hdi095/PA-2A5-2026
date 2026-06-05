@@ -1,0 +1,152 @@
+// gestion des conseils
+
+const MOCK_CONSEILS_SAL = [
+  { id:1, titre:'Comment préparer une palette pour un projet mobilier', categorie:'technique', statut:'publie', date:'2026-04-15', likes:24, auteur:'Marie D.' },
+  { id:2, titre:'5 idées de projets upcycling pour débutants',          categorie:'projets',   statut:'publie', date:'2026-04-10', likes:67, auteur:'Sophie L.' },
+  { id:3, titre:'Teindre du tissu récupéré : techniques naturelles',    categorie:'materiaux', statut:'brouillon', date:'2026-04-01', likes:52, auteur:'Clara V.' },
+  { id:4, titre:'Quels matériaux éviter en upcycling alimentaire',      categorie:'materiaux', statut:'publie', date:'2026-04-12', likes:41, auteur:'Thomas R.' },
+  { id:5, titre:'Les outils indispensables pour un atelier',            categorie:'outils',   statut:'brouillon', date:'2026-04-08', likes:33, auteur:'Lucas M.' },
+];
+
+const CAT_COLORS = {
+  technique: { bg:'var(--green-50)',  txt:'var(--green-700)' },
+  projets:   { bg:'#e8f5ee',          txt:'#2e8b57' },
+  materiaux: { bg:'#fef3e2',          txt:'#e8a020' },
+  outils:    { bg:'#e8f0fe',          txt:'#3f51b5' },
+};
+
+let conseils = [];
+
+async function fetchConseils() {
+  try {
+    const res = await apiFetch('/salarie/conseils');
+    if (res?.ok) {
+      const data = await res.json();
+      if (Array.isArray(data) && data.length) { conseils = data; renderTable(); return; }
+    }
+  } catch {}
+  conseils = [...MOCK_CONSEILS_SAL];
+  renderTable();
+}
+
+function renderTable() {
+  const tbody = document.getElementById('conseils-tbody');
+  if (!tbody) return;
+  if (!conseils.length) {
+    tbody.innerHTML = `<tr><td colspan="6"><div style="text-align:center;padding:40px;color:var(--text-muted)"><i class="fa-solid fa-lightbulb" style="font-size:28px;color:var(--green-200);display:block;margin-bottom:10px"></i>${t('sal_conseils_empty')}</div></td></tr>`;
+    return;
+  }
+  tbody.innerHTML = conseils.map(c => {
+    const cc = CAT_COLORS[c.categorie] || CAT_COLORS.technique;
+    const statBadge = c.statut === 'publie'
+      ? `<span class="badge badge-success">${t('sal_badge_publie')}</span>`
+      : `<span class="badge badge-warning">${t('sal_badge_brouillon')}</span>`;
+    return `<tr>
+      <td style="font-weight:600">${esc(c.titre)}</td>
+      <td><span class="badge" style="background:${cc.bg};color:${cc.txt}">${esc(c.categorie)}</span></td>
+      <td>${new Date(c.date).toLocaleDateString(_lang === 'en' ? 'en-GB' : 'fr-FR',{day:'numeric',month:'short',year:'numeric'})}</td>
+      <td><i class="fa-regular fa-heart" style="color:var(--danger)"></i> ${c.likes || 0}</td>
+      <td>${statBadge}</td>
+      <td>
+        <div class="cell-actions">
+          <button class="btn btn-outline btn-sm" onclick="ouvrirModalConseil(${c.id})" title="Modifier">
+            <i class="fa-solid fa-pen"></i>
+          </button>
+          <button class="btn btn-ghost btn-sm" onclick="toggleStatut(${c.id})" title="${c.statut==='publie'?'Dépublier':'Publier'}" style="color:var(--green-700)">
+            <i class="fa-solid ${c.statut==='publie'?'fa-eye-slash':'fa-eye'}"></i>
+          </button>
+          <button class="btn btn-ghost btn-sm" onclick="supprimerConseil(${c.id})" title="Supprimer" style="color:var(--danger)">
+            <i class="fa-solid fa-trash"></i>
+          </button>
+        </div>
+      </td>
+    </tr>`;
+  }).join('');
+
+  const badge = document.getElementById('badge-count');
+  if (badge) badge.textContent = conseils.filter(c => c.statut === 'publie').length + ' publiés';
+}
+
+function ouvrirModalConseil(id) {
+  const modal = document.getElementById('modal-conseil');
+  const form  = document.getElementById('form-conseil');
+  form.reset();
+  document.getElementById('c-id').value = '';
+
+  if (id) {
+    const c = conseils.find(x => x.id === id);
+    if (!c) return;
+    document.getElementById('modal-titre-label').innerHTML = '<i class="fa-solid fa-pen"></i> Modifier le conseil';
+    document.getElementById('c-id').value        = c.id;
+    document.getElementById('c-titre').value     = c.titre;
+    document.getElementById('c-categorie').value = c.categorie;
+    document.getElementById('c-statut').value    = c.statut;
+    document.getElementById('c-contenu').value   = c.contenu || '';
+  } else {
+    document.getElementById('modal-titre-label').innerHTML = '<i class="fa-solid fa-plus"></i> Nouveau conseil';
+  }
+  modal.classList.add('open');
+}
+
+function fermerModalConseil() {
+  document.getElementById('modal-conseil').classList.remove('open');
+}
+
+window.ouvrirModalConseil = ouvrirModalConseil;
+window.toggleStatut = (id) => {
+  const c = conseils.find(x => x.id === id);
+  if (!c) return;
+  c.statut = c.statut === 'publie' ? 'brouillon' : 'publie';
+  renderTable();
+  showToast(c.statut === 'publie' ? t('sal_toast_conseil_publie') : t('sal_toast_conseil_depublie'), 'success');
+};
+window.supprimerConseil = (id) => {
+  if (!confirm(t('confirm_action'))) return;
+  conseils = conseils.filter(c => c.id !== id);
+  renderTable();
+  showToast(t('sal_toast_conseil_deleted'), 'warning');
+};
+
+function esc(s) { return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+document.addEventListener('DOMContentLoaded', async () => {
+  await initLayout('conseils');
+  fetchConseils();
+
+  document.getElementById('btn-nouveau')?.addEventListener('click', () => ouvrirModalConseil(null));
+  document.getElementById('modal-close')?.addEventListener('click', fermerModalConseil);
+  document.getElementById('modal-cancel')?.addEventListener('click', fermerModalConseil);
+  document.getElementById('modal-conseil')?.addEventListener('click', e => {
+    if (e.target === document.getElementById('modal-conseil')) fermerModalConseil();
+  });
+
+  document.getElementById('form-conseil')?.addEventListener('submit', async e => {
+    e.preventDefault();
+    const id   = document.getElementById('c-id').value;
+    const data = {
+      titre:     document.getElementById('c-titre').value.trim(),
+      categorie: document.getElementById('c-categorie').value,
+      statut:    document.getElementById('c-statut').value,
+      contenu:   document.getElementById('c-contenu').value.trim(),
+    };
+    if (!data.titre) { showToast('Le titre est obligatoire', 'warning'); return; }
+
+    try {
+      const res = await apiFetch(id ? `/salarie/conseils/${id}` : '/salarie/conseils', {
+        method: id ? 'PUT' : 'POST',
+        body:   JSON.stringify(data),
+      });
+      if (res?.ok) { showToast(id ? 'Conseil mis à jour' : 'Conseil créé', 'success'); fermerModalConseil(); fetchConseils(); return; }
+    } catch {}
+
+    if (id) {
+      const idx = conseils.findIndex(c => c.id == id);
+      if (idx !== -1) conseils[idx] = { ...conseils[idx], ...data };
+    } else {
+      conseils.unshift({ id: Date.now(), likes: 0, date: new Date().toISOString().slice(0,10), ...data });
+    }
+    renderTable();
+    fermerModalConseil();
+    showToast(id ? 'Mis à jour (local)' : 'Conseil créé (local)', 'success');
+  });
+});

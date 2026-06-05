@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Gestion des conseils | Espace Salariés</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=Montserrat:wght@400;500;600&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" crossorigin="anonymous"/>
+  <link rel="stylesheet" href="css/style.css"/>
+</head>
+<body>
+
+<div class="page-title-row animate-in">
+  <div>
+    <h1>
+      <div class="page-title-icon teal"><i class="fa-solid fa-lightbulb"></i></div>
+      <span data-i18n="conseils_title">Gestion des conseils</span>
+    </h1>
+    <p class="page-title-sub" data-i18n="conseils_subtitle">Publiez et gérez les conseils communautaires</p>
+  </div>
+  <div class="page-title-actions">
+    <button class="btn btn-primary" id="btn-nouveau">
+      <i class="fa-solid fa-plus"></i>
+      <span data-i18n="conseil_btn_new">Nouveau conseil</span>
+    </button>
+  </div>
+</div>
+
+<div class="card animate-in">
+  <div class="card-header">
+    <h2><i class="fa-solid fa-list"></i> <span data-i18n="conseils_published_title">Conseils publiés</span></h2>
+    <span class="badge badge-success" id="badge-count">0</span>
+  </div>
+  <div style="overflow-x:auto">
+    <table class="table">
+      <thead>
+        <tr>
+          <th data-i18n="conseils_th_titre">Titre</th>
+          <th data-i18n="conseils_th_categorie">Catégorie</th>
+          <th data-i18n="conseils_th_date">Date</th>
+          <th data-i18n="conseils_th_likes">Likes</th>
+          <th data-i18n="conseils_th_statut">Statut</th>
+          <th data-i18n="conseils_th_actions">Actions</th>
+        </tr>
+      </thead>
+      <tbody id="conseils-tbody"></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Modal création / modification -->
+<div class="modal-overlay" id="modal-conseil">
+  <div class="modal-box">
+    <div class="modal-header">
+      <div class="modal-title" id="modal-titre-label">
+        <i class="fa-solid fa-lightbulb"></i>
+        <span data-i18n="conseil_btn_new">Nouveau conseil</span>
+      </div>
+      <button class="modal-close" id="modal-close">&times;</button>
+    </div>
+    <div class="modal-body">
+      <form id="form-conseil">
+        <input type="hidden" id="c-id"/>
+        <div class="form-group">
+          <label class="form-label"><span data-i18n="form_titre">Titre</span> <span class="form-required">*</span></label>
+          <input type="text" id="c-titre" class="form-control" placeholder="Ex : Comment préparer une palette..." required/>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label" data-i18n="form_categorie">Catégorie</label>
+            <select id="c-categorie" class="form-control">
+              <option value="technique" data-i18n="opt_technique">Technique</option>
+              <option value="materiaux" data-i18n="opt_materiaux">Matériaux</option>
+              <option value="projets" data-i18n="opt_projets">Projets</option>
+              <option value="outils" data-i18n="opt_outils">Outils</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label" data-i18n="form_statut">Statut</label>
+            <select id="c-statut" class="form-control">
+              <option value="brouillon" data-i18n="opt_brouillon">Brouillon</option>
+              <option value="publie" data-i18n="opt_publie">Publié</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label" data-i18n="form_contenu">Contenu</label>
+          <textarea id="c-contenu" class="form-control" rows="4" placeholder="Rédigez votre conseil..."></textarea>
+        </div>
+        <div class="form-actions">
+          <button type="button" class="btn btn-outline" id="modal-cancel" data-i18n="btn_cancel">Annuler</button>
+          <button type="submit" class="btn btn-primary">
+            <i class="fa-solid fa-check"></i>
+            <span data-i18n="btn_save">Enregistrer</span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script src="js/layout.js"></script>
+<script src="js/conseils.js"></script>
+</body>
+</html>

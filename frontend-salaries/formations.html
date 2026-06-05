@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Gestion des formations | Espace Salariés</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=Montserrat:wght@400;500;600&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" crossorigin="anonymous"/>
+  <link rel="stylesheet" href="css/style.css"/>
+</head>
+<body>
+
+<div class="page-title-row animate-in">
+  <div>
+    <h1>
+      <div class="page-title-icon teal"><i class="fa-solid fa-graduation-cap"></i></div>
+      <span data-i18n="formations_title">Gestion des formations et événements</span>
+    </h1>
+    <p class="page-title-sub" data-i18n="formations_subtitle">Créez et gérez les formations proposées aux particuliers</p>
+  </div>
+  <div class="page-title-actions">
+    <button class="btn btn-primary" id="btn-nouvelle">
+      <i class="fa-solid fa-plus"></i>
+      <span data-i18n="formation_btn_new">Nouvelle formation</span>
+    </button>
+  </div>
+</div>
+
+<div class="card animate-in">
+  <div class="card-header">
+    <h2><i class="fa-solid fa-list"></i> <span data-i18n="formations_current">Formations en cours</span></h2>
+    <span class="badge badge-success" id="badge-count">0 actives</span>
+  </div>
+  <div style="overflow-x:auto">
+    <table class="table">
+      <thead>
+        <tr>
+          <th data-i18n="formations_th_titre">Titre</th>
+          <th data-i18n="formations_th_type">Type</th>
+          <th data-i18n="formations_th_date">Date</th>
+          <th data-i18n="formations_th_lieu">Lieu</th>
+          <th data-i18n="formations_th_places">Places</th>
+          <th data-i18n="formations_th_statut">Statut</th>
+          <th data-i18n="formations_th_actions">Actions</th>
+        </tr>
+      </thead>
+      <tbody id="formations-tbody"></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Modal création / modification -->
+<div class="modal-overlay" id="modal-formation">
+  <div class="modal-box">
+    <div class="modal-header">
+      <div class="modal-title" id="modal-titre-label">
+        <i class="fa-solid fa-graduation-cap"></i>
+        <span data-i18n="formation_btn_new">Nouvelle formation</span>
+      </div>
+      <button class="modal-close" id="modal-close">&times;</button>
+    </div>
+    <div class="modal-body">
+      <form id="form-formation">
+        <input type="hidden" id="f-id"/>
+        <div class="form-group">
+          <label class="form-label"><span data-i18n="form_titre">Titre</span> <span class="form-required">*</span></label>
+          <input type="text" id="f-titre" class="form-control" placeholder="Ex : Atelier mosaïque verre" required/>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label"><span data-i18n="formations_th_type">Type</span> <span class="form-required">*</span></label>
+            <select id="f-type" class="form-control">
+              <option value="atelier" data-i18n="opt_atelier">Atelier</option>
+              <option value="formation" data-i18n="opt_formation">Formation</option>
+              <option value="evenement" data-i18n="opt_evenement">Événement</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label" data-i18n="form_statut">Statut</label>
+            <select id="f-statut" class="form-control">
+              <option value="ouvert" data-i18n="opt_ouvert">Ouvert</option>
+              <option value="complet" data-i18n="opt_complet">Complet</option>
+              <option value="annule" data-i18n="opt_annule">Annulé</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label"><span data-i18n="form_date">Date</span> <span class="form-required">*</span></label>
+            <input type="date" id="f-date" class="form-control" required/>
+          </div>
+          <div class="form-group">
+            <label class="form-label" data-i18n="form_nb_places">Nb de places</label>
+            <input type="number" id="f-places" class="form-control" min="1" placeholder="12"/>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label" data-i18n="form_lieu">Lieu</label>
+          <input type="text" id="f-lieu" class="form-control" placeholder="Paris 11e, Montreuil..."/>
+        </div>
+        <div class="form-group">
+          <label class="form-label" data-i18n="form_description">Description</label>
+          <textarea id="f-description" class="form-control" rows="3" placeholder="Décrivez le contenu de la formation..."></textarea>
+        </div>
+        <div class="form-actions">
+          <button type="button" class="btn btn-outline" id="modal-cancel" data-i18n="btn_cancel">Annuler</button>
+          <button type="submit" class="btn btn-primary">
+            <i class="fa-solid fa-check"></i>
+            <span data-i18n="btn_save">Enregistrer</span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script src="js/layout.js"></script>
+<script src="js/formations.js"></script>
+</body>
+</html>

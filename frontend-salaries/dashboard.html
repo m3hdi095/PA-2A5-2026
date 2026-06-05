@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Tableau de bord | Espace Salariés</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=Montserrat:wght@400;500;600&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" crossorigin="anonymous"/>
+  <link rel="stylesheet" href="css/style.css"/>
+</head>
+<body>
+
+<!-- Bannière de bienvenue -->
+<div style="position:relative;border-radius:16px;overflow:hidden;margin-bottom:20px;min-height:160px;display:flex;align-items:flex-end;animation:cardIn .5s var(--ease,cubic-bezier(.22,1,.36,1)) both">
+  <img src="../brand_assets/image_acceuil_maybe.jpeg" alt="" aria-hidden="true"
+       style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center 30%">
+  <div style="position:absolute;inset:0;background:linear-gradient(120deg,rgba(45,74,62,.92) 0%,rgba(45,102,79,.72) 100%)"></div>
+  <div style="position:relative;z-index:1;padding:24px 28px;width:100%;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px">
+    <div>
+      <p style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:rgba(178,222,195,.8);margin-bottom:4px" data-i18n="sal_banner_label">Espace Salariés · Again²</p>
+      <h2 style="font-family:'Poppins',sans-serif;font-weight:800;font-size:1.4rem;color:#fff;margin:0;letter-spacing:-.01em" id="banner-name" data-i18n="nav_dashboard">Tableau de bord</h2>
+    </div>
+    <a href="formations.html" style="display:inline-flex;align-items:center;gap:8px;background:rgba(255,255,255,.15);border:1.5px solid rgba(255,255,255,.35);color:#fff;font-weight:700;font-size:13px;padding:10px 20px;border-radius:8px;text-decoration:none;backdrop-filter:blur(8px);transition:background .2s" onmouseover="this.style.background='rgba(255,255,255,.25)'" onmouseout="this.style.background='rgba(255,255,255,.15)'">
+      <i class="fa-solid fa-graduation-cap" style="font-size:12px"></i>
+      <span data-i18n="sal_btn_manage">Gérer les formations</span>
+    </a>
+  </div>
+</div>
+
+<!-- Stats -->
+<div class="stats-grid animate-in">
+  <div class="stat-card" style="--accent:var(--green-700);--icon-bg:var(--green-50)">
+    <div class="stat-icon-wrap"><i class="fa-solid fa-graduation-cap"></i></div>
+    <div class="stat-info">
+      <div class="stat-value">12</div>
+      <div class="stat-label" data-i18n="sal_stat_formations">Formations actives</div>
+    </div>
+  </div>
+  <div class="stat-card" style="--accent:#e8a020;--icon-bg:#fef3e2">
+    <div class="stat-icon-wrap" style="background:#fef3e2;color:#e8a020"><i class="fa-solid fa-shield-halved"></i></div>
+    <div class="stat-info">
+      <div class="stat-value" id="stat-moderation">3</div>
+      <div class="stat-label" data-i18n="sal_stat_moderation">Messages à modérer</div>
+    </div>
+  </div>
+  <div class="stat-card" style="--accent:#2e8b57;--icon-bg:#d4eee3">
+    <div class="stat-icon-wrap" style="background:#d4eee3;color:#2e8b57"><i class="fa-solid fa-lightbulb"></i></div>
+    <div class="stat-info">
+      <div class="stat-value">28</div>
+      <div class="stat-label" data-i18n="sal_stat_conseils">Conseils publiés</div>
+    </div>
+  </div>
+  <div class="stat-card" style="--accent:#5C7C6E;--icon-bg:var(--green-50)">
+    <div class="stat-icon-wrap"><i class="fa-solid fa-users"></i></div>
+    <div class="stat-info">
+      <div class="stat-value">340</div>
+      <div class="stat-label" data-i18n="sal_stat_participants">Participants ce mois</div>
+    </div>
+  </div>
+</div>
+
+<!-- Actions rapides -->
+<div class="card animate-in">
+  <div class="card-header">
+    <h2><i class="fa-solid fa-bolt"></i> <span data-i18n="sal_quick_title">Actions rapides</span></h2>
+  </div>
+  <div class="card-body" style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px">
+    <a href="formations.html" class="btn btn-outline" style="flex-direction:column;gap:6px;padding:16px;text-align:center;height:auto;justify-content:center">
+      <i class="fa-solid fa-graduation-cap" style="font-size:18px;color:var(--green-700)"></i>
+      <span style="font-size:12px" data-i18n="sal_quick_formations">Formations</span>
+    </a>
+    <a href="planning.html" class="btn btn-outline" style="flex-direction:column;gap:6px;padding:16px;text-align:center;height:auto;justify-content:center">
+      <i class="fa-solid fa-calendar-days" style="font-size:18px;color:var(--green-700)"></i>
+      <span style="font-size:12px" data-i18n="sal_quick_planning">Mon planning</span>
+    </a>
+    <a href="conseils.html" class="btn btn-outline" style="flex-direction:column;gap:6px;padding:16px;text-align:center;height:auto;justify-content:center">
+      <i class="fa-solid fa-lightbulb" style="font-size:18px;color:var(--green-700)"></i>
+      <span style="font-size:12px" data-i18n="sal_quick_conseils">Conseils</span>
+    </a>
+    <a href="moderation.html" class="btn btn-outline" style="flex-direction:column;gap:6px;padding:16px;text-align:center;height:auto;justify-content:center">
+      <i class="fa-solid fa-shield-halved" style="font-size:18px;color:var(--green-700)"></i>
+      <span style="font-size:12px" data-i18n="sal_quick_moderation">Modération</span>
+    </a>
+  </div>
+</div>
+
+<script src="js/layout.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', async () => {
+  const user = await initLayout('dashboard');
+  if (!user) return;
+  const prenom = user.prenom || user.nom || 'vous';
+  const el = document.getElementById('banner-name');
+  if (el) el.textContent = `Bonjour, ${prenom} !`;
+});
+</script>
+
+</body>
+</html>

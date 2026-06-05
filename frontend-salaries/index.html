@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>UpcycleConnect | Espace Salariés</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=Montserrat:wght@400;500;600&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" crossorigin="anonymous"/>
+  <link rel="stylesheet" href="css/style.css"/>
+</head>
+<body>
+
+<div class="login-page">
+
+  <!-- Panneau gauche -->
+  <div class="login-hero">
+    <img src="../brand_assets/upcycleconnect_logo_font_blanc.png"
+         alt="UpcycleConnect" class="login-hero-logo"
+         onerror="this.style.display='none'"/>
+    <h1 class="login-hero-title" data-i18n="sal_login_hero_title">Gérez, animez et inspirez la communauté</h1>
+    <p class="login-hero-subtitle" data-i18n="sal_login_hero_subtitle">
+      Espace réservé aux collaborateurs Again² pour créer des formations,
+      publier des conseils et modérer les échanges de la plateforme.
+    </p>
+    <div class="login-features">
+      <div class="login-feature">
+        <i class="fa-solid fa-graduation-cap" aria-hidden="true"></i>
+        <span data-i18n="sal_login_feat_formations">Créez et gérez formations & ateliers</span>
+      </div>
+      <div class="login-feature">
+        <i class="fa-solid fa-lightbulb" aria-hidden="true"></i>
+        <span data-i18n="sal_login_feat_conseils">Publiez des conseils upcycling</span>
+      </div>
+      <div class="login-feature">
+        <i class="fa-solid fa-shield-halved" aria-hidden="true"></i>
+        <span data-i18n="sal_login_feat_moderation">Modérez les forums communautaires</span>
+      </div>
+      <div class="login-feature">
+        <i class="fa-solid fa-calendar-days" aria-hidden="true"></i>
+        <span data-i18n="sal_login_feat_planning">Gérez votre planning d'interventions</span>
+      </div>
+    </div>
+    <div class="login-stats">
+      <div>
+        <div class="login-stat-num">38</div>
+        <div class="login-stat-lbl" data-i18n="sal_stat_formations">Formations actives</div>
+      </div>
+      <div>
+        <div class="login-stat-num">1 400+</div>
+        <div class="login-stat-lbl" data-i18n="sal_login_stat_participants">Participants</div>
+      </div>
+      <div>
+        <div class="login-stat-num">240</div>
+        <div class="login-stat-lbl" data-i18n="sal_stat_conseils">Conseils publiés</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Panneau droit - formulaire -->
+  <div class="login-form-section">
+    <div class="login-form-wrap">
+
+      <div id="section-login">
+        <div class="login-form-title" data-i18n="sal_login_title">Connexion Again²</div>
+        <p class="login-form-sub" data-i18n="sal_login_subtitle">Accédez à votre espace salarié</p>
+        <div id="auth-error" class="login-error"></div>
+        <form id="form-login" novalidate>
+          <div class="login-form-group">
+            <label for="login-email" data-i18n="sal_auth_email">Adresse e-mail professionnelle</label>
+            <input type="email" id="login-email" autocomplete="email"
+                   data-i18n-placeholder="sal_auth_email_placeholder"
+                   placeholder="prenom@again2.fr" required/>
+          </div>
+          <div class="login-form-group">
+            <label for="login-password" data-i18n="auth_password">Mot de passe</label>
+            <input type="password" id="login-password" autocomplete="current-password" placeholder="••••••••" required/>
+          </div>
+          <button type="submit" class="login-btn">
+            <i class="fa-solid fa-right-to-bracket" aria-hidden="true"></i>
+            <span data-i18n="auth_btn_login">Se connecter</span>
+          </button>
+        </form>
+        <div class="login-switch">
+          <span data-i18n="auth_no_account_text">Pas encore de compte ?</span>
+          <button id="to-register" data-i18n="auth_btn_register">Créer un compte</button>
+        </div>
+        <div style="margin-top:16px;padding:12px;background:var(--green-25);border-radius:8px;font-size:12px;color:var(--text-muted);text-align:center">
+          <strong data-i18n="demo_mode_label">Mode démo :</strong>
+          <span data-i18n="demo_mode_text">n'importe quel e-mail + mot de passe</span>
+        </div>
+      </div>
+
+      <div id="section-register" style="display:none">
+        <div class="login-form-title" data-i18n="auth_btn_register">Créer un compte</div>
+        <p class="login-form-sub" data-i18n="sal_register_subtitle">Rejoignez l'équipe Again²</p>
+        <form id="form-register" novalidate>
+          <div class="form-row-2">
+            <div class="login-form-group">
+              <label for="reg-prenom" data-i18n="form_prenom">Prénom</label>
+              <input type="text" id="reg-prenom" placeholder="Marie" required/>
+            </div>
+            <div class="login-form-group">
+              <label for="reg-nom" data-i18n="form_nom">Nom</label>
+              <input type="text" id="reg-nom" placeholder="Dupont" required/>
+            </div>
+          </div>
+          <div class="login-form-group">
+            <label for="reg-email" data-i18n="sal_auth_email_pro">E-mail professionnel</label>
+            <input type="email" id="reg-email" placeholder="marie@again2.fr" required/>
+          </div>
+          <div class="login-form-group">
+            <label for="reg-password" data-i18n="auth_password">Mot de passe</label>
+            <input type="password" id="reg-password" placeholder="Min. 8 caractères" required/>
+          </div>
+          <button type="submit" class="login-btn">
+            <i class="fa-solid fa-user-plus" aria-hidden="true"></i>
+            <span data-i18n="auth_btn_create_account">Créer mon compte</span>
+          </button>
+        </form>
+        <div class="login-switch">
+          <span data-i18n="auth_has_account_text">Déjà un compte ?</span>
+          <button id="to-login" data-i18n="auth_btn_login">Se connecter</button>
+        </div>
+      </div>
+
+      <div class="login-footer-again">
+        <span>Un projet</span>
+        <img src="../brand_assets/logo_again_transparent.png" alt="again²" onerror="this.style.display='none'"/>
+      </div>
+
+    </div>
+  </div>
+
+</div>
+
+<script src="js/layout.js"></script>
+<script src="js/auth.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', () => chargerTraductions().then(applyTranslations));
+</script>
+
+</body>
+</html>
