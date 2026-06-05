@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Utilisateurs — UpcycleConnect Admin</title>
+  <title>Utilisateurs | UpcycleConnect Admin</title>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&family=Montserrat:wght@300;400;500;600;700&family=Roboto:wght@300;400;500&display=swap" rel="stylesheet"/>
   <link rel="stylesheet" href="css/style.css"/>
 </head>
@@ -13,16 +13,20 @@
   <div>
     <h1>
       <div class="page-title-icon green">
-        <svg viewBox="0 0 24 24"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg>
+        <i class="fa-solid fa-users" aria-hidden="true"></i>
       </div>
-      Utilisateurs
+      <span data-i18n="nav_users">Utilisateurs</span>
     </h1>
-    <p class="page-title-sub">Gérer les comptes particuliers, professionnels et salariés</p>
+    <p class="page-title-sub" data-i18n="users_page_subtitle">Gérer les comptes particuliers, professionnels et salariés</p>
   </div>
   <div class="page-title-actions">
+    <a href="validations.html" class="btn btn-outline btn-sm">
+      <i class="fa-solid fa-circle-check" aria-hidden="true"></i>
+      <span data-i18n="btn_validations">Validations</span>
+    </a>
     <button class="btn btn-primary" id="btnAdd">
-      <svg viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
-      Ajouter
+      <i class="fa-solid fa-plus" aria-hidden="true"></i>
+      <span data-i18n="btn_add">Ajouter</span>
     </button>
   </div>
 </div>
@@ -30,25 +34,25 @@
 <!-- FILTERS -->
 <div class="filters-bar">
   <div class="filter-wrap">
-    <svg viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
-    <input type="text" class="filter-input" id="searchInput" placeholder="Rechercher nom ou email..."/>
+    <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
+    <input type="text" class="filter-input" id="searchInput" data-i18n-placeholder="users_search" placeholder="Rechercher nom ou email..."/>
   </div>
   <select class="filter-select" id="roleFilter">
-    <option value="">Tous les rôles</option>
-    <option value="particulier">Particulier</option>
-    <option value="professionnel">Professionnel</option>
-    <option value="salarie">Salarié</option>
-    <option value="admin">Admin</option>
+    <option value="" data-i18n="user_role_all">Tous les rôles</option>
+    <option value="particulier" data-i18n="users_role_particulier">Particulier</option>
+    <option value="professionnel" data-i18n="users_role_professionnel">Professionnel</option>
+    <option value="salarie" data-i18n="users_role_salarie">Salarié</option>
+    <option value="admin" data-i18n="users_role_admin">Admin</option>
   </select>
   <select class="filter-select" id="statusFilter">
-    <option value="">Tous les statuts</option>
-    <option value="actif">Actif</option>
-    <option value="inactif">Inactif</option>
-    <option value="suspendu">Suspendu</option>
+    <option value="" data-i18n="users_status_all">Tous les statuts</option>
+    <option value="actif" data-i18n="user_actif">Actif</option>
+    <option value="inactif" data-i18n="users_status_inactif">Inactif</option>
+    <option value="suspendu" data-i18n="user_suspendu">Suspendu</option>
   </select>
   <button class="btn btn-outline btn-sm" id="exportBtn">
-    <svg viewBox="0 0 24 24"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>
-    Exporter
+    <i class="fa-solid fa-download" aria-hidden="true"></i>
+    <span data-i18n="btn_export">Exporter</span>
   </button>
 </div>
 
@@ -58,17 +62,17 @@
     <table>
       <thead>
         <tr>
-          <th>#</th>
-          <th>Utilisateur</th>
-          <th>Rôle</th>
-          <th>Statut</th>
-          <th>Score UC</th>
-          <th>Inscrit le</th>
-          <th style="text-align:right">Actions</th>
+          <th data-i18n="users_th_id">#</th>
+          <th data-i18n="users_th_user">Utilisateur</th>
+          <th data-i18n="users_th_role">Rôle</th>
+          <th data-i18n="users_th_status">Statut</th>
+          <th data-i18n="users_th_score">Score UC</th>
+          <th data-i18n="users_th_date">Inscrit le</th>
+          <th style="text-align:right" data-i18n="users_th_actions">Actions</th>
         </tr>
       </thead>
       <tbody id="usersBody">
-        <tr><td colspan="7" style="text-align:center;padding:40px;color:var(--neutral-300)">Chargement...</td></tr>
+        <tr><td colspan="7" style="text-align:center;padding:40px;color:var(--neutral-300)" data-i18n="loading">Chargement...</td></tr>
       </tbody>
     </table>
   </div>
@@ -82,8 +86,8 @@
   <div class="modal-box">
     <div class="modal-header">
       <div class="modal-title" id="modalTitle">
-        <svg viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
-        Ajouter un utilisateur
+        <i class="fa-solid fa-user" aria-hidden="true"></i>
+        <span data-i18n="modal_add_user">Ajouter un utilisateur</span>
       </div>
       <button class="modal-close" id="modalClose">&times;</button>
     </div>
@@ -92,52 +96,52 @@
         <input type="hidden" id="userId"/>
         <div class="form-row">
           <div class="form-group">
-            <label class="form-label">Nom complet <span class="form-required">*</span></label>
+            <label class="form-label"><span data-i18n="form_nom_complet">Nom complet</span> <span class="form-required">*</span></label>
             <input type="text" id="nom" class="form-control" placeholder="Jean Dupont" required/>
           </div>
           <div class="form-group">
-            <label class="form-label">Email <span class="form-required">*</span></label>
+            <label class="form-label"><span data-i18n="form_email">Email</span> <span class="form-required">*</span></label>
             <input type="email" id="email" class="form-control" placeholder="jean@mail.fr" required/>
           </div>
         </div>
         <div class="form-row">
           <div class="form-group">
-            <label class="form-label">Rôle <span class="form-required">*</span></label>
+            <label class="form-label"><span data-i18n="form_role">Rôle</span> <span class="form-required">*</span></label>
             <select id="role" class="form-control">
-              <option value="particulier">Particulier</option>
-              <option value="professionnel">Professionnel</option>
-              <option value="salarie">Salarié</option>
-              <option value="admin">Admin</option>
+              <option value="particulier" data-i18n="users_role_particulier">Particulier</option>
+              <option value="professionnel" data-i18n="users_role_professionnel">Professionnel</option>
+              <option value="salarie" data-i18n="users_role_salarie">Salarié</option>
+              <option value="admin" data-i18n="users_role_admin">Admin</option>
             </select>
           </div>
           <div class="form-group">
-            <label class="form-label">Statut</label>
+            <label class="form-label" data-i18n="form_statut">Statut</label>
             <select id="statut" class="form-control">
-              <option value="actif">Actif</option>
-              <option value="inactif">Inactif</option>
-              <option value="suspendu">Suspendu</option>
+              <option value="actif" data-i18n="user_actif">Actif</option>
+              <option value="inactif" data-i18n="users_status_inactif">Inactif</option>
+              <option value="suspendu" data-i18n="user_suspendu">Suspendu</option>
             </select>
           </div>
         </div>
         <div class="form-row">
           <div class="form-group">
-            <label class="form-label">Téléphone</label>
+            <label class="form-label" data-i18n="form_telephone">Téléphone</label>
             <input type="tel" id="telephone" class="form-control" placeholder="06 00 00 00 00"/>
           </div>
           <div class="form-group" id="passGroup">
-            <label class="form-label">Mot de passe <span class="form-required">*</span></label>
+            <label class="form-label"><span data-i18n="form_password">Mot de passe</span> <span class="form-required">*</span></label>
             <input type="password" id="password" class="form-control" placeholder="••••••••"/>
           </div>
         </div>
         <div class="form-group">
-          <label class="form-label">Adresse</label>
+          <label class="form-label" data-i18n="form_adresse">Adresse</label>
           <input type="text" id="adresse" class="form-control" placeholder="1 rue de la Paix, Paris"/>
         </div>
         <div class="form-actions">
-          <button type="button" class="btn btn-outline" id="cancelBtn">Annuler</button>
+          <button type="button" class="btn btn-outline" id="cancelBtn" data-i18n="btn_cancel">Annuler</button>
           <button type="submit" class="btn btn-primary" id="submitBtn">
-            <svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
-            Enregistrer
+            <i class="fa-solid fa-check" aria-hidden="true"></i>
+            <span data-i18n="btn_save">Enregistrer</span>
           </button>
         </div>
       </form>
@@ -147,5 +151,6 @@
 
 <script src="js/layout.js" data-page="users"></script>
 <script src="js/users.js"></script>
+
 </body>
 </html>

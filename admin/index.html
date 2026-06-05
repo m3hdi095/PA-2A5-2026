@@ -1,31 +1,122 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Connexion Admin - UpcycleConnect</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <link rel="stylesheet" href="css/style.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Connexion | UpcycleConnect Admin</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;700;800&family=Montserrat:wght@400;500;600;700&family=Roboto:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
-    <div class="login-wrapper">
-        <div class="login-card">
-            <img src="assets/logo.png" alt="Again²" class="logo">
-            <h2><i class="fas fa-lock"></i> Espace Administrateur</h2>
-            <form id="loginForm">
-                <div class="form-group">
-                    <label for="email"><i class="fas fa-envelope"></i> Email</label>
-                    <input type="email" id="email" class="form-control" placeholder="admin@upcycleconnect.com" required>
-                </div>
-                <div class="form-group">
-                    <label for="password"><i class="fas fa-key"></i> Mot de passe</label>
-                    <input type="password" id="password" class="form-control" placeholder="••••••••" required>
-                </div>
-                <button type="submit" class="btn btn-primary"><i class="fas fa-sign-in-alt"></i> Se connecter</button>
-            </form>
-            <div id="error-message" class="error-message"></div>
-        </div>
+
+<div class="login-page">
+
+  <!-- Cote visuel -->
+  <div class="login-visual">
+    <div class="visual-brand">
+      <img
+        src="../brand_assets/upcycleconnect_logo_font_blanc.png"
+        alt="UpcycleConnect"
+        class="visual-brand-logo"
+        onerror="this.style.display='none'"
+      >
     </div>
-    <script src="js/auth.js"></script>
+    <div class="visual-tagline">
+      <h2 data-i18n="login_tagline">Donner une seconde vie a vos objets</h2>
+      <p data-i18n="login_description">
+        UpcycleConnect connecte les particuliers, les artisans et les formateurs
+        pour transformer les dechets en ressources et accelerer l'economie circulaire.
+      </p>
+    </div>
+    <div class="visual-stats">
+      <div class="vstat">
+        <strong id="vs-users">1 250+</strong>
+        <span data-i18n="login_stat_membres">Membres actifs</span>
+      </div>
+      <div class="vstat">
+        <strong id="vs-annonces">342</strong>
+        <span data-i18n="login_stat_annonces">Annonces</span>
+      </div>
+      <div class="vstat">
+        <strong id="vs-conteneurs">87</strong>
+        <span data-i18n="login_stat_conteneurs">Box collectees</span>
+      </div>
+    </div>
+
+    <div class="visual-security">
+      <i class="fa-solid fa-lock" aria-hidden="true"></i>
+      <span data-i18n="login_security_note">Connexion chiffrée. Accès réservé aux administrateurs.</span>
+    </div>
+  </div>
+
+  <!-- Cote formulaire -->
+  <div class="login-form-side">
+    <div class="login-form-wrap">
+
+      <div class="login-form-title" data-i18n="login_form_title">Connexion</div>
+      <p class="login-form-sub" data-i18n="login_subtitle">Accédez à votre espace administrateur</p>
+
+      <form id="loginForm" novalidate>
+
+        <div class="form-group">
+          <label class="form-label" for="email">
+            <i class="fa-solid fa-envelope" aria-hidden="true"></i>
+            <span data-i18n="auth_email">Adresse e-mail</span>
+          </label>
+          <input
+            type="email"
+            id="email"
+            class="form-control"
+            placeholder="admin@upcycleconnect.com"
+            autocomplete="email"
+            required
+          >
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="password">
+            <i class="fa-solid fa-lock" aria-hidden="true"></i>
+            <span data-i18n="auth_password">Mot de passe</span>
+          </label>
+          <input
+            type="password"
+            id="password"
+            class="form-control"
+            placeholder="••••••••"
+            autocomplete="current-password"
+            required
+          >
+        </div>
+
+        <button type="submit" class="btn btn-primary">
+          <i class="fa-solid fa-right-to-bracket" aria-hidden="true"></i>
+          <span data-i18n="auth_btn_login">Se connecter</span>
+        </button>
+
+      </form>
+
+      <div id="error-message" class="login-error"></div>
+
+      <div class="login-back">
+        <a href="/" data-i18n="login_retour_site">Retour au site</a>
+      </div>
+
+      <div class="login-footer-again">
+        <span data-i18n="login_by">Un projet</span>
+        <img src="../brand_assets/logo_again_transparent.png" alt="again²" onerror="this.style.display='none'"/>
+      </div>
+
+    </div>
+  </div>
+
+</div>
+
+<script src="js/layout.js"></script>
+<script src="js/auth.js"></script>
+<script>
+// Appliquer les traductions sur la page de login (initLayout n'est pas appelé ici)
+document.addEventListener('DOMContentLoaded', () => chargerTraductions().then(applyTranslations));
+</script>
 </body>
 </html>

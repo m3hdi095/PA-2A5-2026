@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Validations — UpcycleConnect Admin</title>
+  <title>Validations | UpcycleConnect Admin</title>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&family=Montserrat:wght@300;400;500;600;700&family=Roboto:wght@300;400;500&display=swap" rel="stylesheet"/>
   <link rel="stylesheet" href="css/style.css"/>
 </head>
@@ -13,13 +13,17 @@
   <div>
     <h1>
       <div class="page-title-icon green">
-        <svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
+        <i class="fa-solid fa-circle-check" aria-hidden="true"></i>
       </div>
-      Validations en attente
+      <span data-i18n="validations_title">Validations en attente</span>
     </h1>
-    <p class="page-title-sub">Approuver ou refuser les demandes soumises par les utilisateurs</p>
+    <p class="page-title-sub" data-i18n="validations_subtitle">Approuver ou refuser les demandes soumises par les utilisateurs</p>
   </div>
   <div class="page-title-actions">
+    <a href="users.html" class="btn btn-outline btn-sm">
+      <i class="fa-solid fa-users" aria-hidden="true"></i>
+      <span data-i18n="nav_users">Utilisateurs</span>
+    </a>
     <span id="totalBadge" class="badge badge-orange" style="font-size:13px;padding:6px 14px"></span>
   </div>
 </div>
@@ -27,16 +31,16 @@
 <!-- TABS -->
 <div style="display:flex;gap:4px;background:white;border:1.5px solid var(--neutral-200);border-radius:12px;padding:4px;width:fit-content;margin-bottom:24px">
   <button class="val-tab active" data-tab="annonces">
-    <svg viewBox="0 0 24 24" style="width:14px;height:14px;fill:currentColor"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"/></svg>
-    Annonces <span class="tab-count" id="countAnnonces">0</span>
+    <i class="fa-solid fa-bullhorn" aria-hidden="true"></i>
+    <span data-i18n="tab_annonces">Annonces</span> <span class="tab-count" id="countAnnonces">0</span>
   </button>
   <button class="val-tab" data-tab="conteneurs">
-    <svg viewBox="0 0 24 24" style="width:14px;height:14px;fill:currentColor"><path d="M20 7H4c-1.1 0-2 .9-2 2v6c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V9c0-1.1-.9-2-2-2zm0 8H4V9h16v6z"/></svg>
-    Dépôts conteneurs <span class="tab-count" id="countConteneurs">0</span>
+    <i class="fa-solid fa-box" aria-hidden="true"></i>
+    <span data-i18n="tab_depots">Dépôts conteneurs</span> <span class="tab-count" id="countConteneurs">0</span>
   </button>
   <button class="val-tab" data-tab="formations">
-    <svg viewBox="0 0 24 24" style="width:14px;height:14px;fill:currentColor"><path d="M17 12h-5v5h5v-5zM16 1v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2h-1V1h-2zm3 18H5V8h14v11z"/></svg>
-    Formations <span class="tab-count" id="countFormations">0</span>
+    <i class="fa-solid fa-graduation-cap" aria-hidden="true"></i>
+    <span data-i18n="tab_formations">Formations</span> <span class="tab-count" id="countFormations">0</span>
   </button>
 </div>
 
@@ -68,7 +72,7 @@
   color: var(--neutral-500);
   cursor: pointer;
   font-family: 'Montserrat', sans-serif;
-  transition: all .2s;
+  transition: background .2s, color .2s;
 }
 .val-tab:hover { background: var(--neutral-100); color: var(--neutral-700); }
 .val-tab.active { background: var(--uc-green); color: white; }
@@ -80,7 +84,7 @@
   font-weight: 700;
   padding: 1px 7px;
   border-radius: 20px;
-  transition: all .2s;
+  transition: background .2s, color .2s;
 }
 
 .val-card {
@@ -116,18 +120,25 @@
 
 <script src="js/layout.js" data-page="validations"></script>
 <script>
+const ICONE_VAL = {
+  don:       '<i class="fa-solid fa-hand-holding-heart" aria-hidden="true"></i>',
+  vente:     '<i class="fa-solid fa-tag" aria-hidden="true"></i>',
+  conteneur: '<i class="fa-solid fa-box" aria-hidden="true"></i>',
+  formation: '<i class="fa-solid fa-graduation-cap" aria-hidden="true"></i>',
+};
+
 const MOCK_VAL = {
   annonces: [
-    { id:1, titre:'Lot de palettes bois',  type:'don',   auteur:'Marie Dupont',   date:'2026-03-13', emoji:'🪵', desc:'5 palettes EUR en bon état, idéales pour mobilier DIY. Localisées Paris 11e.' },
-    { id:2, titre:'Vieux vélos (x3)',       type:'don',   auteur:'Henri Petit',    date:'2026-03-12', emoji:'🚲', desc:'3 vélos de ville en état variable. Pièces récupérables. À Ivry-sur-Seine.' },
-    { id:3, titre:'Tissu lin naturel',      type:'vente', auteur:'Clara Noel',     date:'2026-03-11', emoji:'🧵', desc:'2 kg de chutes de lin naturel, teinture végétale. Prix demandé : 20 €.' },
+    { id:1, titre:'Lot de palettes bois',  type:'don',   auteur:'Marie Dupont',   date:'2026-03-13', desc:'5 palettes EUR en bon état, idéales pour mobilier DIY. Localisées Paris 11e.' },
+    { id:2, titre:'Vieux vélos (x3)',       type:'don',   auteur:'Henri Petit',    date:'2026-03-12', desc:'3 vélos de ville en état variable. Pièces récupérables. À Ivry-sur-Seine.' },
+    { id:3, titre:'Tissu lin naturel',      type:'vente', auteur:'Clara Noel',     date:'2026-03-11', desc:'2 kg de chutes de lin naturel, teinture végétale. Prix demandé : 20 €.' },
   ],
   conteneurs: [
-    { id:4, titre:'Dépôt Box 10ème',         type:'conteneur', auteur:'Lucie Moreau',  date:'2026-03-13', emoji:'📦', desc:'Demande de dépôt : 1 carton de bocaux en verre (6 pièces). Box Lafayette.' },
-    { id:5, titre:'Dépôt Box Montreuil',     type:'conteneur', auteur:'Paul Gauthier', date:'2026-03-10', emoji:'📦', desc:'Dépôt de chutes de cuir (1 kg). Box Montreuil, demande validée en interne.' },
+    { id:4, titre:'Dépôt Box 10ème',     type:'conteneur', auteur:'Lucie Moreau',  date:'2026-03-13', desc:'Demande de dépôt : 1 carton de bocaux en verre (6 pièces). Box Lafayette.' },
+    { id:5, titre:'Dépôt Box Montreuil', type:'conteneur', auteur:'Paul Gauthier', date:'2026-03-10', desc:'Dépôt de chutes de cuir (1 kg). Box Montreuil, demande validée en interne.' },
   ],
   formations: [
-    { id:6, titre:'Initiation macramé', type:'formation', auteur:'Sophie Martin', date:'2026-03-09', emoji:'🎨', desc:'Nouvelle formation proposée par Sophie Martin. 10 places, Paris 11e, 12 avril. Tarif : 30€.' },
+    { id:6, titre:'Initiation macramé', type:'formation', auteur:'Sophie Martin', date:'2026-03-09', desc:'Nouvelle formation proposée par Sophie Martin. 10 places, Paris 11e, 12 avril. Tarif : 30€.' },
   ],
 };
 
@@ -140,15 +151,15 @@ function renderTab(tab) {
 
   if (!items.length) {
     container.innerHTML = `<div class="empty-state card" style="padding:60px">
-      <svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
-      <p>Aucune validation en attente dans cette catégorie</p>
+      <i class="fa-solid fa-circle-check" style="font-size:40px;color:var(--uc-teal);margin-bottom:12px" aria-hidden="true"></i>
+      <p>${t('validations_empty')}</p>
     </div>`;
     return;
   }
 
   container.innerHTML = items.map(v => `
     <div class="val-card" id="valCard${v.id}">
-      <div class="val-type-icon">${v.emoji}</div>
+      <div class="val-type-icon">${ICONE_VAL[v.type] || ''}</div>
       <div class="val-info">
         <div class="val-title">${v.titre}</div>
         <div class="val-meta">
@@ -156,16 +167,16 @@ function renderTab(tab) {
           <span class="badge badge-orange" style="font-size:10px">${v.type}</span>
         </div>
       </div>
-      <div class="val-date">${new Date(v.date).toLocaleDateString('fr-FR',{day:'2-digit',month:'short'})}</div>
+      <div class="val-date">${new Date(v.date).toLocaleDateString(_lang === 'en' ? 'en-GB' : 'fr-FR',{day:'2-digit',month:'short'})}</div>
       <div class="val-actions">
-        <button class="btn btn-outline btn-sm" onclick="showDetail(${v.id})">Détail</button>
+        <button class="btn btn-outline btn-sm" onclick="showDetail(${v.id})">${t('btn_detail')}</button>
         <button class="btn btn-primary btn-sm" onclick="approve(${v.id}, '${tab}')">
-          <svg viewBox="0 0 24 24" style="width:13px;height:13px"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
-          Approuver
+          <i class="fa-solid fa-check" aria-hidden="true"></i>
+          ${t('btn_approuver')}
         </button>
         <button class="btn btn-danger btn-sm" onclick="reject(${v.id}, '${tab}')">
-          <svg viewBox="0 0 24 24" style="width:13px;height:13px"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
-          Refuser
+          <i class="fa-solid fa-xmark" aria-hidden="true"></i>
+          ${t('btn_refuser')}
         </button>
       </div>
     </div>
@@ -177,7 +188,7 @@ function updateCounts() {
   document.getElementById('countAnnonces').textContent   = MOCK_VAL.annonces.length;
   document.getElementById('countConteneurs').textContent = MOCK_VAL.conteneurs.length;
   document.getElementById('countFormations').textContent = MOCK_VAL.formations.length;
-  document.getElementById('totalBadge').textContent = `${total} en attente`;
+  document.getElementById('totalBadge').textContent = `${total} ${t('badge_en_attente')}`;
 }
 
 function showDetail(id) {
@@ -187,53 +198,93 @@ function showDetail(id) {
   document.getElementById('detailTitle').textContent = v.titre;
   document.getElementById('detailBody').innerHTML = `
     <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px">
-      <div style="font-size:40px">${v.emoji}</div>
+      <div style="font-size:36px;color:var(--uc-teal)">${ICONE_VAL[v.type] || ''}</div>
       <div>
         <div style="font-weight:600;font-size:15px;color:var(--neutral-900)">${v.titre}</div>
-        <div style="font-size:12px;color:var(--neutral-400)">Par <strong>${v.auteur}</strong> — ${new Date(v.date).toLocaleDateString('fr-FR')}</div>
+        <div style="font-size:12px;color:var(--neutral-400)">${t('validations_par')} <strong>${v.auteur}</strong> ${new Date(v.date).toLocaleDateString(_lang === 'en' ? 'en-GB' : 'fr-FR')}</div>
       </div>
     </div>
     <div style="background:var(--neutral-50);border-radius:var(--radius);padding:14px;margin-bottom:16px;font-size:13.5px;color:var(--neutral-700);line-height:1.6">${v.desc}</div>
     <div class="form-actions">
-      <button class="btn btn-outline" onclick="closeDetail()">Fermer</button>
-      <button class="btn btn-danger" onclick="reject(${v.id},'${activeTab}');closeDetail()">Refuser</button>
-      <button class="btn btn-primary" onclick="approve(${v.id},'${activeTab}');closeDetail()">Approuver</button>
+      <button class="btn btn-outline" onclick="closeDetail()">${t('btn_fermer')}</button>
+      <button class="btn btn-danger" onclick="reject(${v.id},'${activeTab}');closeDetail()">${t('btn_refuser')}</button>
+      <button class="btn btn-primary" onclick="approve(${v.id},'${activeTab}');closeDetail()">${t('btn_approuver')}</button>
     </div>
   `;
   document.getElementById('detailModal').classList.add('open');
 }
 window.closeDetail = () => document.getElementById('detailModal').classList.remove('open');
 
-window.approve = (id, tab) => {
-  MOCK_VAL[tab] = MOCK_VAL[tab].filter(v=>v.id!==id);
+window.showDetail = showDetail;
+
+async function loadAnnoncesFromAPI() {
+  try {
+    const res = await apiFetch('/admin/annonces/en-attente');
+    if (!res || !res.ok) return false;
+    const data = await res.json();
+    const list = Array.isArray(data) ? data : (data.annonces || []);
+    MOCK_VAL.annonces = list.map(a => ({
+      id: a.id,
+      titre: a.titre || a.title || 'Sans titre',
+      type: a.type || 'don',
+      auteur: a.auteur || (a.user && (a.user.prenom + ' ' + a.user.nom)) || 'Inconnu',
+      date: a.created_at || a.date || new Date().toISOString(),
+      desc: a.description || a.desc || '',
+      _apiItem: a
+    }));
+    return true;
+  } catch(e) {
+    return false;
+  }
+}
+
+window.approve = async (id, tab) => {
+  if (tab === 'annonces') {
+    try {
+      await apiFetch('/admin/annonces/validate', {
+        method: 'POST',
+        body: JSON.stringify({ annonce_id: id, decision: 'validee', commentaire: '' })
+      });
+    } catch(e) {}
+  }
+  MOCK_VAL[tab] = MOCK_VAL[tab].filter(v => v.id !== id);
   const card = document.getElementById(`valCard${id}`);
   if (card) {
     card.style.borderColor = 'var(--uc-teal)';
     card.style.background  = 'var(--uc-teal-pale)';
-    setTimeout(()=>card.remove(), 400);
+    setTimeout(() => card.remove(), 400);
   }
-  showToast('Approuvé avec succès !', 'success');
+  showToast(t('toast_approved'), 'success');
   updateCounts();
-  setTimeout(()=>renderTab(tab), 450);
+  setTimeout(() => renderTab(tab), 450);
 };
 
-window.reject = (id, tab) => {
-  MOCK_VAL[tab] = MOCK_VAL[tab].filter(v=>v.id!==id);
+window.reject = async (id, tab) => {
+  if (tab === 'annonces') {
+    try {
+      await apiFetch('/admin/annonces/validate', {
+        method: 'POST',
+        body: JSON.stringify({ annonce_id: id, decision: 'refusee', commentaire: '' })
+      });
+    } catch(e) {}
+  }
+  MOCK_VAL[tab] = MOCK_VAL[tab].filter(v => v.id !== id);
   const card = document.getElementById(`valCard${id}`);
   if (card) {
     card.style.borderColor = '#ef5350';
     card.style.background  = 'var(--danger-bg)';
-    setTimeout(()=>card.remove(), 400);
+    setTimeout(() => card.remove(), 400);
   }
-  showToast('Demande refusée', 'warning');
+  showToast(t('toast_rejected'), 'warning');
   updateCounts();
-  setTimeout(()=>renderTab(tab), 450);
+  setTimeout(() => renderTab(tab), 450);
 };
 
-window.showDetail = showDetail;
+document.addEventListener('DOMContentLoaded', async () => {
+  await initLayout('validations');
 
-document.addEventListener('DOMContentLoaded', () => {
-  checkAuth();
+  await loadAnnoncesFromAPI();
+
   updateCounts();
   renderTab('annonces');
 

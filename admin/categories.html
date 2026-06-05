@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Catégories — UpcycleConnect Admin</title>
+  <title>Catégories | UpcycleConnect Admin</title>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&family=Montserrat:wght@300;400;500;600;700&family=Roboto:wght@300;400;500&display=swap" rel="stylesheet"/>
   <link rel="stylesheet" href="css/style.css"/>
 </head>
@@ -13,16 +13,20 @@
   <div>
     <h1>
       <div class="page-title-icon orange">
-        <svg viewBox="0 0 24 24"><path d="M12 2l-5.5 9h11z M17.5 13c-2.49 0-4.5 2.01-4.5 4.5S15.01 22 17.5 22s4.5-2.01 4.5-4.5S19.99 13 17.5 13zm-10 1H2v8h5.5v-8z"/></svg>
+        <i class="fa-solid fa-tags" aria-hidden="true"></i>
       </div>
-      Catégories
+      <span data-i18n="cat_title">Catégories</span>
     </h1>
-    <p class="page-title-sub">Organiser les objets et prestations par catégories</p>
+    <p class="page-title-sub" data-i18n="cat_subtitle">Organiser les objets et prestations par catégories</p>
   </div>
   <div class="page-title-actions">
+    <a href="prestations.html" class="btn btn-outline btn-sm">
+      <i class="fa-solid fa-calendar-days" aria-hidden="true"></i>
+      <span data-i18n="cat_btn_prestations">Voir prestations</span>
+    </a>
     <button class="btn btn-primary" id="btnAdd">
-      <svg viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
-      Ajouter
+      <i class="fa-solid fa-plus" aria-hidden="true"></i>
+      <span data-i18n="btn_add">Ajouter</span>
     </button>
   </div>
 </div>
@@ -30,13 +34,13 @@
 <!-- FILTERS -->
 <div class="filters-bar">
   <div class="filter-wrap">
-    <svg viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
-    <input type="text" class="filter-input" id="searchInput" placeholder="Rechercher une catégorie..."/>
+    <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
+    <input type="text" class="filter-input" id="searchInput" data-i18n-placeholder="cat_search" placeholder="Rechercher une catégorie..."/>
   </div>
   <select class="filter-select" id="parentFilter">
-    <option value="">Toutes (racine + sous-catégories)</option>
-    <option value="root">Racine uniquement</option>
-    <option value="child">Sous-catégories uniquement</option>
+    <option value="" data-i18n="cat_filter_all">Toutes (racine + sous-catégories)</option>
+    <option value="root" data-i18n="cat_filter_root">Racine uniquement</option>
+    <option value="child" data-i18n="cat_filter_child">Sous-catégories uniquement</option>
   </select>
 </div>
 
@@ -48,11 +52,11 @@
       <table>
         <thead>
           <tr>
-            <th>#</th>
-            <th>Nom</th>
-            <th>Catégorie parente</th>
-            <th>Nb objets</th>
-            <th style="text-align:right">Actions</th>
+            <th data-i18n="users_th_id">#</th>
+            <th data-i18n="cat_th_nom">Nom</th>
+            <th data-i18n="cat_th_parent">Catégorie parente</th>
+            <th data-i18n="cat_th_nb">Nb objets</th>
+            <th style="text-align:right" data-i18n="cat_th_actions">Actions</th>
           </tr>
         </thead>
         <tbody id="categoriesBody"></tbody>
@@ -67,8 +71,8 @@
   <div class="card">
     <div class="card-header">
       <h2>
-        <svg viewBox="0 0 24 24"><path d="M22 11V3h-7v3H9V3H2v8h7V8h2v10h4v3h7v-8h-7v3h-2V8h2v3h7zM7 9H4V5h3v4zm10 6h3v4h-3v-4zm0-12h3v4h-3V3z"/></svg>
-        Arborescence
+        <i class="fa-solid fa-sitemap" aria-hidden="true"></i>
+        <span data-i18n="cat_tree_title">Arborescence</span>
       </h2>
     </div>
     <div class="card-body">
@@ -83,8 +87,8 @@
   <div class="modal-box">
     <div class="modal-header">
       <div class="modal-title" id="modalTitle">
-        <svg viewBox="0 0 24 24"><path d="M12 2l-5.5 9h11z"/></svg>
-        Ajouter une catégorie
+        <i class="fa-solid fa-tag" aria-hidden="true"></i>
+        <span data-i18n="cat_modal_add">Ajouter une catégorie</span>
       </div>
       <button class="modal-close" id="modalClose">&times;</button>
     </div>
@@ -92,28 +96,28 @@
       <form id="catForm" novalidate>
         <input type="hidden" id="catId"/>
         <div class="form-group">
-          <label class="form-label">Nom <span class="form-required">*</span></label>
+          <label class="form-label"><span data-i18n="form_nom">Nom</span> <span class="form-required">*</span></label>
           <input type="text" id="nom" class="form-control" placeholder="Ex: Mobilier, Textile..." required/>
         </div>
         <div class="form-group">
-          <label class="form-label">Description</label>
+          <label class="form-label" data-i18n="form_description">Description</label>
           <textarea id="description" class="form-control" rows="2" placeholder="Description optionnelle..."></textarea>
         </div>
         <div class="form-group">
-          <label class="form-label">Catégorie parente</label>
+          <label class="form-label" data-i18n="form_parent">Catégorie parente</label>
           <select id="parent_id" class="form-control">
-            <option value="">Aucune (catégorie racine)</option>
+            <option value="" data-i18n="form_none_parent">Aucune (catégorie racine)</option>
           </select>
         </div>
         <div class="form-group">
-          <label class="form-label">Icône (emoji)</label>
-          <input type="text" id="icone" class="form-control" placeholder="🪵" maxlength="4" style="font-size:20px;width:80px"/>
+          <label class="form-label" data-i18n="form_icone">Icône FA (ex: fa-leaf)</label>
+          <input type="text" id="icone" class="form-control" placeholder="fa-leaf" maxlength="40"/>
         </div>
         <div class="form-actions">
-          <button type="button" class="btn btn-outline" id="cancelBtn">Annuler</button>
+          <button type="button" class="btn btn-outline" id="cancelBtn" data-i18n="btn_cancel">Annuler</button>
           <button type="submit" class="btn btn-primary">
-            <svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
-            Enregistrer
+            <i class="fa-solid fa-check" aria-hidden="true"></i>
+            <span data-i18n="btn_save">Enregistrer</span>
           </button>
         </div>
       </form>
@@ -123,5 +127,6 @@
 
 <script src="js/layout.js" data-page="categories"></script>
 <script src="js/categories.js"></script>
+
 </body>
 </html>

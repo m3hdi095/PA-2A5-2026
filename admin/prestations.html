@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Prestations — UpcycleConnect Admin</title>
+  <title>Prestations | UpcycleConnect Admin</title>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&family=Montserrat:wght@300;400;500;600;700&family=Roboto:wght@300;400;500&display=swap" rel="stylesheet"/>
   <link rel="stylesheet" href="css/style.css"/>
 </head>
@@ -13,22 +13,30 @@
   <div>
     <h1>
       <div class="page-title-icon green">
-        <svg viewBox="0 0 24 24"><path d="M17 12h-5v5h5v-5zM16 1v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2h-1V1h-2zm3 18H5V8h14v11z"/></svg>
+        <i class="fa-solid fa-calendar-days" aria-hidden="true"></i>
       </div>
-      Prestations
+      <span data-i18n="nav_prestations">Prestations</span>
     </h1>
-    <p class="page-title-sub">Formations, ateliers et événements proposés</p>
+    <p class="page-title-sub" data-i18n="prest_subtitle">Formations, ateliers et événements proposés</p>
   </div>
   <div class="page-title-actions">
+    <a href="categories.html" class="btn btn-outline btn-sm">
+      <i class="fa-solid fa-tags" aria-hidden="true"></i>
+      <span data-i18n="nav_categories">Catégories</span>
+    </a>
+    <a href="validations.html" class="btn btn-outline btn-sm">
+      <i class="fa-solid fa-circle-check" aria-hidden="true"></i>
+      <span data-i18n="nav_validations">Validations</span>
+    </a>
     <button class="btn btn-outline btn-sm" id="btnGrid" title="Vue cartes">
-      <svg viewBox="0 0 24 24"><path d="M3 3h7v7H3zm0 11h7v7H3zm11-11h7v7h-7zm0 11h7v7h-7z"/></svg>
+      <i class="fa-solid fa-table-cells-large" aria-hidden="true"></i>
     </button>
     <button class="btn btn-outline btn-sm" id="btnList" title="Vue liste">
-      <svg viewBox="0 0 24 24"><path d="M3 13h2v-2H3v2zm0 4h2v-2H3v2zm0-8h2V7H3v2zm4 4h14v-2H7v2zm0 4h14v-2H7v2zM7 7v2h14V7H7z"/></svg>
+      <i class="fa-solid fa-list" aria-hidden="true"></i>
     </button>
     <button class="btn btn-primary" id="btnAdd">
-      <svg viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
-      Ajouter
+      <i class="fa-solid fa-plus" aria-hidden="true"></i>
+      <span data-i18n="btn_add">Ajouter</span>
     </button>
   </div>
 </div>
@@ -36,21 +44,21 @@
 <!-- FILTERS -->
 <div class="filters-bar">
   <div class="filter-wrap">
-    <svg viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
-    <input type="text" class="filter-input" id="searchInput" placeholder="Rechercher une prestation..."/>
+    <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
+    <input type="text" class="filter-input" id="searchInput" data-i18n-placeholder="prest_search" placeholder="Rechercher une prestation..."/>
   </div>
   <select class="filter-select" id="typeFilter">
-    <option value="">Tous les types</option>
-    <option value="formation">Formation</option>
-    <option value="atelier">Atelier</option>
-    <option value="evenement">Événement</option>
+    <option value="" data-i18n="prest_filter_all_types">Tous les types</option>
+    <option value="formation" data-i18n="factures_type_form">Formation</option>
+    <option value="atelier" data-i18n="prest_type_atelier">Atelier</option>
+    <option value="evenement" data-i18n="prest_type_evenement">Événement</option>
   </select>
   <select class="filter-select" id="statusFilter">
-    <option value="">Tous les statuts</option>
-    <option value="publie">Publié</option>
-    <option value="brouillon">Brouillon</option>
-    <option value="annule">Annulé</option>
-    <option value="complet">Complet</option>
+    <option value="" data-i18n="prest_filter_all_status">Tous les statuts</option>
+    <option value="publie" data-i18n="prest_statut_publie">Publié</option>
+    <option value="brouillon" data-i18n="prest_statut_brouillon">Brouillon</option>
+    <option value="annule" data-i18n="prest_statut_annule">Annulé</option>
+    <option value="complet" data-i18n="prest_statut_complet">Complet</option>
   </select>
 </div>
 
@@ -60,14 +68,14 @@
     <table>
       <thead>
         <tr>
-          <th>#</th>
-          <th>Titre</th>
-          <th>Type</th>
-          <th>Date</th>
-          <th>Places</th>
-          <th>Prix</th>
-          <th>Statut</th>
-          <th style="text-align:right">Actions</th>
+          <th data-i18n="users_th_id">#</th>
+          <th data-i18n="prest_th_titre">Titre</th>
+          <th data-i18n="prest_th_type">Type</th>
+          <th data-i18n="prest_th_date">Date</th>
+          <th data-i18n="prest_th_places">Places</th>
+          <th data-i18n="prest_th_prix">Prix</th>
+          <th data-i18n="factures_th_statut">Statut</th>
+          <th style="text-align:right" data-i18n="prest_th_actions">Actions</th>
         </tr>
       </thead>
       <tbody id="prestationsBody"></tbody>
@@ -77,7 +85,7 @@
 </div>
 
 <!-- VUE CARTES -->
-<div id="gridView" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px" id="gridView">
+<div id="gridView" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px">
 </div>
 
 <!-- MODAL -->
@@ -85,8 +93,8 @@
   <div class="modal-box" style="max-width:640px">
     <div class="modal-header">
       <div class="modal-title" id="modalTitle">
-        <svg viewBox="0 0 24 24"><path d="M17 12h-5v5h5v-5zM16 1v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2h-1V1h-2zm3 18H5V8h14v11z"/></svg>
-        Ajouter une prestation
+        <i class="fa-solid fa-calendar-days" aria-hidden="true"></i>
+        <span data-i18n="prest_modal_add">Ajouter une prestation</span>
       </div>
       <button class="modal-close" id="modalClose">&times;</button>
     </div>
@@ -94,68 +102,68 @@
       <form id="prestForm" novalidate>
         <input type="hidden" id="prestId"/>
         <div class="form-group">
-          <label class="form-label">Titre <span class="form-required">*</span></label>
+          <label class="form-label"><span data-i18n="form_titre">Titre</span> <span class="form-required">*</span></label>
           <input type="text" id="titre" class="form-control" required/>
         </div>
         <div class="form-group">
-          <label class="form-label">Description</label>
+          <label class="form-label" data-i18n="form_description">Description</label>
           <textarea id="description" class="form-control" rows="2"></textarea>
         </div>
         <div class="form-row">
           <div class="form-group">
-            <label class="form-label">Type</label>
+            <label class="form-label" data-i18n="form_type">Type</label>
             <select id="type" class="form-control">
-              <option value="formation">Formation</option>
-              <option value="atelier">Atelier</option>
-              <option value="evenement">Événement</option>
+              <option value="formation" data-i18n="factures_type_form">Formation</option>
+              <option value="atelier" data-i18n="prest_type_atelier">Atelier</option>
+              <option value="evenement" data-i18n="prest_type_evenement">Événement</option>
             </select>
           </div>
           <div class="form-group">
-            <label class="form-label">Statut</label>
+            <label class="form-label" data-i18n="form_statut">Statut</label>
             <select id="statut" class="form-control">
-              <option value="brouillon">Brouillon</option>
-              <option value="publie">Publié</option>
-              <option value="annule">Annulé</option>
+              <option value="brouillon" data-i18n="prest_statut_brouillon">Brouillon</option>
+              <option value="publie" data-i18n="prest_statut_publie">Publié</option>
+              <option value="annule" data-i18n="prest_statut_annule">Annulé</option>
             </select>
           </div>
         </div>
         <div class="form-row">
           <div class="form-group">
-            <label class="form-label">Date début</label>
+            <label class="form-label" data-i18n="form_date_debut">Date début</label>
             <input type="datetime-local" id="date_debut" class="form-control"/>
           </div>
           <div class="form-group">
-            <label class="form-label">Date fin</label>
+            <label class="form-label" data-i18n="form_date_fin">Date fin</label>
             <input type="datetime-local" id="date_fin" class="form-control"/>
           </div>
         </div>
         <div class="form-row">
           <div class="form-group">
-            <label class="form-label">Prix (€)</label>
+            <label class="form-label" data-i18n="form_prix">Prix (€)</label>
             <input type="number" step="0.01" min="0" id="prix" class="form-control" placeholder="0 = gratuit"/>
           </div>
           <div class="form-group">
-            <label class="form-label">Places max</label>
+            <label class="form-label" data-i18n="form_places_max">Places max</label>
             <input type="number" min="1" id="places_max" class="form-control"/>
           </div>
         </div>
         <div class="form-row">
           <div class="form-group">
-            <label class="form-label">Lieu</label>
+            <label class="form-label" data-i18n="form_lieu">Lieu</label>
             <input type="text" id="lieu" class="form-control" placeholder="Paris 10e, En ligne..."/>
           </div>
           <div class="form-group">
-            <label class="form-label">Catégorie</label>
+            <label class="form-label" data-i18n="form_categorie">Catégorie</label>
             <select id="categorie_id" class="form-control">
-              <option value="">— Choisir —</option>
+              <option value="" data-i18n="form_none_categorie">Choisir</option>
             </select>
           </div>
         </div>
         <div class="form-actions">
-          <button type="button" class="btn btn-outline" id="cancelBtn">Annuler</button>
+          <button type="button" class="btn btn-outline" id="cancelBtn" data-i18n="btn_cancel">Annuler</button>
           <button type="submit" class="btn btn-primary">
-            <svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
-            Enregistrer
+            <i class="fa-solid fa-check" aria-hidden="true"></i>
+            <span data-i18n="btn_save">Enregistrer</span>
           </button>
         </div>
       </form>
@@ -165,5 +173,6 @@
 
 <script src="js/layout.js" data-page="prestations"></script>
 <script src="js/prestations.js"></script>
+
 </body>
 </html>

@@ -1,38 +1,35 @@
-/**
- * UpcycleConnect — Admin Categories JS
- */
-const apiBase = 'http://localhost:8000'; // ou ''
+// CRUD categories, les appels vont vers l'API Go
 
 let MOCK_CATS = [
-  { id:1,  nom:'Mobilier',        description:'Meubles, rangements...',    parent_id:null, icone:'🪑', nb_objets:34 },
-  { id:2,  nom:'Textile',         description:'Vêtements, tissus...',       parent_id:null, icone:'🧵', nb_objets:58 },
-  { id:3,  nom:'Électronique',    description:'Appareils électroniques...',  parent_id:null, icone:'💡', nb_objets:21 },
-  { id:4,  nom:'Jardin',          description:'Plantes, outils jardin...',   parent_id:null, icone:'🌿', nb_objets:15 },
-  { id:5,  nom:'Vaisselle',       description:'Bocaux, céramiques...',       parent_id:null, icone:'🍶', nb_objets:29 },
-  { id:6,  nom:'Chaise',          description:'Chaises recyclables',         parent_id:1,    icone:'🪑', nb_objets:12 },
-  { id:7,  nom:'Table',           description:'Tables en bois...',           parent_id:1,    icone:'🪵', nb_objets:8 },
-  { id:8,  nom:'Coton',           description:'Chutes coton naturel',        parent_id:2,    icone:'🧶', nb_objets:22 },
-  { id:9,  nom:'Cuir',            description:'Chutes cuir tannage végétal', parent_id:2,    icone:'👜', nb_objets:14 },
-  { id:10, nom:'Palettes bois',   description:'Palettes de toutes tailles',  parent_id:1,    icone:'📦', nb_objets:18 },
+  { id:1, nom:'Textiles',      description:'Vêtements, tissus, chutes...',    parent_id:null, nb_objets:58 },
+  { id:2, nom:'Bois',          description:'Palettes, planches, mobilier...', parent_id:null, nb_objets:34 },
+  { id:3, nom:'Métal',         description:'Ferraille, profilés, câbles...',  parent_id:null, nb_objets:21 },
+  { id:4, nom:'Plastique',     description:'Bouteilles, bacs, films...',      parent_id:null, nb_objets:15 },
+  { id:5, nom:'Électronique',  description:'Composants, appareils...',        parent_id:null, nb_objets:29 },
+  { id:6, nom:'Autre',         description:'Divers non classé',             parent_id:null, nb_objets:12 },
 ];
 
-let filtered = [...MOCK_CATS];
-let page = 1;
-const perPage = 8;
+let categories = [];
+let filtered   = [];
+let page       = 1;
+const perPage  = 8;
 
-function getParentName(parent_id) {
-  if (!parent_id) return '—';
-  const p = MOCK_CATS.find(c => c.id === parent_id);
-  return p ? `${p.icone} ${p.nom}` : '—';
+function getParentName(parentId) {
+  if (!parentId) return '—';
+  const p = categories.find(c => c.id === parentId);
+  return p ? p.nom : '—';
 }
 
 function renderTable() {
   const tbody = document.getElementById('categoriesBody');
-  const start = (page-1)*perPage;
-  const slice = filtered.slice(start, start+perPage);
+  const start = (page - 1) * perPage;
+  const slice = filtered.slice(start, start + perPage);
 
   if (!slice.length) {
-    tbody.innerHTML = `<tr><td colspan="5"><div class="empty-state"><svg viewBox="0 0 24 24"><path d="M12 2l-5.5 9h11z M17.5 13c-2.49 0-4.5 2.01-4.5 4.5S15.01 22 17.5 22s4.5-2.01 4.5-4.5S19.99 13 17.5 13zm-10 1H2v8h5.5v-8z"/></svg><p>Aucune catégorie</p></div></td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="5"><div class="empty-state">
+      <i class="fa-solid fa-tags" style="font-size:32px;color:var(--neutral-300)" aria-hidden="true"></i>
+      <p>${t('cat_empty')}</p>
+    </div></td></tr>`;
     return;
   }
 
@@ -41,26 +38,28 @@ function renderTable() {
       <td style="color:var(--neutral-400);font-size:12px">#${c.id}</td>
       <td>
         <div style="display:flex;align-items:center;gap:10px">
-          <div style="width:36px;height:36px;background:var(--uc-teal-pale);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:18px">${c.icone}</div>
+          <div class="cat-icon-badge">
+            <i class="fa-solid fa-tag" aria-hidden="true"></i>
+          </div>
           <div>
-            <div class="td-primary">${c.nom}</div>
-            <div style="font-size:11px;color:var(--neutral-400)">${c.description || ''}</div>
+            <div class="td-primary">${escAdmin(c.nom)}</div>
+            <div style="font-size:11px;color:var(--neutral-400)">${escAdmin(c.description || '')}</div>
           </div>
         </div>
       </td>
       <td>
         ${c.parent_id
-          ? `<span class="badge badge-gray">${getParentName(c.parent_id)}</span>`
-          : `<span class="badge badge-green">Racine</span>`}
+          ? `<span class="badge badge-gray">${escAdmin(getParentName(c.parent_id))}</span>`
+          : `<span class="badge badge-green">${t('label_racine')}</span>`}
       </td>
-      <td style="font-weight:600;color:var(--uc-green)">${c.nb_objets}</td>
+      <td style="font-weight:600;color:var(--uc-green)">${c.nb_objets || 0}</td>
       <td>
         <div class="cell-actions">
           <button class="btn btn-ghost btn-icon" title="Modifier" onclick="editCat(${c.id})">
-            <svg viewBox="0 0 24 24"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04a1.003 1.003 0 0 0 0-1.42l-2.34-2.34a1.003 1.003 0 0 0-1.42 0l-1.83 1.83 3.75 3.75 1.84-1.82z"/></svg>
+            <i class="fa-solid fa-pen" aria-hidden="true"></i>
           </button>
           <button class="btn btn-ghost btn-icon" title="Supprimer" onclick="deleteCat(${c.id})" style="color:var(--danger)">
-            <svg viewBox="0 0 24 24"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>
+            <i class="fa-solid fa-trash" aria-hidden="true"></i>
           </button>
         </div>
       </td>
@@ -71,33 +70,36 @@ function renderTable() {
 }
 
 function renderPagination() {
-  const total  = Math.ceil(filtered.length / perPage);
-  const pag    = document.getElementById('pagination');
-  document.getElementById('pageInfo').textContent = `${Math.min((page-1)*perPage+1,filtered.length)}–${Math.min(page*perPage,filtered.length)} sur ${filtered.length}`;
+  const total = Math.ceil(filtered.length / perPage);
+  const pag   = document.getElementById('pagination');
+  document.getElementById('pageInfo').textContent =
+    `${Math.min((page-1)*perPage+1, filtered.length)}-${Math.min(page*perPage, filtered.length)} ${t('pagination_sur')} ${filtered.length}`;
   pag.querySelectorAll('.page-btn').forEach(b => b.remove());
   for (let i = 1; i <= total; i++) {
     const btn = document.createElement('button');
-    btn.className = 'page-btn' + (i===page?' active':'');
+    btn.className = 'page-btn' + (i === page ? ' active' : '');
     btn.textContent = i;
-    btn.addEventListener('click', () => { page=i; renderTable(); });
+    btn.addEventListener('click', () => { page = i; renderTable(); });
     pag.appendChild(btn);
   }
 }
 
 function renderTree() {
-  const roots = MOCK_CATS.filter(c => !c.parent_id);
+  const roots = categories.filter(c => !c.parent_id);
   const tree  = document.getElementById('treeView');
+  if (!tree) return;
   tree.innerHTML = roots.map(r => {
-    const children = MOCK_CATS.filter(c => c.parent_id === r.id);
-    return `<div style="margin-bottom:8px">
-      <div style="font-weight:600;color:var(--neutral-900);display:flex;align-items:center;gap:6px">
-        <span>${r.icone}</span> ${r.nom}
-        <span style="font-size:11px;color:var(--neutral-400);font-weight:400">(${r.nb_objets})</span>
+    const children = categories.filter(c => c.parent_id === r.id);
+    return `<div style="margin-bottom:12px">
+      <div style="font-weight:600;color:var(--neutral-900);display:flex;align-items:center;gap:8px">
+        <i class="fa-solid fa-folder" style="color:var(--uc-teal)" aria-hidden="true"></i>
+        ${escAdmin(r.nom)}
+        <span style="font-size:11px;color:var(--neutral-400);font-weight:400">(${r.nb_objets} objets)</span>
       </div>
       ${children.map(ch => `
-        <div style="padding-left:20px;color:var(--neutral-600);display:flex;align-items:center;gap:6px;margin-top:4px">
-          <svg viewBox="0 0 24 24" style="width:10px;height:10px;fill:var(--neutral-300)"><path d="M19 11H7.83l4.88-4.88c.39-.39.39-1.03 0-1.42-.39-.39-1.02-.39-1.41 0l-6.59 6.59c-.39.39-.39 1.02 0 1.41l6.59 6.59c.39.39 1.02.39 1.41 0 .39-.39.39-1.02 0-1.41L7.83 13H19c.55 0 1-.45 1-1s-.45-1-1-1z"/></svg>
-          ${ch.icone} ${ch.nom}
+        <div style="padding-left:24px;color:var(--neutral-600);display:flex;align-items:center;gap:8px;margin-top:6px">
+          <i class="fa-solid fa-folder-open" style="color:var(--neutral-300);font-size:12px" aria-hidden="true"></i>
+          ${escAdmin(ch.nom)}
           <span style="font-size:11px;color:var(--neutral-300)">(${ch.nb_objets})</span>
         </div>
       `).join('')}
@@ -107,31 +109,50 @@ function renderTree() {
 
 function fillParentSelect(selected = null) {
   const sel = document.getElementById('parent_id');
-  sel.innerHTML = '<option value="">Aucune (catégorie racine)</option>';
-  MOCK_CATS.forEach(c => {
-    if (c.parent_id) return; // only roots as parents
+  sel.innerHTML = `<option value="">${t('form_none_parent')}</option>`;
+  categories.filter(c => !c.parent_id).forEach(c => {
     const opt = document.createElement('option');
     opt.value = c.id;
-    opt.textContent = `${c.icone} ${c.nom}`;
+    opt.textContent = c.nom;
     if (selected && selected == c.id) opt.selected = true;
     sel.appendChild(opt);
   });
 }
 
-function openModal() { document.getElementById('catModal').classList.add('open'); }
+function openModal()  { document.getElementById('catModal').classList.add('open'); }
 function closeModal() { document.getElementById('catModal').classList.remove('open'); }
 
-document.addEventListener('DOMContentLoaded', () => {
-  checkAuth();
-  renderTable();
-  renderTree();
+function escAdmin(str) {
+  return String(str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+async function fetchCategories() {
+  try {
+    const res = await apiFetch('/categories');
+    if (!res || !res.ok) throw new Error('API error');
+    categories = await res.json();
+    filtered = [...categories];
+    renderTable();
+    renderTree();
+  } catch (err) {
+    console.warn('API indisponible, utilisation des mocks', err);
+    categories = [...MOCK_CATS];
+    filtered   = [...categories];
+    renderTable();
+    renderTree();
+  }
+}
+
+document.addEventListener('DOMContentLoaded', async () => {
+  await initLayout('categories');
+  fetchCategories();
 
   document.getElementById('searchInput').addEventListener('input', () => {
-    const q = document.getElementById('searchInput').value.toLowerCase();
+    const q  = document.getElementById('searchInput').value.toLowerCase();
     const pf = document.getElementById('parentFilter').value;
-    filtered = MOCK_CATS.filter(c => {
+    filtered = categories.filter(c => {
       const matchQ = c.nom.toLowerCase().includes(q);
-      const matchP = pf==='' ? true : pf==='root' ? !c.parent_id : !!c.parent_id;
+      const matchP = pf === '' ? true : pf === 'root' ? !c.parent_id : !!c.parent_id;
       return matchQ && matchP;
     });
     page = 1;
@@ -146,7 +167,7 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('catId').value = '';
     document.getElementById('catForm').reset();
     fillParentSelect();
-    document.getElementById('modalTitle').innerHTML = `<svg viewBox="0 0 24 24"><path d="M12 2l-5.5 9h11z"/></svg> Ajouter une catégorie`;
+    document.getElementById('modalTitle').innerHTML = `<i class="fa-solid fa-plus" aria-hidden="true"></i> ${t('cat_modal_add')}`;
     openModal();
   });
 
@@ -156,52 +177,70 @@ document.addEventListener('DOMContentLoaded', () => {
     if (e.target === document.getElementById('catModal')) closeModal();
   });
 
-  document.getElementById('catForm').addEventListener('submit', e => {
+  document.getElementById('catForm').addEventListener('submit', async e => {
     e.preventDefault();
     const id = document.getElementById('catId').value;
-    if (id) {
-      const cat = MOCK_CATS.find(c => c.id == id);
-      cat.nom = document.getElementById('nom').value;
-      cat.description = document.getElementById('description').value;
-      cat.parent_id = document.getElementById('parent_id').value || null;
-      cat.icone = document.getElementById('icone').value || '📦';
-      showToast('Catégorie mise à jour !', 'success');
-    } else {
-      MOCK_CATS.push({
-        id: Math.max(...MOCK_CATS.map(c=>c.id))+1,
-        nom: document.getElementById('nom').value,
-        description: document.getElementById('description').value,
-        parent_id: document.getElementById('parent_id').value || null,
-        icone: document.getElementById('icone').value || '📦',
-        nb_objets: 0,
+    const data = {
+      nom:         document.getElementById('nom').value,
+      description: document.getElementById('description').value,
+      parent_id:   document.getElementById('parent_id').value ? parseInt(document.getElementById('parent_id').value) : null,
+    };
+
+    try {
+      const res = await apiFetch(id ? `/categories/${id}` : '/categories', {
+        method: id ? 'PUT' : 'POST',
+        body:   JSON.stringify(data),
       });
-      showToast('Catégorie créée !', 'success');
+      if (res && res.ok) {
+        showToast(id ? t('cat_toast_updated') : t('cat_toast_created'), 'success');
+        closeModal();
+        fetchCategories();
+        return;
+      }
+    } catch { /* fallback local */ }
+
+    // Fallback local si API hors ligne
+    if (id) {
+      const index = categories.findIndex(c => c.id == id);
+      if (index !== -1) categories[index] = { ...categories[index], ...data };
+    } else {
+      const newId = Math.max(0, ...categories.map(c => c.id)) + 1;
+      categories.push({ id: newId, ...data, nb_objets: 0 });
     }
-    filtered = [...MOCK_CATS];
+    filtered = [...categories];
     renderTable();
     renderTree();
+    showToast(id ? t('toast_local_updated') : t('toast_local_created'), 'warning');
     closeModal();
   });
 });
 
 window.editCat = id => {
-  const c = MOCK_CATS.find(c => c.id === id);
+  const c = categories.find(c => c.id === id);
   if (!c) return;
-  document.getElementById('catId').value = c.id;
-  document.getElementById('nom').value = c.nom;
-  document.getElementById('description').value = c.description || '';
-  document.getElementById('icone').value = c.icone || '';
+  document.getElementById('catId').value          = c.id;
+  document.getElementById('nom').value            = c.nom;
+  document.getElementById('description').value    = c.description || '';
   fillParentSelect(c.parent_id);
-  document.getElementById('modalTitle').innerHTML = `<svg viewBox="0 0 24 24"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25z"/></svg> Modifier — ${c.nom}`;
+  document.getElementById('modalTitle').innerHTML = `<i class="fa-solid fa-pen" aria-hidden="true"></i> ${t('modal_edit_prefix')} ${escAdmin(c.nom)}`;
   openModal();
 };
 
-window.deleteCat = id => {
-  const c = MOCK_CATS.find(c => c.id === id);
-  if (!c || !confirm(`Supprimer "${c.nom}" ?`)) return;
-  MOCK_CATS = MOCK_CATS.filter(c => c.id !== id && c.parent_id !== id);
-  filtered = [...MOCK_CATS];
+window.deleteCat = async id => {
+  const c = categories.find(c => c.id === id);
+  if (!c || !confirm(t('confirm_action'))) return;
+  try {
+    const res = await apiFetch(`/categories/${id}`, { method: 'DELETE' });
+    if (res && (res.ok || res.status === 204)) {
+      showToast(t('cat_toast_deleted'), 'error');
+      fetchCategories();
+      return;
+    }
+  } catch { /* fallback local */ }
+  // Fallback local
+  categories = categories.filter(c => c.id !== id && c.parent_id !== id);
+  filtered   = [...categories];
   renderTable();
   renderTree();
-  showToast('Catégorie supprimée', 'error');
+  showToast(t('cat_toast_local_deleted'), 'warning');
 };
