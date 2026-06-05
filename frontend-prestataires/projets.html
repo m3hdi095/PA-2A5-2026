@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Mes projets | Espace Professionnel</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=Montserrat:wght@400;500;600&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="css/style.css"/>
+  <style>
+    .filtre-tab {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      padding: 9px 16px;
+      border: none;
+      background: none;
+      border-radius: var(--radius);
+      font-family: 'Poppins', sans-serif;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-muted);
+      cursor: pointer;
+      transition: background 0.18s var(--ease), color 0.18s var(--ease);
+    }
+    .filtre-tab:hover { background: var(--green-50); color: var(--green-700); }
+    .filtre-tab.active { background: var(--green-700); color: var(--white); }
+    .filtre-tab.active .tab-count { background: rgba(255,255,255,0.2); color: var(--white); }
+    .tab-count {
+      background: var(--green-50);
+      color: var(--text-muted);
+      font-size: 11px;
+      font-weight: 700;
+      padding: 1px 7px;
+      border-radius: var(--radius-pill);
+      transition: background 0.18s var(--ease), color 0.18s var(--ease);
+    }
+  </style>
+</head>
+<body>
+
+<div class="page-title-row animate-in">
+  <div>
+    <h1>
+      <div class="page-title-icon green">
+        <i class="fa-solid fa-diagram-project" aria-hidden="true"></i>
+      </div>
+      <span data-i18n="projets_title">Mes projets upcycling</span>
+    </h1>
+    <p class="page-title-sub" data-i18n="projets_subtitle">Créez et suivez vos projets de valorisation de matériaux</p>
+  </div>
+  <div class="page-title-actions">
+    <a href="annonces.html" class="btn btn-outline btn-sm">
+      <i class="fa-solid fa-box-open" aria-hidden="true"></i>
+      <span data-i18n="projets_btn_materiaux">Trouver des matériaux</span>
+    </a>
+    <button class="btn btn-primary" id="btn-nouveau-projet">
+      <i class="fa-solid fa-plus" aria-hidden="true"></i>
+      <span data-i18n="btn_nouveau_projet">Nouveau projet</span>
+    </button>
+  </div>
+</div>
+
+<!-- Filtres par statut -->
+<div class="animate-in" style="display:flex;gap:4px;background:white;border:1.5px solid var(--border);border-radius:var(--radius-lg);padding:4px;width:fit-content">
+  <button class="filtre-tab active" data-filtre="tous">
+    <span data-i18n="projet_filtre_tous">Tous</span> <span class="tab-count" id="count-tous">0</span>
+  </button>
+  <button class="filtre-tab" data-filtre="en_cours">
+    <span data-i18n="projet_filtre_en_cours">En cours</span> <span class="tab-count" id="count-en_cours">0</span>
+  </button>
+  <button class="filtre-tab" data-filtre="attente">
+    <span data-i18n="projet_filtre_attente">En attente</span> <span class="tab-count" id="count-attente">0</span>
+  </button>
+  <button class="filtre-tab" data-filtre="publie">
+    <span data-i18n="projet_filtre_publie">Publiés</span> <span class="tab-count" id="count-publie">0</span>
+  </button>
+  <button class="filtre-tab" data-filtre="termine">
+    <span data-i18n="projet_filtre_termine">Terminés</span> <span class="tab-count" id="count-termine">0</span>
+  </button>
+</div>
+
+<!-- Grille projets -->
+<div class="projets-grid" id="projets-container"></div>
+
+<!-- Modal nouveau projet -->
+<div class="modal-overlay" id="modal-projet">
+  <div class="modal-box">
+    <div class="modal-header">
+      <div class="modal-title">
+        <i class="fa-solid fa-diagram-project" aria-hidden="true"></i>
+        <span data-i18n="projet_modal_title">Nouveau projet upcycling</span>
+      </div>
+      <button class="modal-close" id="modal-projet-close">&times;</button>
+    </div>
+    <div class="modal-body">
+      <form id="form-projet" novalidate style="display:flex;flex-direction:column;gap:16px">
+        <div class="form-group">
+          <label class="form-label" for="proj-titre"><span data-i18n="projet_titre_label">Titre du projet</span> <span class="form-required">*</span></label>
+          <input type="text" id="proj-titre" class="form-control" placeholder="Table basse en palettes" required/>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="proj-desc" data-i18n="projet_description_label">Description</label>
+          <textarea id="proj-desc" class="form-control" rows="3" placeholder="Décrivez votre projet, les techniques utilisées, la finalité..."></textarea>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label" for="proj-categorie" data-i18n="projet_categorie_label">Catégorie</label>
+            <select id="proj-categorie" class="form-control">
+              <option value="Mobilier">Mobilier</option>
+              <option value="Textile">Textile</option>
+              <option value="Décoration">Décoration</option>
+              <option value="Luminaire">Luminaire</option>
+              <option value="Jardin">Jardin</option>
+              <option value="Autre">Autre</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="proj-fin" data-i18n="projet_date_fin_label">Date de fin prévue</label>
+            <input type="date" id="proj-fin" class="form-control"/>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="proj-materiaux" data-i18n="projet_materiaux_label">Matériaux utilisés</label>
+          <input type="text" id="proj-materiaux" class="form-control"
+                 placeholder="Bois, Textiles, Métal (séparés par des virgules)"/>
+        </div>
+        <div class="form-actions">
+          <button type="button" class="btn btn-outline" onclick="fermerModal()" data-i18n="btn_annuler">Annuler</button>
+          <button type="submit" class="btn btn-primary">
+            <i class="fa-solid fa-check" aria-hidden="true"></i>
+            <span data-i18n="projet_btn_creer">Créer le projet</span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Modal détail projet -->
+<div class="modal-overlay" id="modal-detail-projet">
+  <div class="modal-box modal-lg">
+    <div class="modal-header">
+      <div class="modal-title" id="detail-projet-title">Détail</div>
+      <button class="modal-close" id="detail-projet-close">&times;</button>
+    </div>
+    <div class="modal-body" id="detail-projet-body"></div>
+  </div>
+</div>
+
+<script src="js/layout.js"></script>
+<script src="js/projets.js"></script>
+
+</body>
+</html>

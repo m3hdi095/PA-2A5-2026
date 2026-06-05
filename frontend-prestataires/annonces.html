@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Annonces matériaux | Espace Professionnel</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=Montserrat:wght@400;500;600&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="css/style.css"/>
+</head>
+<body>
+
+<div class="page-title-row animate-in">
+  <div>
+    <h1>
+      <div class="page-title-icon green">
+        <i class="fa-solid fa-box-open" aria-hidden="true"></i>
+      </div>
+      <span data-i18n="annonces_title">Annonces disponibles</span>
+    </h1>
+    <p class="page-title-sub">
+      <span data-i18n="annonces_subtitle">Matériaux validés en attente de récupération</span>
+      <strong id="annonces-count" style="color:var(--green-700)">—</strong>
+    </p>
+  </div>
+  <div class="page-title-actions">
+    <a href="alertes.html" class="btn btn-outline btn-sm">
+      <i class="fa-solid fa-bell" aria-hidden="true"></i>
+      <span data-i18n="nav_alertes">Créer une alerte</span>
+    </a>
+  </div>
+</div>
+
+<!-- Filtres -->
+<div class="filters-bar animate-in">
+  <div class="filter-wrap">
+    <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
+    <input type="text" class="filter-input" id="search-input" data-i18n-placeholder="filter_search" placeholder="Rechercher un matériau..."/>
+  </div>
+  <select class="filter-select" id="type-filter">
+    <option value="" data-i18n="filter_type_all">Tous les types</option>
+    <option value="don" data-i18n="filter_type_don">Dons uniquement</option>
+    <option value="vente" data-i18n="filter_type_vente">Ventes uniquement</option>
+  </select>
+  <select class="filter-select" id="cat-filter">
+    <option value="" data-i18n="filter_cat_all">Toutes les catégories</option>
+    <option value="textiles" data-i18n="filter_cat_textiles">Textiles</option>
+    <option value="bois" data-i18n="filter_cat_bois">Bois</option>
+    <option value="metal" data-i18n="filter_cat_metal">Métal</option>
+    <option value="plastique" data-i18n="filter_cat_plastique">Plastique</option>
+    <option value="electronique" data-i18n="filter_cat_electronique">Électronique</option>
+    <option value="autre" data-i18n="filter_cat_autre">Autre</option>
+  </select>
+  <select class="filter-select" id="sort-filter">
+    <option value="recent" data-i18n="filter_plus_recent">Plus récents</option>
+    <option value="distance" data-i18n="filter_distance">Plus proches</option>
+    <option value="prix_asc" data-i18n="filter_prix_asc">Prix croissant</option>
+    <option value="prix_desc" data-i18n="filter_prix_desc">Prix décroissant</option>
+  </select>
+</div>
+
+<!-- Grille annonces -->
+<div class="annonces-grid" id="annonces-grid">
+  <div class="skeleton" style="height:280px;border-radius:12px"></div>
+  <div class="skeleton" style="height:280px;border-radius:12px"></div>
+  <div class="skeleton" style="height:280px;border-radius:12px"></div>
+  <div class="skeleton" style="height:280px;border-radius:12px"></div>
+  <div class="skeleton" style="height:280px;border-radius:12px"></div>
+  <div class="skeleton" style="height:280px;border-radius:12px"></div>
+</div>
+
+<!-- Pagination -->
+<div class="pagination card" id="pagination">
+  <span class="page-info" id="page-info"></span>
+</div>
+
+<!-- Modal détail annonce -->
+<div class="modal-overlay" id="modal-detail">
+  <div class="modal-box modal-lg">
+    <div class="modal-header">
+      <div class="modal-title" id="detail-title">Détail</div>
+      <button class="modal-close" id="modal-detail-close">&times;</button>
+    </div>
+    <div class="modal-body" id="detail-body"></div>
+    <div style="padding:14px 22px;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:10px">
+      <button class="btn btn-outline" onclick="fermerModalDetail()">Fermer</button>
+      <button class="btn btn-primary" id="btn-reserver-modal">
+        <i class="fa-solid fa-hand-holding" aria-hidden="true"></i>
+        Réserver
+      </button>
+    </div>
+  </div>
+</div>
+
+<script src="js/layout.js"></script>
+<script src="js/annonces.js"></script>
+
+</body>
+</html>

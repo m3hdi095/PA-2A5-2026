@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Alertes matériaux | Espace Professionnel</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=Montserrat:wght@400;500;600&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="css/style.css"/>
+</head>
+<body>
+
+<div class="page-title-row animate-in">
+  <div>
+    <h1>
+      <div class="page-title-icon green">
+        <i class="fa-solid fa-bell" aria-hidden="true"></i>
+      </div>
+      <span data-i18n="nav_alertes">Alertes matériaux</span>
+    </h1>
+    <p class="page-title-sub" data-i18n="alertes_subtitle">Soyez notifié en temps réel des nouveaux matériaux disponibles</p>
+  </div>
+  <div class="page-title-actions">
+    <button class="btn btn-primary" onclick="ouvrirNouvelleAlerte()">
+      <i class="fa-solid fa-plus" aria-hidden="true"></i>
+      <span data-i18n="alertes_btn_nouvelle">Nouvelle alerte</span>
+    </button>
+  </div>
+</div>
+
+<!-- Alertes actives -->
+<div class="card animate-in">
+  <div class="card-header">
+    <h2><i class="fa-solid fa-bolt" aria-hidden="true"></i> <span data-i18n="alertes_actives_title">Alertes actives</span></h2>
+    <span class="badge badge-green" id="count-alertes">3 actives</span>
+  </div>
+  <div class="card-body" style="padding:0">
+    <div id="alertes-actives"></div>
+  </div>
+</div>
+
+<!-- Historique notifications -->
+<div class="card animate-in">
+  <div class="card-header">
+    <h2><i class="fa-solid fa-clock-rotate-left" aria-hidden="true"></i> <span data-i18n="alertes_notifs_title">Notifications reçues</span></h2>
+    <button class="btn btn-ghost btn-sm" onclick="marquerToutesLues()" data-i18n="alertes_btn_marquer_lu">
+      Tout marquer lu
+    </button>
+  </div>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th data-i18n="th_date">Date</th>
+          <th data-i18n="th_materiau">Matériau</th>
+          <th data-i18n="th_localisation">Localisation</th>
+          <th data-i18n="th_type">Type</th>
+          <th data-i18n="th_action">Action</th>
+        </tr>
+      </thead>
+      <tbody id="notifs-body"></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Modal nouvelle alerte -->
+<div class="modal-overlay" id="modal-alerte">
+  <div class="modal-box">
+    <div class="modal-header">
+      <div class="modal-title">
+        <i class="fa-solid fa-bell" aria-hidden="true"></i>
+        <span data-i18n="alertes_modal_title">Nouvelle alerte matériau</span>
+      </div>
+      <button class="modal-close" onclick="fermerAlerte()">&times;</button>
+    </div>
+    <div class="modal-body">
+      <form id="form-alerte" style="display:flex;flex-direction:column;gap:16px">
+        <div class="form-group">
+          <label class="form-label"><span data-i18n="alertes_cat_label">Catégorie de matériau</span> <span class="form-required">*</span></label>
+          <select id="alerte-cat" class="form-control">
+            <option value="">Toutes les catégories</option>
+            <option value="textiles">Textiles</option>
+            <option value="bois">Bois</option>
+            <option value="metal">Métal</option>
+            <option value="plastique">Plastique</option>
+            <option value="electronique">Électronique</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Type</label>
+          <select id="alerte-type" class="form-control">
+            <option value="">Dons et ventes</option>
+            <option value="don">Dons uniquement (gratuit)</option>
+            <option value="vente">Ventes uniquement</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label" data-i18n="alertes_rayon_label">Rayon de recherche</label>
+          <select id="alerte-rayon" class="form-control">
+            <option value="5">5 km</option>
+            <option value="10" selected>10 km</option>
+            <option value="20">20 km</option>
+            <option value="50">50 km</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label" data-i18n="alertes_keyword_label">Mot-clé (optionnel)</label>
+          <input type="text" id="alerte-keyword" class="form-control" placeholder="Ex: palette, lin, cuivre..."/>
+        </div>
+        <div class="form-actions">
+          <button type="button" class="btn btn-outline" onclick="fermerAlerte()" data-i18n="btn_annuler">Annuler</button>
+          <button type="submit" class="btn btn-primary">
+            <i class="fa-solid fa-bell" aria-hidden="true"></i>
+            <span data-i18n="alertes_btn_creer">Créer l'alerte</span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script src="js/layout.js"></script>
+<script>
+const MOCK_ALERTES_CONFIG = [
+  { id:1, categorie:'bois',     type:'',      rayon:10, keyword:'palette', actif:true,  nb_notifs:5 },
+  { id:2, categorie:'textiles', type:'don',   rayon:5,  keyword:'',        actif:true,  nb_notifs:3 },
+  { id:3, categorie:'metal',    type:'vente', rayon:20, keyword:'cuivre',  actif:false, nb_notifs:0 },
+];
+
+const MOCK_NOTIFS = [
+  { id:1, date:'2026-04-19', materiau:'Chutes tissu lin naturel',  localisation:'Paris 11e',   type:'don',   lu:false },
+  { id:2, date:'2026-04-18', materiau:'Palettes bois EUR (x5)',    localisation:'Montreuil',   type:'vente', lu:false },
+  { id:3, date:'2026-04-17', materiau:'Profilés cuivre (2kg)',     localisation:'Paris 19e',   type:'vente', lu:true  },
+  { id:4, date:'2026-04-16', materiau:'Laine mérinos (3 kg)',      localisation:'Paris 14e',   type:'don',   lu:true  },
+  { id:5, date:'2026-04-15', materiau:'Câble électrique (10m)',    localisation:'Vincennes',   type:'don',   lu:true  },
+];
+
+const CAT_LABELS = {
+  bois:'Bois', textiles:'Textiles', metal:'Métal', plastique:'Plastique', electronique:'Électronique'
+};
+
+document.addEventListener('DOMContentLoaded', async () => {
+  await initLayout('alertes');
+  renderAlertesActives();
+  renderNotifs();
+
+  document.getElementById('form-alerte').addEventListener('submit', (e) => {
+    e.preventDefault();
+    const cat     = document.getElementById('alerte-cat').value;
+    const type    = document.getElementById('alerte-type').value;
+    const rayon   = parseInt(document.getElementById('alerte-rayon').value);
+    const keyword = document.getElementById('alerte-keyword').value.trim();
+    MOCK_ALERTES_CONFIG.push({ id: Date.now(), categorie: cat || 'tous', type, rayon, keyword, actif:true, nb_notifs:0 });
+    fermerAlerte();
+    renderAlertesActives();
+    showToast('Alerte créée. Vous serez notifié des nouveaux matériaux', 'success');
+  });
+
+  document.getElementById('modal-alerte').addEventListener('click', e => {
+    if (e.target === document.getElementById('modal-alerte')) fermerAlerte();
+  });
+});
+
+function renderAlertesActives() {
+  const container = document.getElementById('alertes-actives');
+  if (!container) return;
+
+  if (!MOCK_ALERTES_CONFIG.length) {
+    container.innerHTML = `<div class="empty-state"><i class="fa-solid fa-bell" aria-hidden="true"></i><p>Aucune alerte configurée</p></div>`;
+    return;
+  }
+
+  container.innerHTML = MOCK_ALERTES_CONFIG.map((a, i) => {
+    const catLabel = CAT_LABELS[a.categorie] || a.categorie || 'Toutes catégories';
+    const typeLabel = a.type === 'don' ? 'Dons' : a.type === 'vente' ? 'Ventes' : 'Tous types';
+    return `
+      <div class="alerte-item" style="padding:14px 22px">
+        <div class="alerte-dot ${a.actif ? '' : 'priority'}" style="background:${a.actif ? 'var(--green-700)' : 'var(--text-muted)'}"></div>
+        <div class="alerte-content">
+          <div class="alerte-titre">
+            ${catLabel}
+            ${a.keyword ? `· <em style="font-weight:500">"${esc(a.keyword)}"</em>` : ''}
+          </div>
+          <div class="alerte-desc">${typeLabel} · ${a.rayon} km de rayon · <strong>${a.nb_notifs}</strong> notification${a.nb_notifs !== 1 ? 's' : ''}</div>
+        </div>
+        <div style="display:flex;gap:8px;align-items:center">
+          <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:12px;font-weight:600;color:var(--text-muted)">
+            <input type="checkbox" ${a.actif ? 'checked' : ''} onchange="toggleAlerte(${a.id}, this.checked)"/>
+            Actif
+          </label>
+          <button class="btn btn-ghost btn-sm" onclick="supprimerAlerte(${a.id})" style="color:var(--danger-text)">
+            <i class="fa-solid fa-trash" aria-hidden="true"></i>
+          </button>
+        </div>
+      </div>`;
+  }).join('');
+
+  const actives = MOCK_ALERTES_CONFIG.filter(a => a.actif).length;
+  const badge = document.getElementById('count-alertes');
+  if (badge) badge.textContent = `${actives} active${actives !== 1 ? 's' : ''}`;
+}
+
+function renderNotifs() {
+  const tbody = document.getElementById('notifs-body');
+  if (!tbody) return;
+
+  tbody.innerHTML = MOCK_NOTIFS.map(n => {
+    const date     = new Date(n.date).toLocaleDateString('fr-FR', { day:'2-digit', month:'short', year:'numeric' });
+    const typeBadge = n.type === 'don'
+      ? '<span class="badge badge-don">Don</span>'
+      : '<span class="badge badge-vente">Vente</span>';
+    return `
+      <tr style="${!n.lu ? 'background:var(--green-25);' : ''}">
+        <td style="color:var(--text-muted);font-size:12px">${date}</td>
+        <td class="td-primary" style="${!n.lu ? 'font-weight:700' : ''}">
+          ${!n.lu ? '<span style="width:6px;height:6px;background:var(--green-700);border-radius:50%;display:inline-block;margin-right:6px"></span>' : ''}
+          ${esc(n.materiau)}
+        </td>
+        <td style="font-size:12.5px;color:var(--text-soft)">${esc(n.localisation)}</td>
+        <td>${typeBadge}</td>
+        <td>
+          <a href="annonces.html" class="btn btn-outline btn-sm">
+            <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
+            Voir
+          </a>
+        </td>
+      </tr>`;
+  }).join('');
+}
+
+window.ouvrirNouvelleAlerte = () => document.getElementById('modal-alerte').classList.add('open');
+window.fermerAlerte         = () => document.getElementById('modal-alerte').classList.remove('open');
+
+window.toggleAlerte = (id, actif) => {
+  const a = MOCK_ALERTES_CONFIG.find(x => x.id === id);
+  if (a) { a.actif = actif; renderAlertesActives(); }
+};
+
+window.supprimerAlerte = (id) => {
+  const idx = MOCK_ALERTES_CONFIG.findIndex(x => x.id === id);
+  if (idx !== -1) {
+    MOCK_ALERTES_CONFIG.splice(idx, 1);
+    renderAlertesActives();
+    showToast('Alerte supprimée', 'info');
+  }
+};
+
+window.marquerToutesLues = () => {
+  MOCK_NOTIFS.forEach(n => n.lu = true);
+  renderNotifs();
+  showToast('Toutes les notifications marquées comme lues', 'success');
+};
+
+function esc(str) {
+  return String(str||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+</script>
+
+</body>
+</html>
