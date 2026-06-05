@@ -109,11 +109,14 @@ func (r *AnnonceRepository) Create(annonce *models.Annonce) error {
 }
 
 func (r *AnnonceRepository) GetByID(id uint) (*models.Annonce, error) {
-	query := `SELECT id_annonce, titre, description, type_annonce, prix, date_publication, statut, id_utilisateur, id_objet
-              FROM annonce WHERE id_annonce = ?`
+	query := `SELECT a.id_annonce, a.titre, a.description, a.type_annonce, a.prix, a.date_publication, a.statut, a.id_utilisateur, a.id_objet, COALESCE(c.nom, '')
+              FROM annonce a
+              LEFT JOIN objet o ON a.id_objet = o.id_objet
+              LEFT JOIN categorie c ON o.categorie_id = c.id_categorie
+              WHERE a.id_annonce = ?`
 	row := database.DB.QueryRow(query, id)
 	var a models.Annonce
-	err := row.Scan(&a.ID, &a.Titre, &a.Description, &a.TypeAnnonce, &a.Prix, &a.DatePublication, &a.Statut, &a.IDUtilisateur, &a.IDObjet)
+	err := row.Scan(&a.ID, &a.Titre, &a.Description, &a.TypeAnnonce, &a.Prix, &a.DatePublication, &a.Statut, &a.IDUtilisateur, &a.IDObjet, &a.Categorie)
 	if err == sql.ErrNoRows {
 		return nil, nil
 	}
@@ -121,15 +124,18 @@ func (r *AnnonceRepository) GetByID(id uint) (*models.Annonce, error) {
 }
 
 func (r *AnnonceRepository) List(filter string, limit, offset int) ([]models.Annonce, error) {
-	query := `SELECT id_annonce, titre, description, type_annonce, prix, date_publication, statut, id_utilisateur, id_objet
-              FROM annonce WHERE statut = 'validee'`
+	query := `SELECT a.id_annonce, a.titre, a.description, a.type_annonce, a.prix, a.date_publication, a.statut, a.id_utilisateur, a.id_objet, COALESCE(c.nom, '')
+              FROM annonce a
+              LEFT JOIN objet o ON a.id_objet = o.id_objet
+              LEFT JOIN categorie c ON o.categorie_id = c.id_categorie
+              WHERE a.statut = 'validee'`
 	args := []interface{}{}
 	if filter != "" {
-		query += " AND (titre LIKE ? OR description LIKE ?)"
+		query += " AND (a.titre LIKE ? OR a.description LIKE ?)"
 		like := "%" + filter + "%"
 		args = append(args, like, like)
 	}
-	query += " ORDER BY date_publication DESC LIMIT ? OFFSET ?"
+	query += " ORDER BY a.date_publication DESC LIMIT ? OFFSET ?"
 	args = append(args, limit, offset)
 	rows, err := database.DB.Query(query, args...)
 	if err != nil {
@@ -139,7 +145,7 @@ func (r *AnnonceRepository) List(filter string, limit, offset int) ([]models.Ann
 	annonces := make([]models.Annonce, 0)
 	for rows.Next() {
 		var a models.Annonce
-		err := rows.Scan(&a.ID, &a.Titre, &a.Description, &a.TypeAnnonce, &a.Prix, &a.DatePublication, &a.Statut, &a.IDUtilisateur, &a.IDObjet)
+		err := rows.Scan(&a.ID, &a.Titre, &a.Description, &a.TypeAnnonce, &a.Prix, &a.DatePublication, &a.Statut, &a.IDUtilisateur, &a.IDObjet, &a.Categorie)
 		if err != nil {
 			return nil, err
 		}
@@ -149,7 +155,12 @@ func (r *AnnonceRepository) List(filter string, limit, offset int) ([]models.Ann
 }
 
 func (r *AnnonceRepository) ListByUser(userID uint, limit, offset int) ([]models.Annonce, error) {
-	rows, err := database.DB.Query("SELECT id_annonce, titre, description, type_annonce, prix, date_publication, statut, id_utilisateur, id_objet FROM annonce WHERE id_utilisateur = ? ORDER BY date_publication DESC LIMIT ? OFFSET ?", userID, limit, offset)
+	query := `SELECT a.id_annonce, a.titre, a.description, a.type_annonce, a.prix, a.date_publication, a.statut, a.id_utilisateur, a.id_objet, COALESCE(c.nom, '')
+              FROM annonce a
+              LEFT JOIN objet o ON a.id_objet = o.id_objet
+              LEFT JOIN categorie c ON o.categorie_id = c.id_categorie
+              WHERE a.id_utilisateur = ? ORDER BY a.date_publication DESC LIMIT ? OFFSET ?`
+	rows, err := database.DB.Query(query, userID, limit, offset)
 	if err != nil {
 		return nil, err
 	}
@@ -157,7 +168,7 @@ func (r *AnnonceRepository) ListByUser(userID uint, limit, offset int) ([]models
 	annonces := make([]models.Annonce, 0)
 	for rows.Next() {
 		var a models.Annonce
-		err := rows.Scan(&a.ID, &a.Titre, &a.Description, &a.TypeAnnonce, &a.Prix, &a.DatePublication, &a.Statut, &a.IDUtilisateur, &a.IDObjet)
+		err := rows.Scan(&a.ID, &a.Titre, &a.Description, &a.TypeAnnonce, &a.Prix, &a.DatePublication, &a.Statut, &a.IDUtilisateur, &a.IDObjet, &a.Categorie)
 		if err != nil {
 			return nil, err
 		}
@@ -707,7 +718,7 @@ func (r *CategorieRepository) GetByID(id uint) (*models.Categorie, error) {
 }
 
 func (r *CategorieRepository) ListAll() ([]models.Categorie, error) {
-	rows, err := database.DB.Query("SELECT id_categorie, nom, description, parent_id FROM categorie ORDER BY nom")
+	rows, err := database.DB.Query("SELECT id_categorie, nom, description, parent_id FROM categorie WHERE nom NOT LIKE '[supprimee]%' ORDER BY nom")
 	if err != nil {
 		return nil, err
 	}
@@ -744,6 +755,7 @@ func (r *CategorieRepository) List() ([]models.Categorie, error) {
 		       COUNT(o.id_objet) AS nb_objets
 		FROM categorie c
 		LEFT JOIN objet o ON o.categorie_id = c.id_categorie
+		WHERE c.nom NOT LIKE '[supprimee]%'
 		GROUP BY c.id_categorie
 		ORDER BY c.nom`
 	rows, err := database.DB.Query(query)

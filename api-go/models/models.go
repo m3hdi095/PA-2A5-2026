@@ -59,6 +59,7 @@ type Annonce struct {
     Statut         string    `json:"statut"` // en_attente, validee, refusee
     IDUtilisateur  uint      `json:"id_utilisateur"`
     IDObjet        uint      `json:"id_objet"`
+    Categorie      string    `json:"categorie,omitempty"`
 }
 
 type Conteneur struct {
