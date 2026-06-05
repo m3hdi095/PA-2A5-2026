@@ -42,8 +42,28 @@ document.addEventListener('DOMContentLoaded', async () => {
   });
   document.getElementById('form-annonce')?.addEventListener('submit', soumettreAnnonce);
 
+  await chargerCategories();
   await chargerAnnonces();
 });
+
+async function chargerCategories() {
+  try {
+    const res = await apiFetch('/categories');
+    if (!res?.ok) return;
+    const cats = await res.json();
+    if (!Array.isArray(cats)) return;
+    const catFiltreEl = document.getElementById('f-categorie');
+    const catFormulaireEl = document.getElementById('a-categorie');
+    if (catFiltreEl) {
+      catFiltreEl.innerHTML = `<option value="">${catFiltreEl.options[0]?.text || 'Toutes catégories'}</option>`;
+      cats.forEach(c => catFiltreEl.insertAdjacentHTML('beforeend', `<option value="${esc(c.nom)}">${esc(c.nom)}</option>`));
+    }
+    if (catFormulaireEl) {
+      catFormulaireEl.innerHTML = '';
+      cats.forEach(c => catFormulaireEl.insertAdjacentHTML('beforeend', `<option value="${esc(c.nom)}">${esc(c.nom)}</option>`));
+    }
+  } catch {}
+}
 
 async function chargerAnnonces() {
   try {

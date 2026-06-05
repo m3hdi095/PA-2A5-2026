@@ -43,7 +43,8 @@ function renderFormations() {
   const container = document.getElementById('formations-container');
   if (!container) return;
 
-  let list = [...formationsData];
+  const maintenant = new Date();
+  let list = formationsData.filter(f => new Date(f.date_debut) >= maintenant);
   if (filtreType) list = list.filter(f => f.type === filtreType);
 
   if (!list.length) {

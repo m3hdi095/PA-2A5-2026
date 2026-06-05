@@ -67,15 +67,18 @@ async function chargerPlanning() {
       });
     });
 
-    if (!items.length) {
+    const maintenant = new Date();
+    const itemsFuturs = items.filter(i => i.dateHeure >= maintenant);
+
+    if (!itemsFuturs.length) {
       container.innerHTML = `<div class="empty-state"><i class="fa-solid fa-calendar-xmark" aria-hidden="true"></i><p>Aucun événement à venir. <a href="#" style="color:var(--teal-700);font-weight:600" onclick="chargerEvenementsPublics()">Parcourir les événements</a></p></div>`;
       return;
     }
 
     // Trier par date et grouper par mois
-    items.sort((a, b) => a.dateHeure - b.dateHeure);
+    itemsFuturs.sort((a, b) => a.dateHeure - b.dateHeure);
     const grouped = {};
-    items.forEach(e => {
+    itemsFuturs.forEach(e => {
       const d = e.dateHeure;
       const key = `${d.getFullYear()}-${d.getMonth()}`;
       if (!grouped[key]) grouped[key] = { label: `${MOIS[d.getMonth()]} ${d.getFullYear()}`, events: [] };

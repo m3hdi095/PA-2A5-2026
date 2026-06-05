@@ -31,6 +31,7 @@ const parPage = 9;
 
 document.addEventListener('DOMContentLoaded', async () => {
   await initLayout('annonces');
+  chargerCategories();
   chargerAnnonces();
 
   document.getElementById('search-input')?.addEventListener('input', appliquerFiltres);
@@ -43,6 +44,19 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (e.target === document.getElementById('modal-detail')) fermerModalDetail();
   });
 });
+
+async function chargerCategories() {
+  try {
+    const res = await apiFetch('/categories');
+    if (!res?.ok) return;
+    const cats = await res.json();
+    if (!Array.isArray(cats)) return;
+    const sel = document.getElementById('cat-filter');
+    if (!sel) return;
+    sel.innerHTML = `<option value="">${sel.options[0]?.text || 'Toutes les catégories'}</option>`;
+    cats.forEach(c => sel.insertAdjacentHTML('beforeend', `<option value="${escPro(c.nom)}">${escPro(c.nom)}</option>`));
+  } catch {}
+}
 
 async function chargerAnnonces() {
   const container = document.getElementById('annonces-grid');
