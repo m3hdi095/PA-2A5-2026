@@ -59,12 +59,10 @@
 function setFiltre(btn, val) {
   document.querySelectorAll('.filtre-tab').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
-  const fEl = document.getElementById('f-type');
-  if (fEl) { fEl.value = val; fEl.dispatchEvent(new Event('change')); }
+  filtreType = val;
+  renderFormations();
 }
 </script>
-<!-- Input caché pour le filtre JS -->
-<select id="f-type" style="display:none"></select>
 
 </body>
 </html>
