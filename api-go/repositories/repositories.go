@@ -123,13 +123,19 @@ func (r *AnnonceRepository) GetByID(id uint) (*models.Annonce, error) {
 	return &a, err
 }
 
-func (r *AnnonceRepository) List(filter string, limit, offset int) ([]models.Annonce, error) {
-	query := `SELECT a.id_annonce, a.titre, a.description, a.type_annonce, a.prix, a.date_publication, a.statut, a.id_utilisateur, a.id_objet, COALESCE(c.nom, '')
-              FROM annonce a
-              LEFT JOIN objet o ON a.id_objet = o.id_objet
-              LEFT JOIN categorie c ON o.categorie_id = c.id_categorie
-              WHERE a.statut = 'validee'`
-	args := []interface{}{}
+func (r *AnnonceRepository) List(filter string, limit, offset int, lang string) ([]models.Annonce, error) {
+	query := `SELECT a.id_annonce,
+		COALESCE(MAX(t_titre.valeur_traduite), a.titre),
+		COALESCE(MAX(t_desc.valeur_traduite), a.description),
+		a.type_annonce, a.prix, a.date_publication, a.statut, a.id_utilisateur, a.id_objet, COALESCE(MAX(c.nom), '')
+	FROM annonce a
+	LEFT JOIN objet o ON a.id_objet = o.id_objet
+	LEFT JOIN categorie c ON o.categorie_id = c.id_categorie
+	LEFT JOIN traduction t_titre ON t_titre.table_concernee = 'annonce' AND t_titre.id_enregistrement = a.id_annonce AND t_titre.champ = 'titre' AND t_titre.langue = ?
+	LEFT JOIN traduction t_desc  ON t_desc.table_concernee  = 'annonce' AND t_desc.id_enregistrement  = a.id_annonce AND t_desc.champ  = 'description' AND t_desc.langue  = ?
+	WHERE a.statut = 'validee'
+	GROUP BY a.id_annonce, a.titre, a.description, a.type_annonce, a.prix, a.date_publication, a.statut, a.id_utilisateur, a.id_objet`
+	args := []interface{}{lang, lang}
 	if filter != "" {
 		query += " AND (a.titre LIKE ? OR a.description LIKE ?)"
 		like := "%" + filter + "%"
@@ -582,16 +588,21 @@ func (r *AnnonceRepository) ListPending(limit, offset int) ([]models.Annonce, er
 //  ÉVÉNEMENT (méthodes manquantes)
 
 // evenements validés a venir, avec le nb d'inscrits pour afficher les places restantes
-func (r *EvenementRepository) ListUpcoming(limit, offset int) ([]models.Evenement, error) {
-	query := `SELECT e.id_evenement, e.titre, e.type, e.description, e.date_debut, e.date_fin,
-	                 e.lieu, e.tarif, e.nb_places, e.statut, e.id_salarie_createur,
-	                 COUNT(i.id_inscription) AS nb_inscriptions
-	          FROM evenement e
-	          LEFT JOIN inscription i ON i.id_evenement = e.id_evenement AND i.statut != 'annule'
-	          WHERE e.statut = 'valide' AND e.date_debut > NOW()
-	          GROUP BY e.id_evenement
-	          ORDER BY e.date_debut ASC LIMIT ? OFFSET ?`
-	rows, err := database.DB.Query(query, limit, offset)
+func (r *EvenementRepository) ListUpcoming(limit, offset int, lang string) ([]models.Evenement, error) {
+	query := `SELECT e.id_evenement,
+		COALESCE(MAX(t_titre.valeur_traduite), e.titre),
+		e.type,
+		COALESCE(MAX(t_desc.valeur_traduite), e.description),
+		e.date_debut, e.date_fin, e.lieu, e.tarif, e.nb_places, e.statut, e.id_salarie_createur,
+		COUNT(DISTINCT i.id_inscription) AS nb_inscriptions
+	FROM evenement e
+	LEFT JOIN inscription i ON i.id_evenement = e.id_evenement AND i.statut != 'annule'
+	LEFT JOIN traduction t_titre ON t_titre.table_concernee = 'evenement' AND t_titre.id_enregistrement = e.id_evenement AND t_titre.champ = 'titre' AND t_titre.langue = ?
+	LEFT JOIN traduction t_desc  ON t_desc.table_concernee  = 'evenement' AND t_desc.id_enregistrement  = e.id_evenement AND t_desc.champ  = 'description' AND t_desc.langue  = ?
+	WHERE e.statut = 'valide' AND e.date_debut > NOW()
+	GROUP BY e.id_evenement, e.titre, e.type, e.description, e.date_debut, e.date_fin, e.lieu, e.tarif, e.nb_places, e.statut, e.id_salarie_createur
+	ORDER BY e.date_debut ASC LIMIT ? OFFSET ?`
+	rows, err := database.DB.Query(query, lang, lang, limit, offset)
 	if err != nil {
 		return nil, err
 	}
@@ -748,17 +759,20 @@ func (r *CategorieRepository) Delete(id uint) error {
 	return err
 }
 
-func (r *CategorieRepository) List() ([]models.Categorie, error) {
+func (r *CategorieRepository) List(lang string) ([]models.Categorie, error) {
 	// On compte les objets par catégorie pour l'affichage admin
 	query := `
-		SELECT c.id_categorie, c.nom, COALESCE(c.description,''), c.parent_id,
-		       COUNT(o.id_objet) AS nb_objets
+		SELECT c.id_categorie,
+			COALESCE(MAX(t.valeur_traduite), c.nom),
+			COALESCE(c.description,''), c.parent_id,
+			COUNT(o.id_objet) AS nb_objets
 		FROM categorie c
 		LEFT JOIN objet o ON o.categorie_id = c.id_categorie
+		LEFT JOIN traduction t ON t.table_concernee = 'categorie' AND t.id_enregistrement = c.id_categorie AND t.champ = 'nom' AND t.langue = ?
 		WHERE c.nom NOT LIKE '[supprimee]%'
-		GROUP BY c.id_categorie
+		GROUP BY c.id_categorie, c.nom, c.description, c.parent_id
 		ORDER BY c.nom`
-	rows, err := database.DB.Query(query)
+	rows, err := database.DB.Query(query, lang)
 	if err != nil {
 		return nil, err
 	}

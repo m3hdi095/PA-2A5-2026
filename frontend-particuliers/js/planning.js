@@ -128,7 +128,7 @@ async function chargerPlanning() {
 
 async function chargerEvenements() {
   try {
-    const res = await fetch(`${window.API_BASE || 'http://localhost:8080/api'}/evenements`);
+    const res = await apiFetch(`/evenements?lang=${_lang}`);
     if (!res.ok) return [];
     return await res.json();
   } catch { return []; }

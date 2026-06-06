@@ -31,9 +31,9 @@ func (s *AnnonceService) GetAnnonce(id uint) (*models.Annonce, error) {
 	return s.repo.GetByID(id)
 }
 
-func (s *AnnonceService) ListAnnonces(filter string, page, pageSize int) ([]models.Annonce, error) {
+func (s *AnnonceService) ListAnnonces(filter string, page, pageSize int, lang string) ([]models.Annonce, error) {
 	offset := (page - 1) * pageSize
-	return s.repo.List(filter, pageSize, offset)
+	return s.repo.List(filter, pageSize, offset, lang)
 }
 
 func (s *AnnonceService) ListMyAnnonces(userID uint, page, pageSize int) ([]models.Annonce, error) {

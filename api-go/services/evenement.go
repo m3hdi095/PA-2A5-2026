@@ -31,9 +31,9 @@ func (s *EvenementService) CreateEvenement(evenement *models.Evenement) error {
     return s.evenementRepo.Create(evenement)
 }
 
-func (s *EvenementService) ListUpcoming(page, pageSize int) ([]models.Evenement, error) {
+func (s *EvenementService) ListUpcoming(page, pageSize int, lang string) ([]models.Evenement, error) {
     offset := (page - 1) * pageSize
-    return s.evenementRepo.ListUpcoming(pageSize, offset)
+    return s.evenementRepo.ListUpcoming(pageSize, offset, lang)
 }
 
 func (s *EvenementService) InscrireUtilisateur(userID, evenementID uint) error {

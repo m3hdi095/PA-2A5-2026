@@ -62,7 +62,11 @@ func ListEvenements(w http.ResponseWriter, r *http.Request) {
     if page < 1 {
         page = 1
     }
-    events, err := evenementService.ListUpcoming(page, 10)
+    lang := r.URL.Query().Get("lang")
+    if lang == "" {
+        lang = "fr"
+    }
+    events, err := evenementService.ListUpcoming(page, 10, lang)
     if err != nil {
         http.Error(w, `{"error":"Erreur interne"}`, http.StatusInternalServerError)
         return

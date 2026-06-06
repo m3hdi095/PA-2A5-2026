@@ -48,7 +48,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 async function chargerCategories() {
   try {
-    const res = await apiFetch('/categories');
+    const res = await apiFetch(`/categories?lang=${_lang}`);
     if (!res?.ok) return;
     const cats = await res.json();
     if (!Array.isArray(cats)) return;
@@ -67,7 +67,7 @@ async function chargerCategories() {
 
 async function chargerAnnonces() {
   try {
-    const res = await fetch(`${window.API_BASE || 'http://localhost:8080/api'}/annonces`);
+    const res = await apiFetch(`/annonces?lang=${_lang}`);
     if (res.ok) {
       const data = await res.json();
       if (Array.isArray(data) && data.length) {
@@ -112,9 +112,9 @@ function renderAnnonces() {
 
   container.innerHTML = slice.map((a, i) => {
     const typeBadge = a.type === 'don'
-      ? '<span class="badge badge-don"><i class="fa-solid fa-hand-holding-heart" aria-hidden="true"></i> Don</span>'
-      : '<span class="badge badge-vente"><i class="fa-solid fa-tag" aria-hidden="true"></i> Vente</span>';
-    const prix = a.prix > 0 ? `${a.prix.toFixed(2)} €` : 'Gratuit';
+      ? `<span class="badge badge-don"><i class="fa-solid fa-hand-holding-heart" aria-hidden="true"></i> ${t('annonce_type_don')}</span>`
+      : `<span class="badge badge-vente"><i class="fa-solid fa-tag" aria-hidden="true"></i> ${t('annonce_type_vente')}</span>`;
+    const prix = a.prix > 0 ? `${a.prix.toFixed(2)} €` : t('annonce_gratuit');
     return `
       <div class="annonce-card animate-in" style="animation-delay:${i * .05}s" onclick="ouvrirDetail(${a.id})" tabindex="0">
         <div class="annonce-header">
@@ -152,11 +152,11 @@ window.ouvrirDetail = (id) => {
   const modal = document.getElementById('modal-detail');
   if (!modal) return;
   document.getElementById('detail-titre').textContent = a.titre;
-  const prix = a.prix > 0 ? `${a.prix.toFixed(2)} €` : 'Gratuit';
+  const prix = a.prix > 0 ? `${a.prix.toFixed(2)} €` : t('annonce_gratuit');
   document.getElementById('detail-body').innerHTML = `
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px">
       <div><span style="font-size:11px;font-weight:700;text-transform:uppercase;color:var(--text-muted)">Type</span><br>
-        ${a.type === 'don' ? '<span class="badge badge-don"><i class="fa-solid fa-hand-holding-heart"></i> Don</span>' : '<span class="badge badge-vente"><i class="fa-solid fa-tag"></i> Vente</span>'}
+        ${a.type === 'don' ? `<span class="badge badge-don"><i class="fa-solid fa-hand-holding-heart"></i> ${t('annonce_type_don')}</span>` : `<span class="badge badge-vente"><i class="fa-solid fa-tag"></i> ${t('annonce_type_vente')}</span>`}
       </div>
       <div><span style="font-size:11px;font-weight:700;text-transform:uppercase;color:var(--text-muted)">Prix</span><br>
         <span style="font-family:Poppins,sans-serif;font-size:18px;font-weight:800;color:var(--teal-700)">${prix}</span>

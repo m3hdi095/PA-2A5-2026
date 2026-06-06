@@ -84,8 +84,12 @@ func ListAnnonces(w http.ResponseWriter, r *http.Request) {
 	if page < 1 {
 		page = 1
 	}
+	lang := r.URL.Query().Get("lang")
+	if lang == "" {
+		lang = "fr"
+	}
 
-	listeAnnonces, err := annonceService.ListAnnonces(filtre, page, 20)
+	listeAnnonces, err := annonceService.ListAnnonces(filtre, page, 20, lang)
 	if err != nil {
 		log.Println("Erreur listing annonces:", err)
 		http.Error(w, `{"error":"Erreur interne"}`, http.StatusInternalServerError)

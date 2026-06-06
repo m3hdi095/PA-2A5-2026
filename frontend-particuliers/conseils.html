@@ -58,9 +58,8 @@ const MOCK_CONSEILS = [
     id: 1, categorie: 'technique',
     titre: 'Comment préparer une palette pour un projet mobilier',
     auteur: 'Marie D.', role: 'Salariée',
-    date: '2026-04-15', likes: 24, reposts: 8,
-    extrait: 'Avant de transformer vos palettes en meuble, voici les étapes clés : ponçage, traitement, assemblage… Suivez ce guide pratique.',
-    tags: ['palette', 'bois', 'meuble'],
+    date: '2026-04-15',
+    extrait: 'Avant de transformer vos palettes en meuble, voici les étapes clés : ponçage, traitement, assemblage. Suivez ce guide pratique.',
   },
   {
     id: 2, categorie: 'materiaux',
@@ -148,9 +147,39 @@ function filtrerConseils(cat) {
   document.getElementById('conseils-grid').innerHTML = filtered.map(rendreCarte).join('');
 }
 
+let conseilsData = [];
+
+async function chargerConseils() {
+  try {
+    const res = await apiFetch(`/conseils?lang=${_lang}`);
+    if (res?.ok) {
+      const data = await res.json();
+      if (Array.isArray(data) && data.length) {
+        conseilsData = data.map(c => ({
+          id:        c.id,
+          categorie: 'conseil',
+          titre:     c.titre,
+          auteur:    'Équipe UpcycleConnect',
+          role:      'Salarié',
+          date:      c.date_publication,
+          extrait:   (c.contenu || '').slice(0, 220) + ((c.contenu || '').length > 220 ? '…' : ''),
+        }));
+        afficherConseils(conseilsData);
+        return;
+      }
+    }
+  } catch {}
+  conseilsData = MOCK_CONSEILS;
+  afficherConseils(conseilsData);
+}
+
+function afficherConseils(liste) {
+  document.getElementById('conseils-grid').innerHTML = liste.map(rendreCarte).join('');
+}
+
 document.addEventListener('DOMContentLoaded', async () => {
   await initLayout('conseils');
-  filtrerConseils('tous');
+  await chargerConseils();
 });
 </script>
 

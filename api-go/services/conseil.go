@@ -17,10 +17,19 @@ func NewConseilService() *ConseilService {
 	return &ConseilService{}
 }
 
-func (s *ConseilService) ListPublies() ([]models.ArticleConseil, error) {
+func (s *ConseilService) ListPublies(lang string) ([]models.ArticleConseil, error) {
 	rows, err := database.DB.Query(
-		`SELECT id_conseil, titre, contenu, statut, date_publication, id_salarie_redacteur, id_admin_validation
-         FROM conseil WHERE statut = 'publie' ORDER BY date_publication DESC`,
+		`SELECT c.id_conseil,
+			COALESCE(MAX(t_titre.valeur_traduite), c.titre),
+			COALESCE(MAX(t_contenu.valeur_traduite), c.contenu),
+			c.statut, c.date_publication, c.id_salarie_redacteur, c.id_admin_validation
+		FROM conseil c
+		LEFT JOIN traduction t_titre   ON t_titre.table_concernee   = 'conseil' AND t_titre.id_enregistrement   = c.id_conseil AND t_titre.champ   = 'titre'   AND t_titre.langue   = ?
+		LEFT JOIN traduction t_contenu ON t_contenu.table_concernee = 'conseil' AND t_contenu.id_enregistrement = c.id_conseil AND t_contenu.champ = 'contenu' AND t_contenu.langue = ?
+		WHERE c.statut = 'publie'
+		GROUP BY c.id_conseil, c.titre, c.contenu, c.statut, c.date_publication, c.id_salarie_redacteur, c.id_admin_validation
+		ORDER BY c.date_publication DESC`,
+		lang, lang,
 	)
 	if err != nil {
 		return nil, err

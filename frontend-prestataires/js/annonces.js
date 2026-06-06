@@ -47,7 +47,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 async function chargerCategories() {
   try {
-    const res = await apiFetch('/categories');
+    const res = await apiFetch(`/categories?lang=${_lang}`);
     if (!res?.ok) return;
     const cats = await res.json();
     if (!Array.isArray(cats)) return;
@@ -69,7 +69,7 @@ async function chargerAnnonces() {
   `;
 
   try {
-    const res = await apiFetch('/annonces?statut=validee');
+    const res = await apiFetch(`/annonces?statut=validee&lang=${_lang}`);
     if (res?.ok) {
       const data = await res.json();
       if (Array.isArray(data) && data.length) {
@@ -132,9 +132,9 @@ function renderGrid() {
   container.innerHTML = page.map((a, i) => {
     const icone    = CAT_ICONES_MAP[a.categorie] || 'fa-box-open';
     const typeBadge = a.type === 'don'
-      ? '<span class="badge badge-don">Don</span>'
-      : '<span class="badge badge-vente">Vente</span>';
-    const prixAff  = a.prix === 0 ? 'Gratuit' : `${a.prix} €`;
+      ? `<span class="badge badge-don">${t('annonce_type_don')}</span>`
+      : `<span class="badge badge-vente">${t('annonce_type_vente')}</span>`;
+    const prixAff  = a.prix === 0 ? t('annonce_gratuit') : `${a.prix} €`;
     const locale   = _lang === 'en' ? 'en-GB' : 'fr-FR';
     const dateAff  = new Date(a.date).toLocaleDateString(locale, { day:'2-digit', month:'short' });
 
@@ -211,7 +211,7 @@ window.ouvrirDetail = (id) => {
   if (!annonce) return;
 
   const icone = CAT_ICONES_MAP[annonce.categorie] || 'fa-box-open';
-  const prixLabel = annonce.prix === 0 ? '<span class="badge badge-green">Gratuit</span>' : `<strong style="color:var(--green-700);font-family:Poppins,sans-serif;font-size:20px;font-weight:800">${annonce.prix} €</strong>`;
+  const prixLabel = annonce.prix === 0 ? `<span class="badge badge-green">${t('annonce_gratuit')}</span>` : `<strong style="color:var(--green-700);font-family:Poppins,sans-serif;font-size:20px;font-weight:800">${annonce.prix} €</strong>`;
 
   document.getElementById('detail-title').innerHTML = `
     <i class="fa-solid ${icone}" aria-hidden="true"></i>
@@ -220,7 +220,7 @@ window.ouvrirDetail = (id) => {
 
   document.getElementById('detail-body').innerHTML = `
     <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px">
-      ${annonce.type === 'don' ? '<span class="badge badge-don">Don</span>' : '<span class="badge badge-vente">Vente</span>'}
+      ${annonce.type === 'don' ? `<span class="badge badge-don">${t('annonce_type_don')}</span>` : `<span class="badge badge-vente">${t('annonce_type_vente')}</span>`}
       <span class="badge badge-gray">${escPro(annonce.categorie)}</span>
     </div>
     <p style="font-size:14px;color:var(--text-soft);line-height:1.65;margin-bottom:16px">${escPro(annonce.desc || '')}</p>
@@ -256,7 +256,7 @@ window.reserverAnnonce = async (id) => {
   try {
     const res = await apiFetch(`/annonces/${id}/reserver`, { method: 'POST' });
     if (res?.ok) {
-      showToast('Réservation confirmée - vous serez contacté sous 24h', 'success');
+      showToast('Réservation confirmée, vous serez contacté sous 24h', 'success');
     } else {
       throw new Error();
     }

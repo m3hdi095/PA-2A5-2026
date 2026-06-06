@@ -13,7 +13,11 @@ var conseilService = services.NewConseilService()
 
 // articles publiés visibles par tous, le middleware JWT filtre quand meme les anonymes
 func ListConseils(w http.ResponseWriter, r *http.Request) {
-	articles, err := conseilService.ListPublies()
+	lang := r.URL.Query().Get("lang")
+	if lang == "" {
+		lang = "fr"
+	}
+	articles, err := conseilService.ListPublies(lang)
 	if err != nil {
 		http.Error(w, `{"error":"Erreur interne"}`, http.StatusInternalServerError)
 		return

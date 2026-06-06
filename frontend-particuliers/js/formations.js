@@ -16,27 +16,37 @@ let formationsData = [];
 
 document.addEventListener('DOMContentLoaded', async () => {
   await initLayout('formations');
-  document.getElementById('f-type')?.addEventListener('change', e => {
-    filtreType = e.target.value;
-    renderFormations();
-  });
   await chargerFormations();
 });
 
 async function chargerFormations() {
   try {
-    const res = await apiFetch('/evenements');
+    const res = await apiFetch(`/evenements?lang=${_lang}`);
     if (res?.ok) {
       const data = await res.json();
       if (Array.isArray(data) && data.length) {
         formationsData = data;
+        mettreAJourCompteurs();
         renderFormations();
         return;
       }
     }
   } catch {}
   formationsData = MOCK_FORMATIONS;
+  mettreAJourCompteurs();
   renderFormations();
+}
+
+function mettreAJourCompteurs() {
+  const maintenant = new Date();
+  const futurs = formationsData.filter(f => new Date(f.date_debut) >= maintenant);
+  const total = document.querySelector('[data-val=""] .tab-count');
+  if (total) total.textContent = futurs.length;
+  ['formation', 'atelier', 'evenement'].forEach(type => {
+    const nb  = futurs.filter(f => f.type === type).length;
+    const btn = document.querySelector(`[data-val="${type}"] .tab-count`);
+    if (btn) btn.textContent = nb;
+  });
 }
 
 function renderFormations() {
@@ -63,7 +73,7 @@ function renderFormations() {
     const d      = new Date(f.date_debut);
     const dateStr = d.toLocaleDateString(locale, { day: 'numeric', month: 'short', year: 'numeric' });
     const conf   = typeConf[f.type] || typeConf.evenement;
-    const places = f.places_max !== null ? f.places_max - f.places_prises : null;
+    const places = f.nb_places ? f.nb_places - (f.places_prises || 0) : null;
     const complet = places !== null && places <= 0;
     const prixTxt = f.prix > 0 ? `${f.prix} €` : t('formation_gratuit');
     return `

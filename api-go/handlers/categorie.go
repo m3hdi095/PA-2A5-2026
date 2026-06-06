@@ -15,7 +15,11 @@ var catRepo = repositories.CategorieRepository{}
 
 func ListCategories(w http.ResponseWriter, r *http.Request) {
 	// TODO: mettre un cache, cette liste change vraiment rarement et est appelée à chaque chargement
-	cats, err := catRepo.List()
+	lang := r.URL.Query().Get("lang")
+	if lang == "" {
+		lang = "fr"
+	}
+	cats, err := catRepo.List(lang)
 	if err != nil {
 		http.Error(w, `{"error":"Erreur interne"}`, http.StatusInternalServerError)
 		return

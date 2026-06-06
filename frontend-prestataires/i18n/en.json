@@ -48,6 +48,8 @@
   "btn_voir_detail": "View details",
   "btn_voir_map": "Map",
   "annonce_gratuit": "Free",
+  "annonce_type_don": "Donation",
+  "annonce_type_vente": "Sale",
   "annonce_en_attente": "Pending",
   "annonce_expire": "Expired",
   "annonce_disponible": "Available",
