@@ -1,4 +1,4 @@
-// auth - espace particuliers
+// auth espace particuliers
 
 const API_BASE = 'http://localhost:8080/api';
 

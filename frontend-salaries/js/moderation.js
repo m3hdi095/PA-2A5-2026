@@ -24,7 +24,7 @@ function renderSignalements() {
     container.innerHTML = `
       <div style="text-align:center;padding:40px;color:var(--text-muted)">
         <i class="fa-solid fa-circle-check" style="font-size:32px;color:var(--green-300);display:block;margin-bottom:10px"></i>
-        Aucun signalement en attente - beau travail !
+        Aucun signalement en attente, beau travail !
       </div>`;
     updateBadge();
     return;
@@ -41,7 +41,7 @@ function renderSignalements() {
           <i class="fa-solid ${icon}"></i>
         </div>
         <div class="activity-text" style="flex:1">
-          <strong>${esc(s.type)}</strong> - Message de <em>${esc(s.auteur)}</em> dans le forum "<em>${esc(s.forum)}</em>"<br>
+          <strong>${esc(s.type)}</strong>, message de <em>${esc(s.auteur)}</em> dans le forum "<em>${esc(s.forum)}</em>"<br>
           <span style="font-size:11.5px;color:var(--text-muted)">${esc(s.detail)}</span><br>
           <span style="font-size:11px;color:var(--text-muted)">Signalé il y a ${s.il_y_a} · ${s.nb_signalements} membre${s.nb_signalements > 1 ? 's' : ''}</span>
         </div>

@@ -1,4 +1,4 @@
-// Dashboard admin - stats, activité récente, graphiques Chart.js
+// Dashboard admin, stats, activité récente, graphiques Chart.js
 
 document.addEventListener('DOMContentLoaded', async () => {
   await initLayout('dashboard');

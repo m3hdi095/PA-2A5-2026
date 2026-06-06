@@ -1,12 +1,12 @@
 // point d'entree de l'espace particuliers
-// On appelle l'API Go sur le port 8080 - penser à changer si on déploie ailleurs.
+// On appelle l'API Go sur le port 8080, penser à changer si on déploie ailleurs.
 const API_BASE = 'http://localhost:8080';
 
 // TODO: ajouter un sélecteur de langue dans le header (EN, FR)
 let t = {};
 
 async function loadI18n() {
-  // On charge les traductions depuis le fichier JSON - zero texte hardcodé en HTML
+  // On charge les traductions depuis le fichier JSON, zero texte hardcodé en HTML
   const res = await fetch('./i18n/fr.json');
   t = await res.json();
 }
@@ -72,7 +72,7 @@ async function apiLogin(email, motDePasse) {
 }
 
 async function apiRegister(payload) {
-  // On force le rôle "particulier" - les pros s'inscrivent ailleurs
+  // On force le rôle "particulier", les pros s'inscrivent ailleurs
   return apiFetch('/api/register', {
     method: 'POST',
     body: JSON.stringify({ ...payload, role: 'particulier' }),
@@ -584,7 +584,7 @@ async function init() {
       showSection('dashboard');
       loadDashboard();
     } catch {
-      // Token expiré ou invalide - on repart de zéro
+      // Token expiré ou invalide, on repart de zéro
       clearToken();
       showAuthPage();
     }
@@ -671,7 +671,7 @@ async function init() {
   // Formulaire profil
   document.getElementById('form-profil').addEventListener('submit', submitProfil);
 
-  // Déconnexion - on efface tout en local
+  // Déconnexion, on efface tout en local
   document.getElementById('btn-logout').addEventListener('click', () => {
     clearToken();
     showAuthPage();

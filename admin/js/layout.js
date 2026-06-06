@@ -1,4 +1,4 @@
-// Base de l'API Go - penser à changer si on déploie ailleurs
+// Base de l'API Go, penser à changer si on déploie ailleurs
 const apiBase = 'http://localhost:8080/api';
 
 // jwt
@@ -275,7 +275,7 @@ async function verifierAuth() {
     return utilisateur;
   }
 
-  // API hors ligne - fallback localStorage (mode démo)
+  // API hors ligne, fallback localStorage (mode démo)
   try {
     const stored = JSON.parse(localStorage.getItem('uc_user') || '{}');
     if (stored && stored.role === 'admin') return stored;

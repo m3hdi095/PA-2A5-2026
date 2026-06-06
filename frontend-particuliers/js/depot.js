@@ -70,7 +70,7 @@ async function chargerConteneurs() {
     const sel = document.getElementById('modal-conteneur-select');
     if (!sel) return;
     sel.innerHTML = '<option value="">Choisir un conteneur</option>' +
-      conteneurs.map(c => `<option value="${c.id}">${esc(c.adresse)} - ${esc(c.ville)} (${c.nb_objets}/${c.capacite})</option>`).join('');
+      conteneurs.map(c => `<option value="${c.id}">${esc(c.adresse)}, ${esc(c.ville)} (${c.nb_objets}/${c.capacite})</option>`).join('');
   } catch { /* silencieux */ }
 }
 

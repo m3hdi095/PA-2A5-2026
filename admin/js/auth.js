@@ -40,7 +40,7 @@ document.getElementById('loginForm')?.addEventListener('submit', async (e) => {
     window.location.href = 'dashboard.html';
 
   } catch {
-    // API hors ligne - mode démo
+    // API hors ligne, mode démo
     setToken('demo-admin-token');
     localStorage.setItem('uc_user', JSON.stringify({
       id: 1, prenom: 'Admin', nom: 'Demo', email, role: 'admin',

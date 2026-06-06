@@ -44,7 +44,7 @@ async function chargerStats(utilisateur) {
     initGrapheActivite(stats);
 
   } catch {
-    // Données mockées en fallback - TODO: retirer en prod
+    // Données mockées en fallback, TODO: retirer en prod
     const mock = { recuperations_mois: 7, projets_actifs: 3, kg_co2_economies: 124 };
     setStatValue('stat-annonces',      18);
     setStatValue('stat-recuperations', mock.recuperations_mois);
@@ -209,9 +209,9 @@ function renderProjetsDash(container, projets) {
 }
 
 const MOCK_ALERTES = [
-  { id:1, titre:'12 kg de textiles disponibles',       desc:'Paris 11e - Don · Disponible maintenant', priorite: true },
-  { id:2, titre:'Lot bois - Offre premium détectée',   desc:'Vincennes - 3 palettes EUR à 15 €',       priorite: false },
-  { id:3, titre:'Conteneur Bastille presque plein',    desc:'Taux 87% - collecte recommandée',          priorite: false },
+  { id:1, titre:'12 kg de textiles disponibles',       desc:'Paris 11e, Don · Disponible maintenant', priorite: true },
+  { id:2, titre:'Lot bois, offre premium détectée',   desc:'Vincennes, 3 palettes EUR à 15 €',        priorite: false },
+  { id:3, titre:'Conteneur Bastille presque plein',   desc:'Taux 87%, collecte recommandée',           priorite: false },
 ];
 
 async function chargerAlertes() {

@@ -1,4 +1,4 @@
-// URL de base de l'API Go - à changer si déployé ailleurs
+// URL de base de l'API Go, à changer si déployé ailleurs
 const apiBase = 'http://localhost:8080/api';
 
 // jwt helpers
@@ -12,7 +12,7 @@ function getProUser() {
   try { return JSON.parse(localStorage.getItem('uc_pro_user')); } catch { return null; }
 }
 
-// Fetch authentifié - à utiliser partout
+// Fetch authentifié, à utiliser partout
 async function apiFetch(chemin, options = {}) {
   const headers = { 'Content-Type': 'application/json', ...options.headers };
   const token = getToken();
@@ -258,7 +258,7 @@ async function verifierAuth() {
     return utilisateur;
   }
 
-  // API hors ligne - fallback localStorage (mode démo)
+  // API hors ligne, fallback localStorage (mode démo)
   const stored = getProUser();
   if (stored && (stored.role === 'professionnel' || stored.role === 'admin')) return stored;
   clearToken();

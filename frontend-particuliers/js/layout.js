@@ -1,4 +1,4 @@
-// API Go - changer si déployé ailleurs
+// API Go, changer si déployé ailleurs
 const apiBase = 'http://localhost:8080/api';
 
 // jwt
@@ -215,7 +215,7 @@ async function verifierAuth() {
     return user;
   }
 
-  // Mode mock - vérifier le user stocké localement
+  // mode mock, vérifier le user stocké localement
   const stored = getPartUser();
   if (stored && (stored.role === 'particulier' || stored.role === 'admin')) return stored;
 
