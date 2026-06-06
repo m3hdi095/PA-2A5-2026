@@ -51,10 +51,26 @@ func GetScore(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	// kg de déchets évités via les projets de l'utilisateur
+	var kgRecycles float64
+	database.DB.QueryRow(
+		`SELECT COALESCE(SUM(kg_dechets_evites), 0) FROM projet_upcycling WHERE id_utilisateur = ?`, userID,
+	).Scan(&kgRecycles)
+
+	// nombre d'événements à venir auxquels l'utilisateur est inscrit
+	var evenementsVenir int
+	database.DB.QueryRow(
+		`SELECT COUNT(*) FROM inscription i
+		 JOIN evenement e ON i.id_evenement = e.id_evenement
+		 WHERE i.id_utilisateur = ? AND i.statut != 'annule' AND e.date_debut > NOW()`, userID,
+	).Scan(&evenementsVenir)
+
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(map[string]interface{}{
-		"score_total": scoreTotal,
-		"historique":  historique,
+		"score_total":      scoreTotal,
+		"historique":       historique,
+		"kg_recycles":      kgRecycles,
+		"evenements_venir": evenementsVenir,
 	})
 }
 

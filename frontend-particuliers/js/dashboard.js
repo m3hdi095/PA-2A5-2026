@@ -1,27 +1,12 @@
 // dashboard particuliers
 
-const MOCK_ANNONCES = [
-  { id:1, titre:'Palette bois (lot de 4)',      description:'Palettes EUR en bon état, idéales pour mobilier DIY.',       type:'don',   prix:0,    date:'2026-04-18', statut:'validee', auteur:'Sophie L.' },
-  { id:2, titre:'Chutes tissu lin naturel',     description:'Environ 3 kg de chutes de couturière, diverses couleurs.',   type:'don',   prix:0,    date:'2026-04-17', statut:'validee', auteur:'Atelier Fil' },
-  { id:3, titre:'Profilés aluminium (2m)',      description:'Lot de profilés 40x40, légères égratignures, tout compris.', type:'vente', prix:35,   date:'2026-04-16', statut:'validee', auteur:'Jean-Paul M.' },
-  { id:4, titre:'Vêtements hiver enfant',       description:'Sac de vêtements 2-6 ans, très bon état, tailles 86-116.',   type:'don',   prix:0,    date:'2026-04-15', statut:'validee', auteur:'Famille Dupont' },
-];
-
-const MOCK_EVENEMENTS = [
-  { id:1, titre:'Atelier création luminaire en bois',  lieu:'Paris 11e',  date_debut:'2026-05-03T10:00:00Z', type:'atelier',   places_max:12, places_prises:9 },
-  { id:2, titre:'Collecte vêtements printemps 2026',    lieu:'Montreuil',  date_debut:'2026-05-10T09:00:00Z', type:'evenement', places_max:50, places_prises:12 },
-  { id:3, titre:'Formation upcycling textile avancé',   lieu:'Paris 20e',  date_debut:'2026-05-17T14:00:00Z', type:'formation', places_max:15, places_prises:7 },
-];
-
-const MOCK_STATS = { score: 148, annonces_actives: 2, kg_recycles: 34, evenements_venir: 3 };
-
 document.addEventListener('DOMContentLoaded', async () => {
   const utilisateur = await initLayout('dashboard');
   if (!utilisateur) return;
 
   const prenom = utilisateur.prenom || utilisateur.nom || 'vous';
   const el = document.getElementById('welcome-subtitle');
-  if (el) el.textContent = `${t('dashboard_greeting_prefix')} ${prenom} - ${t('dashboard_activity_sub')}`;
+  if (el) el.textContent = `${t('dashboard_greeting_prefix')} ${prenom}, ${t('dashboard_activity_sub')}`;
   const bannerName = document.getElementById('banner-name');
   if (bannerName) bannerName.textContent = `${t('dashboard_greeting_prefix')}, ${prenom} !`;
 
@@ -33,16 +18,18 @@ document.addEventListener('DOMContentLoaded', async () => {
 });
 
 async function chargerStats(user) {
-  let score     = MOCK_STATS.score;
-  let annonces  = MOCK_STATS.annonces_actives;
-  let kg        = MOCK_STATS.kg_recycles;
-  let events    = MOCK_STATS.evenements_venir;
+  let score    = 0;
+  let annonces = 0;
+  let kg       = 0;
+  let events   = 0;
 
   try {
     const res = await apiFetch('/score');
     if (res?.ok) {
       const data = await res.json();
-      score = data.score_total ?? score;
+      score  = data.score_total      ?? 0;
+      kg     = Math.round(data.kg_recycles ?? 0);
+      events = data.evenements_venir ?? 0;
     }
   } catch {}
 
@@ -82,11 +69,16 @@ async function chargerAnnoncesRecentes() {
   const container = document.getElementById('annonces-recentes');
   if (!container) return;
 
-  let annonces = MOCK_ANNONCES;
+  let annonces = [];
   try {
-    const res = await apiFetch('/annonces?statut=validee&limit=4');
-    if (res?.ok) { const d = await res.json(); if (Array.isArray(d) && d.length) annonces = d; }
+    const res = await apiFetch(`/annonces?lang=${_lang}&limit=4`);
+    if (res?.ok) { const d = await res.json(); if (Array.isArray(d)) annonces = d; }
   } catch {}
+
+  if (!annonces.length) {
+    container.innerHTML = `<p style="color:var(--text-muted);text-align:center;padding:20px">${t('annonce_empty') || 'Aucune annonce disponible.'}</p>`;
+    return;
+  }
 
   container.innerHTML = annonces.slice(0, 4).map((a, i) => {
     const typeBadge = a.type === 'don'
@@ -115,7 +107,7 @@ async function chargerEvenementsVenir() {
 
   let events = MOCK_EVENEMENTS;
   try {
-    const res = await apiFetch('/evenements?limit=3');
+    const res = await apiFetch(`/evenements?limit=3&lang=${_lang}`);
     if (res?.ok) { const d = await res.json(); if (Array.isArray(d) && d.length) events = d; }
   } catch {}
 
