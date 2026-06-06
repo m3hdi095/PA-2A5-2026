@@ -105,11 +105,16 @@ async function chargerEvenementsVenir() {
   const container = document.getElementById('events-list');
   if (!container) return;
 
-  let events = MOCK_EVENEMENTS;
+  let events = [];
   try {
     const res = await apiFetch(`/evenements?limit=3&lang=${_lang}`);
-    if (res?.ok) { const d = await res.json(); if (Array.isArray(d) && d.length) events = d; }
+    if (res?.ok) { const d = await res.json(); if (Array.isArray(d)) events = d; }
   } catch {}
+
+  if (!events.length) {
+    container.innerHTML = `<p style="color:var(--text-muted);text-align:center;padding:20px">${t('aucun_evenement') || 'Aucun événement à venir.'}</p>`;
+    return;
+  }
 
   const locale = _lang === 'en' ? 'en-GB' : 'fr-FR';
   const typeIcone = { formation:'fa-graduation-cap', atelier:'fa-screwdriver-wrench', evenement:'fa-calendar-days' };
