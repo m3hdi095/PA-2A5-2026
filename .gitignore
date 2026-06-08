@@ -17,8 +17,6 @@ package-lock.json
 
 # Outils de développement local
 
-serve.mjs
-
 screenshot.mjs
 
 capture.mjs
