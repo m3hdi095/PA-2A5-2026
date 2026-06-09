@@ -65,7 +65,7 @@ async function chargerAnnonces() {
 
 async function chargerConteneurs() {
   try {
-    const res = await fetch(`${window.API_BASE || 'http://localhost:8080/api'}/conteneurs`);
+    const res = await apiFetch('/conteneurs');
     conteneurs = await res.json();
     const sel = document.getElementById('modal-conteneur-select');
     if (!sel) return;
