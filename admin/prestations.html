@@ -55,10 +55,10 @@
   </select>
   <select class="filter-select" id="statusFilter">
     <option value="" data-i18n="prest_filter_all_status">Tous les statuts</option>
-    <option value="publie" data-i18n="prest_statut_publie">Publié</option>
-    <option value="brouillon" data-i18n="prest_statut_brouillon">Brouillon</option>
+    <option value="en_attente" data-i18n="prest_statut_brouillon">En attente</option>
+    <option value="valide" data-i18n="prest_statut_publie">Validé</option>
     <option value="annule" data-i18n="prest_statut_annule">Annulé</option>
-    <option value="complet" data-i18n="prest_statut_complet">Complet</option>
+    <option value="cloture" data-i18n="prest_statut_complet">Clôturé</option>
   </select>
 </div>
 
@@ -121,8 +121,9 @@
           <div class="form-group">
             <label class="form-label" data-i18n="form_statut">Statut</label>
             <select id="statut" class="form-control">
-              <option value="brouillon" data-i18n="prest_statut_brouillon">Brouillon</option>
-              <option value="publie" data-i18n="prest_statut_publie">Publié</option>
+              <option value="en_attente" data-i18n="prest_statut_en_attente">En attente</option>
+              <option value="valide" data-i18n="prest_statut_publie">Validé</option>
+              <option value="cloture" data-i18n="prest_statut_complet">Clôturé</option>
               <option value="annule" data-i18n="prest_statut_annule">Annulé</option>
             </select>
           </div>
@@ -147,17 +148,9 @@
             <input type="number" min="1" id="places_max" class="form-control"/>
           </div>
         </div>
-        <div class="form-row">
-          <div class="form-group">
-            <label class="form-label" data-i18n="form_lieu">Lieu</label>
-            <input type="text" id="lieu" class="form-control" placeholder="Paris 10e, En ligne..."/>
-          </div>
-          <div class="form-group">
-            <label class="form-label" data-i18n="form_categorie">Catégorie</label>
-            <select id="categorie_id" class="form-control">
-              <option value="" data-i18n="form_none_categorie">Choisir</option>
-            </select>
-          </div>
+        <div class="form-group">
+          <label class="form-label" data-i18n="form_lieu">Lieu</label>
+          <input type="text" id="lieu" class="form-control" placeholder="Paris 10e, En ligne..."/>
         </div>
         <div class="form-actions">
           <button type="button" class="btn btn-outline" id="cancelBtn" data-i18n="btn_cancel">Annuler</button>

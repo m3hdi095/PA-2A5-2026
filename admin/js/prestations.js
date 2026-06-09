@@ -6,14 +6,6 @@ const ICONES_TYPE = {
   evenement: 'fa-calendar-days',
 };
 
-let MOCK_PREST = [
-  { id:1, titre:'Upcycling du bois',     type:'atelier',   statut:'publie',    prix:45, places_max:12, places_prises:10, lieu:'Paris 10e', date_debut:'2026-04-05T14:00', description:'Transformer des palettes en mobilier.' },
-  { id:2, titre:'Couture zéro déchet',   type:'formation', statut:'complet',   prix:35, places_max:8,  places_prises:8,  lieu:'Paris 11e', date_debut:'2026-04-12T10:00', description:'Bases de la couture upcycling.' },
-  { id:3, titre:'IoT et collecte',       type:'formation', statut:'publie',    prix:80, places_max:15, places_prises:6,  lieu:'En ligne',  date_debut:'2026-04-20T18:00', description:'Capteurs IoT appliqués à la collecte.' },
-  { id:4, titre:'Poterie recyclée',      type:'atelier',   statut:'publie',    prix:55, places_max:10, places_prises:4,  lieu:'Montreuil', date_debut:'2026-05-03T09:00', description:'Créer avec de la céramique récupérée.' },
-  { id:5, titre:'Forum upcycling 2026',  type:'evenement', statut:'publie',    prix:0,  places_max:200,places_prises:120,lieu:'Paris 13e', date_debut:'2026-05-15T09:00', description:'Grand forum annuel de l\'upcycling.' },
-  { id:6, titre:'Sérigraphie initiation',type:'atelier',   statut:'brouillon', prix:30, places_max:8,  places_prises:0,  lieu:'Paris 16e', date_debut:'2026-06-01T14:00', description:'Découverte de la sérigraphie sur textile recyclé.' },
-];
 
 function typeLabel(type) {
   const keys = { formation:'prest_type_formation', atelier:'prest_type_atelier', evenement:'prest_type_evenement' };
@@ -21,11 +13,11 @@ function typeLabel(type) {
 }
 
 function statutLabel(statut) {
-  const keys = { publie:'prest_statut_publie', brouillon:'prest_statut_brouillon', annule:'prest_statut_annule', complet:'prest_statut_complet' };
+  const keys = { en_attente:'prest_statut_brouillon', valide:'prest_statut_publie', annule:'prest_statut_annule', cloture:'prest_statut_complet' };
   return t(keys[statut] || 'prest_statut_brouillon');
 }
 const TYPE_COLORS = { formation:'badge-blue', atelier:'badge-green', evenement:'badge-orange' };
-const STAT_COLORS = { publie:'badge-green', brouillon:'badge-gray', annule:'badge-red', complet:'badge-orange' };
+const STAT_COLORS = { valide:'badge-green', en_attente:'badge-gray', annule:'badge-red', cloture:'badge-orange' };
 
 let prestations = [];
 let filtered    = [];
@@ -108,15 +100,18 @@ function renderPagination() {
 }
 
 function renderGrid() {
-  const grid = document.getElementById('gridView');
-  if (!filtered.length) {
+  const grid  = document.getElementById('gridView');
+  const start = (page - 1) * perPage;
+  const slice = filtered.slice(start, start + perPage);
+  if (!slice.length) {
     grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1">
       <i class="fa-solid fa-calendar-xmark" style="font-size:36px;color:var(--neutral-300)" aria-hidden="true"></i>
       <p>${t('prest_empty')}</p>
     </div>`;
+    renderPagination();
     return;
   }
-  grid.innerHTML = filtered.map(p => `
+  grid.innerHTML = slice.map(p => `
     <div class="card" style="overflow:visible">
       <div class="prest-card-header">
         <i class="fa-solid ${ICONES_TYPE[p.type] || ICONES_TYPE.evenement}" style="font-size:24px;color:var(--green-100)" aria-hidden="true"></i>
@@ -147,6 +142,7 @@ function renderGrid() {
       </div>
     </div>
   `).join('');
+  renderPagination();
 }
 
 function render() {
@@ -155,13 +151,13 @@ function render() {
 }
 
 function applyFilters() {
-  const q = document.getElementById('searchInput').value.toLowerCase();
-  const t = document.getElementById('typeFilter').value;
-  const s = document.getElementById('statusFilter').value;
+  const q       = document.getElementById('searchInput').value.toLowerCase();
+  const typeVal = document.getElementById('typeFilter').value;
+  const statVal = document.getElementById('statusFilter').value;
   filtered = prestations.filter(p =>
     p.titre.toLowerCase().includes(q) &&
-    (t === '' || p.type   === t) &&
-    (s === '' || p.statut === s)
+    (typeVal === '' || p.type   === typeVal) &&
+    (statVal === '' || p.statut === statVal)
   );
   page = 1;
   render();
@@ -169,27 +165,27 @@ function applyFilters() {
 
 async function fetchPrestations() {
   try {
-    const res = await apiFetch('/evenements');
+    const res = await apiFetch('/admin/evenements');
     if (!res || !res.ok) throw new Error('API error');
     const data = await res.json();
     prestations = (data || []).map(e => ({
       id:            e.id,
       titre:         e.titre,
       type:          e.type || 'evenement',
-      statut:        e.statut || 'publie',
-      prix:          e.prix || 0,
-      places_max:    e.places_max || 0,
-      places_prises: 0, // TODO: récupérer le nb d'inscriptions depuis l'API
+      statut:        e.statut || 'en_attente',
+      prix:          e.tarif || 0,
+      places_max:    e.nb_places    ?? e.places_max    ?? 0,
+      places_prises: e.nb_inscriptions ?? e.places_prises ?? 0,
       lieu:          e.lieu || '',
-      date_debut:    e.date ? e.date + 'T00:00' : '',
+      date_debut:    e.date_debut || '',
+      date_fin:      e.date_fin   || '',
       description:   e.description || '',
     }));
     filtered = [...prestations];
     render();
-  } catch (err) {
-    console.warn('API indisponible, utilisation des mocks', err);
-    prestations = [...MOCK_PREST];
-    filtered    = [...prestations];
+  } catch {
+    prestations = [];
+    filtered    = [];
     render();
   }
 }
@@ -231,7 +227,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (e.target === document.getElementById('prestModal')) closeModal();
   });
 
-  document.getElementById('prestForm').addEventListener('submit', e => {
+  document.getElementById('prestForm').addEventListener('submit', async e => {
     e.preventDefault();
     const id = document.getElementById('prestId').value;
     const data = {
@@ -239,24 +235,29 @@ document.addEventListener('DOMContentLoaded', async () => {
       description: document.getElementById('description').value,
       type:        document.getElementById('type').value,
       statut:      document.getElementById('statut').value,
-      prix:        parseFloat(document.getElementById('prix').value) || 0,
-      places_max:  parseInt(document.getElementById('places_max').value) || 10,
+      tarif:       parseFloat(document.getElementById('prix').value) || 0,
+      nb_places:   parseInt(document.getElementById('places_max').value) || 10,
       lieu:        document.getElementById('lieu').value,
       date_debut:  document.getElementById('date_debut').value,
       date_fin:    document.getElementById('date_fin').value,
     };
-    // Fallback local TODO: brancher sur POST/PUT /api/evenements
-    if (id) {
-      const index = prestations.findIndex(p => p.id == id);
-      if (index !== -1) prestations[index] = { ...prestations[index], ...data };
-    } else {
-      const newId = Math.max(0, ...prestations.map(p => p.id)) + 1;
-      prestations.push({ id: newId, ...data, places_prises: 0 });
+
+    try {
+      const res = await apiFetch(id ? `/evenements/${id}` : '/evenements', {
+        method: id ? 'PUT' : 'POST',
+        body:   JSON.stringify(data),
+      });
+      if (res?.ok) {
+        showToast(id ? t('prest_toast_updated') : t('prest_toast_created'), 'success');
+        closeModal();
+        fetchPrestations();
+        return;
+      }
+      const errData = res ? await res.json().catch(() => ({})) : {};
+      showToast(errData.error || t('prest_toast_save_error') || 'Erreur lors de la sauvegarde', 'error');
+    } catch (err) {
+      showToast(t('prest_toast_save_error') || 'Erreur lors de la sauvegarde', 'error');
     }
-    filtered = [...prestations];
-    render();
-    showToast(id ? t('prest_toast_updated') : t('prest_toast_created'), 'success');
-    closeModal();
   });
 });
 
@@ -277,11 +278,15 @@ window.editPrest = id => {
   openModal();
 };
 
-window.deletePrest = id => {
+window.deletePrest = async id => {
   const p = prestations.find(p => p.id === id);
   if (!p || !confirm(t('confirm_action'))) return;
+  try {
+    const res = await apiFetch(`/evenements/${id}`, { method: 'DELETE' });
+    if (!res?.ok) { showToast(t('toast_error') || 'Erreur lors de la suppression', 'error'); return; }
+  } catch { showToast(t('toast_error') || 'Erreur lors de la suppression', 'error'); return; }
   prestations = prestations.filter(p => p.id !== id);
   filtered    = filtered.filter(p => p.id !== id);
   render();
-  showToast(t('prest_toast_deleted'), 'error');
+  showToast(t('prest_toast_deleted'), 'success');
 };

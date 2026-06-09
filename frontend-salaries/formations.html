@@ -78,17 +78,24 @@
           <div class="form-group">
             <label class="form-label" data-i18n="form_statut">Statut</label>
             <select id="f-statut" class="form-control">
-              <option value="ouvert" data-i18n="opt_ouvert">Ouvert</option>
-              <option value="complet" data-i18n="opt_complet">Complet</option>
+              <option value="en_attente" data-i18n="opt_en_attente">En attente</option>
+              <option value="valide" data-i18n="opt_valide">Validé</option>
               <option value="annule" data-i18n="opt_annule">Annulé</option>
+              <option value="cloture" data-i18n="opt_cloture">Clôturé</option>
             </select>
           </div>
         </div>
         <div class="form-row">
           <div class="form-group">
-            <label class="form-label"><span data-i18n="form_date">Date</span> <span class="form-required">*</span></label>
-            <input type="date" id="f-date" class="form-control" required/>
+            <label class="form-label"><span data-i18n="form_date_debut">Date début</span> <span class="form-required">*</span></label>
+            <input type="datetime-local" id="f-date" class="form-control" required/>
           </div>
+          <div class="form-group">
+            <label class="form-label" data-i18n="form_date_fin">Date fin</label>
+            <input type="datetime-local" id="f-date-fin" class="form-control"/>
+          </div>
+        </div>
+        <div class="form-row">
           <div class="form-group">
             <label class="form-label" data-i18n="form_nb_places">Nb de places</label>
             <input type="number" id="f-places" class="form-control" min="1" placeholder="12"/>
