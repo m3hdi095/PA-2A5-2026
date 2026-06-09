@@ -452,8 +452,12 @@ func (r *EvenementRepository) ListPublic(limit, offset int) ([]models.Evenement,
 
 func (r *EvenementRepository) ListAll(limit, offset int) ([]models.Evenement, error) {
 	rows, err := database.DB.Query(
-		`SELECT id_evenement, titre, type, description, date_debut, date_fin, lieu, tarif, nb_places, statut, id_salarie_createur
-		 FROM evenement ORDER BY date_debut DESC LIMIT ? OFFSET ?`, limit, offset)
+		`SELECT e.id_evenement, e.titre, e.type, e.description, e.date_debut, e.date_fin, e.lieu, e.tarif, e.nb_places, e.statut, e.id_salarie_createur,
+		        COUNT(DISTINCT i.id_inscription) AS nb_inscriptions
+		 FROM evenement e
+		 LEFT JOIN inscription i ON i.id_evenement = e.id_evenement AND i.statut != 'annule'
+		 GROUP BY e.id_evenement
+		 ORDER BY e.date_debut DESC LIMIT ? OFFSET ?`, limit, offset)
 	if err != nil {
 		return nil, err
 	}
@@ -461,7 +465,7 @@ func (r *EvenementRepository) ListAll(limit, offset int) ([]models.Evenement, er
 	events := make([]models.Evenement, 0)
 	for rows.Next() {
 		var e models.Evenement
-		if err := rows.Scan(&e.ID, &e.Titre, &e.Type, &e.Description, &e.DateDebut, &e.DateFin, &e.Lieu, &e.Tarif, &e.NbPlaces, &e.Statut, &e.IDSalarieCreateur); err != nil {
+		if err := rows.Scan(&e.ID, &e.Titre, &e.Type, &e.Description, &e.DateDebut, &e.DateFin, &e.Lieu, &e.Tarif, &e.NbPlaces, &e.Statut, &e.IDSalarieCreateur, &e.NbInscriptions); err != nil {
 			return nil, err
 		}
 		events = append(events, e)
@@ -471,8 +475,13 @@ func (r *EvenementRepository) ListAll(limit, offset int) ([]models.Evenement, er
 
 func (r *EvenementRepository) ListByCreator(salarieID uint) ([]models.Evenement, error) {
 	rows, err := database.DB.Query(
-		`SELECT id_evenement, titre, type, description, date_debut, date_fin, lieu, tarif, nb_places, statut, id_salarie_createur
-		 FROM evenement WHERE id_salarie_createur = ? ORDER BY date_debut DESC`, salarieID)
+		`SELECT e.id_evenement, e.titre, e.type, e.description, e.date_debut, e.date_fin, e.lieu, e.tarif, e.nb_places, e.statut, e.id_salarie_createur,
+		        COUNT(DISTINCT i.id_inscription) AS nb_inscriptions
+		 FROM evenement e
+		 LEFT JOIN inscription i ON i.id_evenement = e.id_evenement AND i.statut != 'annule'
+		 WHERE e.id_salarie_createur = ?
+		 GROUP BY e.id_evenement
+		 ORDER BY e.date_debut DESC`, salarieID)
 	if err != nil {
 		return nil, err
 	}
@@ -480,7 +489,7 @@ func (r *EvenementRepository) ListByCreator(salarieID uint) ([]models.Evenement,
 	events := make([]models.Evenement, 0)
 	for rows.Next() {
 		var e models.Evenement
-		if err := rows.Scan(&e.ID, &e.Titre, &e.Type, &e.Description, &e.DateDebut, &e.DateFin, &e.Lieu, &e.Tarif, &e.NbPlaces, &e.Statut, &e.IDSalarieCreateur); err != nil {
+		if err := rows.Scan(&e.ID, &e.Titre, &e.Type, &e.Description, &e.DateDebut, &e.DateFin, &e.Lieu, &e.Tarif, &e.NbPlaces, &e.Statut, &e.IDSalarieCreateur, &e.NbInscriptions); err != nil {
 			return nil, err
 		}
 		events = append(events, e)
