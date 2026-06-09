@@ -172,8 +172,19 @@ document.addEventListener('DOMContentLoaded', async () => {
   document.getElementById('profil-nom-display').textContent   = nomAff;
   document.getElementById('profil-score-display').textContent = `Score : ${score} pts`;
   document.getElementById('profil-stat-score').textContent    = score;
-  document.getElementById('profil-stat-annonces').textContent = utilisateur.nb_annonces || 2;
-  document.getElementById('profil-stat-kg').textContent       = utilisateur.kg_recycles || 34;
+  document.getElementById('profil-stat-annonces').textContent = 0;
+  document.getElementById('profil-stat-kg').textContent       = 0;
+
+  apiFetch('/score').then(async r => {
+    if (!r?.ok) return;
+    const s = await r.json();
+    document.getElementById('profil-stat-kg').textContent = Math.round(s.kg_recycles ?? 0);
+  });
+  apiFetch('/annonces/mes-annonces').then(async r => {
+    if (!r?.ok) return;
+    const a = await r.json();
+    if (Array.isArray(a)) document.getElementById('profil-stat-annonces').textContent = a.filter(x => x.statut === 'validee').length;
+  });
 
   if (utilisateur.date_inscription) {
     const annee = new Date(utilisateur.date_inscription).getFullYear();
@@ -189,12 +200,17 @@ document.addEventListener('DOMContentLoaded', async () => {
     user.adresse   = document.getElementById('p-adresse').value.trim();
 
     try {
-      const res = await apiFetch(`/users/${user.id}`, { method: 'PUT', body: JSON.stringify(user) });
-      if (res?.ok) localStorage.setItem('uc_part_user', JSON.stringify(user));
-      showToast('Profil mis à jour', 'success');
+      const res = await apiFetch('/users/me', { method: 'PUT', body: JSON.stringify(user) });
+      if (res?.ok) {
+        localStorage.setItem('uc_part_user', JSON.stringify(user));
+        showToast('Profil mis à jour', 'success');
+      } else {
+        showToast('Erreur lors de la mise à jour', 'error');
+        return;
+      }
     } catch {
-      localStorage.setItem('uc_part_user', JSON.stringify(user));
-      showToast('Profil mis à jour (local)', 'success');
+      showToast('Service indisponible. Réessayez.', 'error');
+      return;
     }
     document.getElementById('profil-nom-display').textContent = `${user.prenom} ${user.nom}`.trim();
     document.getElementById('profil-avatar-large').textContent = ((user.prenom.charAt(0) || '') + (user.nom.charAt(0) || '')).toUpperCase() || 'P';
@@ -208,11 +224,11 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (nouveau.length < 8)  { showToast('Minimum 8 caractères', 'warning'); return; }
     try {
       const res = await apiFetch('/users/change-password', { method: 'POST', body: JSON.stringify({ old_password: actuel, new_password: nouveau }) });
-      if (res?.ok) { showToast('Mot de passe modifié', 'success'); e.target.reset(); }
-      else throw new Error();
+      if (res?.ok) { showToast('Mot de passe modifié', 'success'); e.target.reset(); return; }
+      const err = res ? await res.json().catch(() => ({})) : {};
+      showToast(err.error || 'Mot de passe actuel incorrect', 'error');
     } catch {
-      showToast('Mot de passe modifié (simulation)', 'success');
-      e.target.reset();
+      showToast('Service indisponible. Réessayez.', 'error');
     }
   });
 });
