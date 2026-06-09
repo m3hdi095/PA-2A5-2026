@@ -178,17 +178,7 @@
 
 <script src="js/layout.js" data-page="factures"></script>
 <script>
-const MOCK_FACTURES = [
-  { id:1, num:'F-2026-0042', client:'Jean-Paul Lévy',  type:'abonnement', ht:25.00,  tva:5.00,   ttc:30.00,  date:'2026-03-01', statut:'payée' },
-  { id:2, num:'F-2026-0041', client:'Clara Noel',      type:'abonnement', ht:25.00,  tva:5.00,   ttc:30.00,  date:'2026-03-01', statut:'payée' },
-  { id:3, num:'F-2026-0040', client:'Marie Dupont',    type:'formation',  ht:37.50,  tva:7.50,   ttc:45.00,  date:'2026-02-28', statut:'payée' },
-  { id:4, num:'F-2026-0039', client:'Henri Petit',     type:'commission', ht:10.42,  tva:2.08,   ttc:12.50,  date:'2026-02-25', statut:'en_attente' },
-  { id:5, num:'F-2026-0038', client:'Marc Leclerc',    type:'abonnement', ht:25.00,  tva:5.00,   ttc:30.00,  date:'2026-02-20', statut:'impayée' },
-  { id:6, num:'F-2026-0037', client:'Amina Diallo',    type:'formation',  ht:29.17,  tva:5.83,   ttc:35.00,  date:'2026-02-15', statut:'payée' },
-  { id:7, num:'F-2026-0036', client:'Henri Petit',     type:'publicite',  ht:250.00, tva:50.00,  ttc:300.00, date:'2026-02-10', statut:'payée' },
-  { id:8, num:'F-2026-0035', client:'Clara Noel',      type:'publicite',  ht:416.67, tva:83.33,  ttc:500.00, date:'2026-02-05', statut:'impayée' },
-  { id:9, num:'F-2026-0034', client:'Jean-Paul Lévy',  type:'commission', ht:20.83,  tva:4.17,   ttc:25.00,  date:'2026-02-01', statut:'payée' },
-];
+let MOCK_FACTURES = [];
 
 const STAT_COLORS = { 'payée':'badge-green', 'en_attente':'badge-orange', 'impayée':'badge-red' };
 
@@ -281,6 +271,15 @@ function applyFilters() {
 
 document.addEventListener('DOMContentLoaded', async () => {
   await initLayout('factures');
+
+  try {
+    const res = await apiFetch('/admin/factures');
+    if (res?.ok) {
+      const data = await res.json();
+      if (Array.isArray(data)) MOCK_FACTURES = data;
+    }
+  } catch {}
+  filtered = [...MOCK_FACTURES];
   renderTable();
 
   document.getElementById('searchInput').addEventListener('input', applyFilters);

@@ -176,9 +176,9 @@
   <input type="text" id="searchConteneur" class="search-input" data-i18n-placeholder="cont_search" placeholder="Rechercher un conteneur..." style="max-width:280px"/>
   <select id="filterStatut" class="filter-select">
     <option value="" data-i18n="users_status_all">Tous les statuts</option>
-    <option value="actif" data-i18n="user_actif">Actif</option>
-    <option value="maintenance" data-i18n="cont_statut_maintenance">En maintenance</option>
-    <option value="sature" data-i18n="cont_statut_sature">Saturé</option>
+    <option value="disponible">Disponible</option>
+    <option value="plein">Plein</option>
+    <option value="en_maintenance">En maintenance</option>
   </select>
   <div style="margin-left:auto;font-size:12px;color:var(--neutral-500)" id="countLabel"></div>
 </div>
@@ -232,6 +232,50 @@
   </div>
 </div>
 
+<!-- Modale ajout conteneur -->
+<div class="modal-overlay" id="addConteneurModal">
+  <div class="modal" style="max-width:480px">
+    <div class="modal-header">
+      <h2 class="modal-title">
+        <i class="fa-solid fa-plus" aria-hidden="true"></i>
+        <span data-i18n="cont_add_title">Ajouter un conteneur</span>
+      </h2>
+      <button class="modal-close" id="addConteneurClose"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <form id="addConteneurForm" class="tournee-form">
+      <div class="form-group">
+        <label class="form-label" data-i18n="cont_form_adresse">Adresse</label>
+        <input type="text" id="newAdresse" class="form-control" required placeholder="Ex: 12 rue de la Paix"/>
+      </div>
+      <div class="form-group">
+        <label class="form-label" data-i18n="cont_form_ville">Ville</label>
+        <input type="text" id="newVille" class="form-control" placeholder="Ex: Paris"/>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+        <div class="form-group">
+          <label class="form-label">Latitude</label>
+          <input type="number" id="newLat" class="form-control" step="0.000001" placeholder="48.8566"/>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Longitude</label>
+          <input type="number" id="newLng" class="form-control" step="0.000001" placeholder="2.3522"/>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label" data-i18n="cont_capacite">Capacité (objets)</label>
+        <input type="number" id="newCapacite" class="form-control" min="1" required placeholder="50"/>
+      </div>
+      <div id="addConteneurError" style="display:none;color:var(--danger);font-size:13px"></div>
+      <div class="modal-actions">
+        <button type="button" class="btn btn-ghost" id="addConteneurCancel" data-i18n="btn_cancel">Annuler</button>
+        <button type="submit" class="btn btn-primary btn-sm" id="addConteneurSubmit">
+          <i class="fa-solid fa-check"></i> <span data-i18n="btn_add">Ajouter</span>
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
 <!-- Modale tournée -->
 <div class="modal-overlay" id="tourneeModal">
   <div class="modal" style="max-width:480px">
@@ -268,45 +312,21 @@
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="js/layout.js"></script>
 <script>
-// Données de démo, à remplacer par GET /api/admin/conteneurs
-const MOCK_CONTENEURS = [
-  { id:1, nom:'Conteneur République',   adresse:'Place de la République, Paris 11e', lat:48.8674, lng:2.3633, capacite:50, objets:47, statut:'sature',     ouvertures:23, historique:[
-    { date:'2026-04-18', action:'Dépôt', user:'Marie D.', objet:'Palettes bois' },
-    { date:'2026-04-17', action:'Récupération', user:'Pro Upcycle', objet:'Textiles x3' },
-    { date:'2026-04-15', action:'Dépôt', user:'Jean L.', objet:'Appareils élec.' },
-  ]},
-  { id:2, nom:'Conteneur Bastille',     adresse:'Boulevard Richard-Lenoir, Paris 11e', lat:48.8533, lng:2.3692, capacite:40, objets:18, statut:'actif',     ouvertures:11, historique:[
-    { date:'2026-04-16', action:'Dépôt', user:'Sophie M.', objet:'Vêtements' },
-    { date:'2026-04-14', action:'Récupération', user:'Asso Recup', objet:'Métal x5' },
-  ]},
-  { id:3, nom:'Conteneur Nation',       adresse:'Place de la Nation, Paris 12e', lat:48.8484, lng:2.3960, capacite:60, objets:15, statut:'actif',      ouvertures:8, historique:[
-    { date:'2026-04-17', action:'Dépôt', user:'Clara N.', objet:'Plastique' },
-  ]},
-  { id:4, nom:'Conteneur Oberkampf',    adresse:'Rue Oberkampf, Paris 11e', lat:48.8645, lng:2.3711, capacite:35, objets:29, statut:'actif',     ouvertures:16, historique:[
-    { date:'2026-04-18', action:'Dépôt', user:'Kevin R.', objet:'Bois' },
-    { date:'2026-04-18', action:'Dépôt', user:'Amina D.', objet:'Verre' },
-  ]},
-  { id:5, nom:'Conteneur Montreuil',    adresse:'Rue de Vincennes, Montreuil', lat:48.8574, lng:2.4421, capacite:80, objets:12, statut:'actif',      ouvertures:5, historique:[
-    { date:'2026-04-15', action:'Dépôt', user:'Marc L.', objet:'Électronique' },
-  ]},
-  { id:6, nom:'Conteneur Voltaire',     adresse:'Boulevard Voltaire, Paris 11e', lat:48.8597, lng:2.3775, capacite:45, objets:38, statut:'maintenance', ouvertures:0, historique:[
-    { date:'2026-04-10', action:'Maintenance', user:'Équipe tech', objet:'Verrou remplacé' },
-  ]},
-];
-
-let conteneursFiltres = [...MOCK_CONTENEURS];
+let conteneursData    = [];
+let conteneursFiltres = [];
 let mapInstance = null;
 let markers = {};
 let conteneurActif = null;
 
 const STATUT_CONFIG = {
-  actif:       { badge: 'badge-green', i18nKey: 'user_actif' },
-  sature:      { badge: 'badge-red',   i18nKey: 'cont_statut_sature' },
-  maintenance: { badge: 'badge-gray',  i18nKey: 'cont_statut_maintenance' },
+  disponible:     { badge: 'badge-green', label: 'Disponible' },
+  plein:          { badge: 'badge-red',   label: 'Plein' },
+  en_maintenance: { badge: 'badge-gray',  label: 'En maintenance' },
 };
 
+function nomConteneur(c) { return c.adresse + (c.ville ? ', ' + c.ville : ''); }
 function tauxRemplissage(c) {
-  return c.capacite ? Math.round(c.objets / c.capacite * 100) : 0;
+  return c.capacite ? Math.round((c.nb_objets || 0) / c.capacite * 100) : 0;
 }
 
 function classFill(pct) {
@@ -330,18 +350,18 @@ function renderListe() {
   liste.innerHTML = conteneursFiltres.map(c => {
     const pct  = tauxRemplissage(c);
     const cls  = classFill(pct);
-    const stat = STATUT_CONFIG[c.statut] || STATUT_CONFIG.actif;
+    const stat = STATUT_CONFIG[c.statut] || STATUT_CONFIG.disponible;
     return `
       <div class="conteneur-item" id="item-${c.id}" onclick="ouvrirDetail(${c.id})">
         <div class="conteneur-item-header">
-          <span class="conteneur-nom">${escAdmin(c.nom)}</span>
-          <span class="badge ${stat.badge}">${t(stat.i18nKey)}</span>
+          <span class="conteneur-nom">${escAdmin(nomConteneur(c))}</span>
+          <span class="badge ${stat.badge}">${stat.label}</span>
         </div>
         <div class="conteneur-adresse">
           <i class="fa-solid fa-location-dot"></i>${escAdmin(c.adresse)}
         </div>
         <div class="fill-row">
-          <span style="font-size:11px;white-space:nowrap">${c.objets}/${c.capacite}</span>
+          <span style="font-size:11px;white-space:nowrap">${c.nb_objets || 0}/${c.capacite}</span>
           <div class="progress-bar"><div class="progress-fill ${cls}" style="width:${pct}%"></div></div>
           <span class="fill-pct ${cls}">${pct}%</span>
         </div>
@@ -356,12 +376,12 @@ function initMap() {
     attribution: '&copy; OpenStreetMap &copy; CARTO',
     maxZoom: 19,
   }).addTo(mapInstance);
-  MOCK_CONTENEURS.forEach(c => ajouterMarqueur(c));
+  conteneursData.forEach(c => ajouterMarqueur(c));
 }
 
 function couleurMarqueur(statut) {
-  if (statut === 'sature')      return '#c0392b';
-  if (statut === 'maintenance') return '#BCB3A6';
+  if (statut === 'plein')          return '#c0392b';
+  if (statut === 'en_maintenance') return '#BCB3A6';
   return '#2D4A3E';
 }
 
@@ -381,14 +401,15 @@ function ajouterMarqueur(c) {
   });
 
   const pct = tauxRemplissage(c);
-  const marker = L.marker([c.lat, c.lng], { icon: icone })
+  if (!c.latitude || !c.longitude) return;
+  const marker = L.marker([c.latitude, c.longitude], { icon: icone })
     .addTo(mapInstance)
     .bindPopup(`
       <div style="font-family:Montserrat,sans-serif;min-width:180px">
-        <div style="font-weight:700;font-size:13px;margin-bottom:4px">${escAdmin(c.nom)}</div>
+        <div style="font-weight:700;font-size:13px;margin-bottom:4px">${escAdmin(nomConteneur(c))}</div>
         <div style="font-size:11px;color:#7A7570;margin-bottom:8px">${escAdmin(c.adresse)}</div>
         <div style="font-size:12px;margin-bottom:4px">
-          <b>${pct}%</b> ${t('cont_popup_rempli')} <b>${c.objets}/${c.capacite}</b> ${t('cont_popup_objets')}
+          <b>${pct}%</b> ${t('cont_popup_rempli')} <b>${c.nb_objets || 0}/${c.capacite}</b> ${t('cont_popup_objets')}
         </div>
         <button onclick="ouvrirDetail(${c.id})" style="
           margin-top:6px;background:#2D4A3E;color:#fff;border:none;
@@ -415,36 +436,33 @@ function activerItem(id) {
 
 // détail: 
 window.ouvrirDetail = id => {
-  const c = MOCK_CONTENEURS.find(x => x.id === id);
+  const c = conteneursData.find(x => x.id === id);
   if (!c) return;
   activerItem(id);
 
-  // Centrer la carte sur le conteneur
-  if (mapInstance && markers[id]) {
-    mapInstance.setView([c.lat, c.lng], 15, { animate: true });
+  if (mapInstance && markers[id] && c.latitude && c.longitude) {
+    mapInstance.setView([c.latitude, c.longitude], 15, { animate: true });
     markers[id].openPopup();
   }
 
   const pct  = tauxRemplissage(c);
-  const stat = STATUT_CONFIG[c.statut] || STATUT_CONFIG.actif;
-  document.getElementById('detailNom').textContent      = c.nom;
-  document.getElementById('detailAdresse').textContent  = c.adresse;
+  const stat = STATUT_CONFIG[c.statut] || STATUT_CONFIG.disponible;
+  document.getElementById('detailNom').textContent      = nomConteneur(c);
+  document.getElementById('detailAdresse').textContent  = c.adresse || '';
   document.getElementById('detailRemplissage').textContent = pct + '%';
   document.getElementById('detailCapacite').textContent    = c.capacite;
-  document.getElementById('detailOuvertures').textContent  = c.ouvertures;
-  document.getElementById('detailStatutVal').innerHTML     = `<span class="badge ${stat.badge}">${t(stat.i18nKey)}</span>`;
+  document.getElementById('detailOuvertures').textContent  = c.nb_objets || 0;
+  document.getElementById('detailStatutVal').innerHTML     = `<span class="badge ${stat.badge}">${stat.label}</span>`;
 
-  const hist = c.historique || [];
-  document.getElementById('detailHistorique').innerHTML = hist.length
-    ? hist.map(h => `
-      <div class="historique-item">
-        <div class="historique-dot"></div>
-        <div>
-          <div style="font-weight:600;font-size:13px">${escAdmin(h.action)} : ${escAdmin(h.objet)}</div>
-          <div style="font-size:11px;color:var(--neutral-400)">${h.user} · ${h.date}</div>
-        </div>
-      </div>`).join('')
-    : `<p style="font-size:13px;color:var(--neutral-300)">${t('cont_no_historique')}</p>`;
+  const btnMaint = document.getElementById('detailMaintenance');
+  if (c.statut === 'en_maintenance') {
+    btnMaint.innerHTML = '<i class="fa-solid fa-circle-check"></i> Réactiver';
+  } else {
+    btnMaint.innerHTML = '<i class="fa-solid fa-wrench"></i> Passer en maintenance';
+  }
+
+  document.getElementById('detailHistorique').innerHTML =
+    `<p style="font-size:13px;color:var(--neutral-300)">${t('cont_no_historique')}</p>`;
 
   document.getElementById('detailOverlay').classList.add('open');
 };
@@ -453,8 +471,8 @@ window.ouvrirDetail = id => {
 function appliquerFiltres() {
   const q = document.getElementById('searchConteneur').value.toLowerCase();
   const s = document.getElementById('filterStatut').value;
-  conteneursFiltres = MOCK_CONTENEURS.filter(c =>
-    (c.nom.toLowerCase().includes(q) || c.adresse.toLowerCase().includes(q)) &&
+  conteneursFiltres = conteneursData.filter(c =>
+    (nomConteneur(c).toLowerCase().includes(q) || (c.adresse || '').toLowerCase().includes(q)) &&
     (s === '' || c.statut === s)
   );
   renderListe();
@@ -463,8 +481,8 @@ function appliquerFiltres() {
 // tournée:  
 function remplirSelectTournee() {
   const sel = document.getElementById('tourneeConteneurs');
-  sel.innerHTML = MOCK_CONTENEURS.map(c =>
-    `<option value="${c.id}" ${c.statut === 'sature' ? 'selected' : ''}>${escAdmin(c.nom)}</option>`
+  sel.innerHTML = conteneursData.map(c =>
+    `<option value="${c.id}" ${c.statut === 'plein' ? 'selected' : ''}>${escAdmin(nomConteneur(c))}</option>`
   ).join('');
 }
 
@@ -472,18 +490,29 @@ function escAdmin(str) {
   return String(str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 }
 
-// init: 
+async function chargerConteneurs() {
+  try {
+    const res = await apiFetch('/conteneurs');
+    if (res?.ok) {
+      const data = await res.json();
+      conteneursData = Array.isArray(data) ? data : [];
+    }
+  } catch {}
+  conteneursFiltres = [...conteneursData];
+  renderListe();
+  conteneursData.forEach(c => ajouterMarqueur(c));
+  remplirSelectTournee();
+}
+
 document.addEventListener('DOMContentLoaded', async () => {
   await initLayout('conteneurs');
 
-  // Date min = aujourd'hui pour la planification
   const today = new Date().toISOString().split('T')[0];
   document.getElementById('tourneeDate').min = today;
   document.getElementById('tourneeDate').value = today;
 
-  renderListe();
   initMap();
-  remplirSelectTournee();
+  await chargerConteneurs();
 
   document.getElementById('searchConteneur').addEventListener('input', appliquerFiltres);
   document.getElementById('filterStatut').addEventListener('change', appliquerFiltres);
@@ -496,13 +525,49 @@ document.addEventListener('DOMContentLoaded', async () => {
       document.getElementById('detailOverlay').classList.remove('open');
   });
 
-  document.getElementById('detailMaintenance').addEventListener('click', () => {
-    showToast(t('cont_toast_maintenance'), 'warning');
-    document.getElementById('detailOverlay').classList.remove('open');
+  document.getElementById('detailMaintenance').addEventListener('click', async () => {
+    if (!conteneurActif) return;
+    const c = conteneursData.find(x => x.id === conteneurActif);
+    const nouveauStatut = (c?.statut === 'en_maintenance') ? 'disponible' : 'en_maintenance';
+    try {
+      const res = await apiFetch(`/admin/conteneurs/${conteneurActif}/statut`, {
+        method: 'PUT',
+        body: JSON.stringify({ statut: nouveauStatut }),
+      });
+      if (res?.ok) {
+        if (c) c.statut = nouveauStatut;
+        const statConf = STATUT_CONFIG[nouveauStatut] || STATUT_CONFIG.disponible;
+        document.getElementById('detailStatutVal').innerHTML = `<span class="badge ${statConf.badge}">${statConf.label}</span>`;
+        document.getElementById('detailMaintenance').innerHTML = nouveauStatut === 'en_maintenance'
+          ? '<i class="fa-solid fa-circle-check"></i> Réactiver'
+          : '<i class="fa-solid fa-wrench"></i> Passer en maintenance';
+        showToast(t('cont_toast_maintenance'), 'warning');
+        appliquerFiltres();
+        if (markers[conteneurActif]) {
+          markers[conteneurActif].remove();
+          delete markers[conteneurActif];
+        }
+        if (c) ajouterMarqueur(c);
+      }
+    } catch { showToast(t('toast_error'), 'error'); }
   });
-  document.getElementById('detailDesactiver').addEventListener('click', () => {
-    showToast(t('cont_toast_desactive'), 'error');
-    document.getElementById('detailOverlay').classList.remove('open');
+
+  document.getElementById('detailDesactiver').addEventListener('click', async () => {
+    if (!conteneurActif) return;
+    if (!confirm(t('confirm_action'))) return;
+    try {
+      const res = await apiFetch(`/admin/conteneurs/${conteneurActif}/statut`, {
+        method: 'PUT',
+        body: JSON.stringify({ statut: 'en_maintenance' }),
+      });
+      if (res?.ok) {
+        const c = conteneursData.find(x => x.id === conteneurActif);
+        if (c) c.statut = 'en_maintenance';
+        showToast(t('cont_toast_desactive'), 'error');
+        document.getElementById('detailOverlay').classList.remove('open');
+        renderListe();
+      }
+    } catch { showToast(t('toast_error'), 'error'); }
   });
 
   document.getElementById('btnTournee').addEventListener('click', () => {
@@ -522,8 +587,60 @@ document.addEventListener('DOMContentLoaded', async () => {
     document.getElementById('tourneeModal').classList.remove('open');
   });
 
-  document.getElementById('btnAddConteneur').addEventListener('click', () => {
-    showToast(t('toast_coming_soon'), 'info');
+  const openAdd  = () => document.getElementById('addConteneurModal').classList.add('open');
+  const closeAdd = () => {
+    document.getElementById('addConteneurModal').classList.remove('open');
+    document.getElementById('addConteneurForm').reset();
+    document.getElementById('addConteneurError').style.display = 'none';
+  };
+  document.getElementById('btnAddConteneur').addEventListener('click', openAdd);
+  document.getElementById('addConteneurClose').addEventListener('click', closeAdd);
+  document.getElementById('addConteneurCancel').addEventListener('click', closeAdd);
+  document.getElementById('addConteneurModal').addEventListener('click', e => {
+    if (e.target === document.getElementById('addConteneurModal')) closeAdd();
+  });
+
+  document.getElementById('addConteneurForm').addEventListener('submit', async e => {
+    e.preventDefault();
+    const errEl = document.getElementById('addConteneurError');
+    const btn   = document.getElementById('addConteneurSubmit');
+    errEl.style.display = 'none';
+    btn.disabled = true;
+
+    const payload = {
+      adresse:   document.getElementById('newAdresse').value.trim(),
+      ville:     document.getElementById('newVille').value.trim(),
+      latitude:  parseFloat(document.getElementById('newLat').value) || 0,
+      longitude: parseFloat(document.getElementById('newLng').value) || 0,
+      capacite:  parseInt(document.getElementById('newCapacite').value) || 0,
+    };
+
+    try {
+      const res = await apiFetch('/admin/conteneurs', {
+        method: 'POST',
+        body: JSON.stringify(payload),
+      });
+      if (res?.ok) {
+        const created = await res.json();
+        created.nb_objets = 0;
+        created.statut = created.statut || 'disponible';
+        conteneursData.push(created);
+        conteneursFiltres = [...conteneursData];
+        renderListe();
+        ajouterMarqueur(created);
+        remplirSelectTournee();
+        closeAdd();
+        showToast(t('cont_toast_added') || 'Conteneur ajouté', 'success');
+      } else {
+        errEl.textContent = t('toast_error') || 'Erreur lors de la création';
+        errEl.style.display = 'block';
+      }
+    } catch {
+      errEl.textContent = t('toast_error') || 'Erreur réseau';
+      errEl.style.display = 'block';
+    } finally {
+      btn.disabled = false;
+    }
   });
 });
 </script>

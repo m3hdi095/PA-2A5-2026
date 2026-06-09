@@ -48,7 +48,6 @@
     <option value="" data-i18n="users_status_all">Tous les statuts</option>
     <option value="actif" data-i18n="user_actif">Actif</option>
     <option value="inactif" data-i18n="users_status_inactif">Inactif</option>
-    <option value="suspendu" data-i18n="user_suspendu">Suspendu</option>
   </select>
   <button class="btn btn-outline btn-sm" id="exportBtn">
     <i class="fa-solid fa-download" aria-hidden="true"></i>
@@ -96,13 +95,17 @@
         <input type="hidden" id="userId"/>
         <div class="form-row">
           <div class="form-group">
-            <label class="form-label"><span data-i18n="form_nom_complet">Nom complet</span> <span class="form-required">*</span></label>
-            <input type="text" id="nom" class="form-control" placeholder="Jean Dupont" required/>
+            <label class="form-label">Prénom <span class="form-required">*</span></label>
+            <input type="text" id="prenom" class="form-control" placeholder="Jean" required/>
           </div>
           <div class="form-group">
-            <label class="form-label"><span data-i18n="form_email">Email</span> <span class="form-required">*</span></label>
-            <input type="email" id="email" class="form-control" placeholder="jean@mail.fr" required/>
+            <label class="form-label">Nom <span class="form-required">*</span></label>
+            <input type="text" id="nom" class="form-control" placeholder="Dupont" required/>
           </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label"><span data-i18n="form_email">Email</span> <span class="form-required">*</span></label>
+          <input type="email" id="email" class="form-control" placeholder="jean@mail.fr" required/>
         </div>
         <div class="form-row">
           <div class="form-group">

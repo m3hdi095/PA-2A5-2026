@@ -175,8 +175,11 @@
 <script>
 document.addEventListener('DOMContentLoaded', () => {
   try {
-    const u = JSON.parse(localStorage.getItem('uc_user') || '{}');
-    if (u.nom) document.getElementById('adminName').textContent = u.nom;
+    const u = JSON.parse(localStorage.getItem('uc_admin_user') || '{}');
+    const prenom = u.prenom || '';
+    const nom    = u.nom    || '';
+    const affiche = prenom ? prenom : nom;
+    if (affiche) document.getElementById('adminName').textContent = affiche;
   } catch(e) {}
 });
 </script>
