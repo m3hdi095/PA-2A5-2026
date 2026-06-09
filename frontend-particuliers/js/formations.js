@@ -93,13 +93,10 @@ function renderFormations() {
 }
 
 window.inscrireFormation = async (id, titre) => {
-  try {
-    const res = await apiFetch('/evenements/inscription', { method: 'POST', body: JSON.stringify({ evenement_id: id }) });
-    if (res?.ok) { showToast(t('formation_inscription_ok'), 'success'); return; }
-    throw new Error();
-  } catch {
-    showToast(t('formation_inscription_sim'), 'success');
-  }
+  const res = await apiFetch('/evenements/inscription', { method: 'POST', body: JSON.stringify({ evenement_id: id }) });
+  if (res?.ok) { showToast(t('formation_inscription_ok'), 'success'); return; }
+  const err = res ? await res.json().catch(() => ({})) : {};
+  showToast(err.error || t('formation_inscription_error') || 'Inscription impossible', 'error');
 };
 
 function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
