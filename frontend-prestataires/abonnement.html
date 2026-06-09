@@ -219,26 +219,19 @@ document.addEventListener('DOMContentLoaded', async () => {
   chargerFactures();
 });
 
-const MOCK_FACTURES_PRO = [
-  { num:'F-2026-0042', date:'2026-03-01', plan:'Premium', ttc:30.00, statut:'payée' },
-  { num:'F-2026-0031', date:'2026-02-01', plan:'Premium', ttc:30.00, statut:'payée' },
-  { num:'F-2026-0020', date:'2026-01-01', plan:'Premium', ttc:30.00, statut:'payée' },
-];
-
 async function chargerFactures() {
   let factures = [];
   try {
-    const res = await apiFetch('/professionnel/factures');
-    if (res?.ok) { const d = await res.json(); if (Array.isArray(d) && d.length) factures = d; }
+    const res = await apiFetch('/abonnements/factures');
+    if (res?.ok) { const d = await res.json(); if (Array.isArray(d)) factures = d; }
   } catch {}
 
-  if (!factures.length) {
-    const user = getProUser();
-    if (user?.plan === 'premium') factures = MOCK_FACTURES_PRO;
-  }
-
   const tbody = document.getElementById('factures-body');
-  if (!tbody || !factures.length) return;
+  if (!tbody) return;
+  if (!factures.length) {
+    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:20px;color:var(--text-muted)">Aucune facture disponible.</td></tr>';
+    return;
+  }
 
   const STAT = { 'payée':'badge-success', 'en_attente':'badge-warning', 'impayée':'badge-red' };
   tbody.innerHTML = factures.map(f => `

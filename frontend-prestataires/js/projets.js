@@ -12,47 +12,6 @@ const CAT_PROJETS = ['Mobilier', 'Textile', 'Décoration', 'Luminaire', 'Jardin'
 
 let projetsData = [];
 
-const MOCK_PROJETS = [
-  {
-    id: 1,
-    titre: 'Table basse palette industrielle',
-    description: 'Création d\'une table basse en palettes EUR récupérées. Traitement à l\'huile naturelle, pieds en métal récupéré.',
-    statut: 'en_cours',
-    avancement: 65,
-    categorie: 'Mobilier',
-    materiaux: ['Bois (palettes)', 'Métal (profilés)'],
-    date_creation: '2026-03-15',
-    date_fin_prevue: '2026-05-01',
-    etapes: ['Nettoyage palettes', 'Assemblage structure', 'Traitement bois', 'Fixation pieds'],
-    etape_courante: 2,
-  },
-  {
-    id: 2,
-    titre: 'Collection upcycling textiles',
-    description: 'Série de 10 pièces vestimentaires créées à partir de chutes de lin et coton récupérées.',
-    statut: 'publie',
-    avancement: 100,
-    categorie: 'Textile',
-    materiaux: ['Lin naturel', 'Coton recyclé'],
-    date_creation: '2026-02-01',
-    date_fin_prevue: '2026-03-30',
-    etapes: ['Sélection matériaux', 'Patron & découpe', 'Assemblage', 'Finitions', 'Photo catalogue'],
-    etape_courante: 5,
-  },
-  {
-    id: 3,
-    titre: 'Lampe industrielle câbles cuivre',
-    description: 'Lampe suspendue artisanale avec câbles cuivre récupérés et abat-jour en métal perforé.',
-    statut: 'attente',
-    avancement: 30,
-    categorie: 'Luminaire',
-    materiaux: ['Câble cuivre', 'Métal perforé'],
-    date_creation: '2026-04-10',
-    date_fin_prevue: '2026-06-01',
-    etapes: ['Conception', 'Collecte matériaux', 'Assemblage', 'Test électrique'],
-    etape_courante: 1,
-  },
-];
 
 let filtreActif = 'tous';
 
@@ -64,13 +23,12 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 async function chargerProjets() {
   try {
-    const res = await apiFetch('/professionnel/projets');
+    const res = await apiFetch('/projets/mes-projets');
     if (res?.ok) {
       const data = await res.json();
-      if (Array.isArray(data) && data.length) { projetsData = data; renderProjets(); return; }
+      projetsData = Array.isArray(data) ? data : [];
     }
   } catch {}
-  projetsData = [...MOCK_PROJETS];
   renderProjets();
 }
 
@@ -263,7 +221,7 @@ async function soumettreProjet(e) {
   btn.textContent = 'Création...';
 
   try {
-    const res = await apiFetch('/professionnel/projets', {
+    const res = await apiFetch('/projets', {
       method: 'POST',
       body: JSON.stringify({ titre, description, categorie, materiaux, statut: 'en_cours' }),
     });
@@ -275,18 +233,10 @@ async function soumettreProjet(e) {
       throw new Error();
     }
   } catch {
-    projetsData.unshift({
-      id:             Date.now(),
-      titre,
-      description,
-      categorie,
-      materiaux,
-      statut:         'en_cours',
-      avancement:     0,
-      date_creation:  new Date().toISOString().slice(0, 10),
-      etapes:         ['Planification', 'Collecte matériaux', 'Réalisation', 'Finalisation'],
-      etape_courante: 1,
-    });
+    showToast(t('toast_projet_error'), 'error');
+    btn.disabled = false;
+    btn.textContent = 'Créer le projet';
+    return;
   }
 
   fermerModal();

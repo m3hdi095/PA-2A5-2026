@@ -172,9 +172,22 @@ function buildTopbarHTML(nomPage) {
       <input type="text" placeholder="${_lang === 'en' ? 'Search...' : 'Rechercher...'}" aria-label="${_lang === 'en' ? 'Search' : 'Recherche'}"/>
     </div>
     <a href="alertes.html" class="topbar-btn" title="${t('nav_alertes')}">
-      <i class="fa-solid fa-bell" aria-hidden="true"></i>
+      <i class="fa-solid fa-sliders" aria-hidden="true"></i>
       <span class="dot" id="topbar-alert-dot" style="display:none"></span>
     </a>
+    <div class="notif-bell-wrap" id="notif-bell-wrap">
+      <button class="topbar-btn notif-bell-btn" id="notif-bell-btn" aria-label="Notifications">
+        <i class="fa-solid fa-bell"></i>
+        <span class="notif-badge" id="notif-badge" style="display:none">0</span>
+      </button>
+      <div class="notif-dropdown" id="notif-dropdown">
+        <div class="notif-dropdown-header">
+          <span>Notifications</span>
+          <button class="notif-mark-all-btn" id="notif-mark-all">${_lang === 'en' ? 'Mark all read' : 'Tout marquer lu'}</button>
+        </div>
+        <div id="notif-list"><p class="notif-empty">${_lang === 'en' ? 'No notifications' : 'Aucune notification'}</p></div>
+      </div>
+    </div>
     <a href="profil.html" class="topbar-user" title="${t('nav_profil')}">
       <div class="topbar-user-avatar" id="topbar-avatar">P</div>
       <span class="topbar-user-name" id="topbar-user-name">Pro</span>
@@ -331,7 +344,88 @@ async function initLayout(nomPage) {
   if (tbNom)    tbNom.textContent    = prenom || nomAff.split(' ')[0] || 'Pro';
 
   chargerBadgeAnnonces();
+  initNotifBell();
   return utilisateur;
+}
+
+function initNotifBell() {
+  const btn      = document.getElementById('notif-bell-btn');
+  const dropdown = document.getElementById('notif-dropdown');
+  const badge    = document.getElementById('notif-badge');
+  const list     = document.getElementById('notif-list');
+  const markAll  = document.getElementById('notif-mark-all');
+  if (!btn || !dropdown) return;
+
+  let notifs = [];
+
+  async function charger() {
+    try {
+      const res = await apiFetch('/notifications');
+      if (res?.ok) {
+        const data = await res.json();
+        notifs = Array.isArray(data) ? data : [];
+        const nonLues = notifs.filter(n => !n.lu).length;
+        badge.textContent = nonLues > 9 ? '9+' : nonLues;
+        badge.style.display = nonLues > 0 ? 'flex' : 'none';
+        if (dropdown.classList.contains('open')) renderNotifs();
+      }
+    } catch {}
+  }
+
+  function renderNotifs() {
+    if (!notifs.length) {
+      list.innerHTML = `<p class="notif-empty">${_lang === 'en' ? 'No notifications' : 'Aucune notification'}</p>`;
+      return;
+    }
+    const locale = _lang === 'en' ? 'en-GB' : 'fr-FR';
+    list.innerHTML = notifs.slice(0, 8).map(n => `
+      <div class="notif-item${n.lu ? '' : ' notif-unread'}" data-id="${n.id}">
+        <div class="notif-item-icon"><i class="fa-solid fa-bell"></i></div>
+        <div class="notif-item-body">
+          <div class="notif-item-titre">${escNotif(n.titre)}</div>
+          <div class="notif-item-msg">${escNotif(n.contenu)}</div>
+          <div class="notif-item-date">${n.date_envoi ? new Date(n.date_envoi).toLocaleDateString(locale,{day:'2-digit',month:'short'}) : ''}</div>
+        </div>
+      </div>`).join('');
+    list.querySelectorAll('.notif-item.notif-unread').forEach(el => {
+      el.addEventListener('click', async () => {
+        const id = el.dataset.id;
+        await apiFetch(`/notifications/${id}/read`, { method: 'PUT' });
+        const n = notifs.find(n => String(n.id) === id);
+        if (n) n.lu = true;
+        el.classList.remove('notif-unread');
+        const nonLues = notifs.filter(n => !n.lu).length;
+        badge.textContent = nonLues > 9 ? '9+' : nonLues;
+        badge.style.display = nonLues > 0 ? 'flex' : 'none';
+      }, { once: true });
+    });
+  }
+
+  btn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    const open = dropdown.classList.toggle('open');
+    if (open) charger();
+  });
+
+  document.addEventListener('click', (e) => {
+    if (!btn.contains(e.target) && !dropdown.contains(e.target)) {
+      dropdown.classList.remove('open');
+    }
+  });
+
+  markAll?.addEventListener('click', async () => {
+    await apiFetch('/notifications/read-all', { method: 'PUT' });
+    notifs.forEach(n => n.lu = true);
+    badge.style.display = 'none';
+    renderNotifs();
+  });
+
+  charger();
+  setInterval(charger, 30000);
+}
+
+function escNotif(s) {
+  return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 }
 
 // injecter Font Awesome si pas déjà là

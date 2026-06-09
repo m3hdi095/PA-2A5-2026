@@ -80,9 +80,9 @@ function renderListeConteneurs() {
 
 function buildStatutBadge(statut) {
   const map = {
-    actif:       '<span class="badge badge-green">Actif</span>',
-    maintenance: '<span class="badge badge-orange">Maintenance</span>',
-    sature:      '<span class="badge badge-red">Saturé</span>',
+    disponible:     '<span class="badge badge-green">Disponible</span>',
+    plein:          '<span class="badge badge-red">Plein</span>',
+    en_maintenance: '<span class="badge badge-orange">Maintenance</span>',
   };
   return map[statut] || `<span class="badge badge-gray">${statut || 'Inconnu'}</span>`;
 }
@@ -104,8 +104,8 @@ function initCarte() {
   conteneursData.forEach(c => {
     if (!c.latitude || !c.longitude) return;
 
-    const couleur = c.statut === 'sature' ? '#c0392b' : c.statut === 'maintenance' ? '#c67c28' : '#2D664F';
-    const taille  = c.statut === 'sature' ? 14 : 12;
+    const couleur = c.statut === 'plein' ? '#c0392b' : c.statut === 'en_maintenance' ? '#c67c28' : '#2D664F';
+    const taille  = c.statut === 'plein' ? 14 : 12;
     const taux    = tauxRemplissage(c);
 
     const iconeMarqueur = L.divIcon({
@@ -193,10 +193,10 @@ function afficherDetailConteneur(c) {
           <div style="font-family:Poppins,sans-serif;font-size:18px;font-weight:800;color:var(--text)">${c.nb_objets}</div>
         </div>
       </div>
-      ${c.statut === 'actif' || c.statut === 'sature' ? `
-      <button class="btn btn-primary" onclick="simulerScan(${c.id})" style="width:100%">
+      ${c.statut === 'disponible' || c.statut === 'plein' ? `
+      <button class="btn btn-primary" onclick="ouvrirModalScan()" style="width:100%">
         <i class="fa-solid fa-qrcode" aria-hidden="true"></i>
-        Scanner pour récupérer
+        Scanner un code barre
       </button>` : `
       <div style="background:var(--warning-bg);border-radius:8px;padding:12px;font-size:12.5px;color:var(--warning-text);text-align:center;font-weight:600">
         <i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i>
@@ -207,10 +207,45 @@ function afficherDetailConteneur(c) {
   panel.style.display = 'block';
 }
 
-window.simulerScan = (id) => {
-  const c = conteneursData.find(x => x.id === id);
-  if (!c) return;
-  showToast(`Code-barres envoyé par email pour ${escPro(c.adresse || 'ce conteneur')}`, 'success');
+window.ouvrirModalScan = () => {
+  const modal = document.getElementById('modal-scan');
+  if (modal) {
+    document.getElementById('scan-code-input').value = '';
+    document.getElementById('scan-result').textContent = '';
+    modal.classList.add('open');
+  }
+};
+
+window.fermerModalScan = () => {
+  document.getElementById('modal-scan')?.classList.remove('open');
+};
+
+window.confirmerScan = async () => {
+  const code = document.getElementById('scan-code-input')?.value?.trim();
+  if (!code) { showToast('Entrez un code barre.', 'warning'); return; }
+
+  const btn = document.getElementById('btn-confirmer-scan');
+  if (btn) { btn.disabled = true; btn.textContent = 'Vérification...'; }
+
+  try {
+    const res = await apiFetch('/depots/recuperer-par-code', {
+      method: 'POST',
+      body: JSON.stringify({ code_barre: code }),
+    });
+    const data = await res.json();
+    if (res.ok) {
+      showToast('Récupération confirmée ! Objet #' + data.id_objet, 'success');
+      fermerModalScan();
+      await chargerHistorique();
+      await chargerConteneurs();
+    } else {
+      document.getElementById('scan-result').textContent = data.error || 'Code introuvable ou déjà récupéré.';
+    }
+  } catch {
+    document.getElementById('scan-result').textContent = 'Erreur réseau.';
+  } finally {
+    if (btn) { btn.disabled = false; btn.textContent = 'Confirmer la récupération'; }
+  }
 };
 
 function renderHistorique() {

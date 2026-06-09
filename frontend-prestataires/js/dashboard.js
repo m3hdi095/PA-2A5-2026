@@ -21,37 +21,29 @@ function afficherDate() {
 }
 
 async function chargerStats(utilisateur) {
+  let nbAnnonces = 0, nbProjets = 0;
+
   try {
-    const [resAnnonces, resStats] = await Promise.all([
-      apiFetch('/annonces?statut=validee'),
-      apiFetch('/professionnel/stats'),
-    ]);
-
-    let nbAnnonces = 0;
-    if (resAnnonces?.ok) {
-      const data = await resAnnonces.json();
-      nbAnnonces = Array.isArray(data) ? data.length : (data.total || 0);
+    const res = await apiFetch('/annonces?statut=validee');
+    if (res?.ok) {
+      const data = await res.json();
+      nbAnnonces = Array.isArray(data) ? data.length : 0;
     }
+  } catch {}
 
-    let stats = {};
-    if (resStats?.ok) stats = await resStats.json();
+  try {
+    const res = await apiFetch('/projets/mes-projets');
+    if (res?.ok) {
+      const data = await res.json();
+      nbProjets = Array.isArray(data) ? data.filter(p => p.statut === 'en_cours').length : 0;
+    }
+  } catch {}
 
-    setStatValue('stat-annonces',      nbAnnonces);
-    setStatValue('stat-recuperations', stats.recuperations_mois || 0);
-    setStatValue('stat-projets',       stats.projets_actifs     || 0);
-    setStatValue('stat-impact',        stats.kg_co2_economies   || 0);
-
-    initGrapheActivite(stats);
-
-  } catch {
-    // Données mockées en fallback, TODO: retirer en prod
-    const mock = { recuperations_mois: 7, projets_actifs: 3, kg_co2_economies: 124 };
-    setStatValue('stat-annonces',      18);
-    setStatValue('stat-recuperations', mock.recuperations_mois);
-    setStatValue('stat-projets',       mock.projets_actifs);
-    setStatValue('stat-impact',        mock.kg_co2_economies);
-    initGrapheActivite(mock);
-  }
+  setStatValue('stat-annonces',      nbAnnonces);
+  setStatValue('stat-recuperations', 0);
+  setStatValue('stat-projets',       nbProjets);
+  setStatValue('stat-impact',        0);
+  initGrapheActivite({ recuperations_mois: 0 });
 }
 
 function setStatValue(id, valeur) {
@@ -118,25 +110,19 @@ const CAT_ICONES = {
   autre:        'fa-box',
 };
 
-const MOCK_ANNONCES = [
-  { id:1, titre:'Chutes de tissu lin naturel', categorie:'textiles', type:'don',   prix:0,   localisation:'Paris 11e', date_creation:'2026-04-18' },
-  { id:2, titre:'Lot palettes bois EUR (x8)',  categorie:'bois',     type:'vente', prix:45,  localisation:'Montreuil', date_creation:'2026-04-17' },
-  { id:3, titre:'Profilés aluminium 3m',       categorie:'metal',    type:'vente', prix:30,  localisation:'Paris 19e', date_creation:'2026-04-16' },
-];
-
 async function chargerAnnoncesRecentes() {
   const container = document.getElementById('annonces-recentes');
   if (!container) return;
 
+  let items = [];
   try {
     const res = await apiFetch('/annonces?statut=validee&limit=3');
-    if (!res || !res.ok) throw new Error('API indisponible');
-    const data  = await res.json();
-    const items = Array.isArray(data) ? data.slice(0, 3) : MOCK_ANNONCES;
-    renderAnnoncesRecentes(container, items);
-  } catch {
-    renderAnnoncesRecentes(container, MOCK_ANNONCES);
-  }
+    if (res?.ok) {
+      const data = await res.json();
+      items = Array.isArray(data) ? data.slice(0, 3) : [];
+    }
+  } catch {}
+  renderAnnoncesRecentes(container, items);
 }
 
 function renderAnnoncesRecentes(container, annonces) {
@@ -164,23 +150,19 @@ function renderAnnoncesRecentes(container, annonces) {
   }).join('');
 }
 
-const MOCK_PROJETS = [
-  { id:1, titre:'Table basse palettes',   statut:'en_cours', avancement:65, materiaux:['Bois','Métal'] },
-  { id:2, titre:'Atelier DIY vêtements',  statut:'publie',   avancement:100, materiaux:['Textiles'] },
-];
-
 async function chargerMesProjets(utilisateur) {
   const container = document.getElementById('mes-projets');
   if (!container) return;
 
+  let projets = [];
   try {
-    const res = await apiFetch('/professionnel/projets?limit=2');
-    if (!res || !res.ok) throw new Error();
-    const data = await res.json();
-    renderProjetsDash(container, Array.isArray(data) ? data.slice(0,2) : MOCK_PROJETS);
-  } catch {
-    renderProjetsDash(container, MOCK_PROJETS);
-  }
+    const res = await apiFetch('/projets/mes-projets');
+    if (res?.ok) {
+      const data = await res.json();
+      projets = Array.isArray(data) ? data.slice(0, 2) : [];
+    }
+  } catch {}
+  renderProjetsDash(container, projets);
 }
 
 const STATUT_BADGE = {
@@ -208,31 +190,30 @@ function renderProjetsDash(container, projets) {
   `).join('');
 }
 
-const MOCK_ALERTES = [
-  { id:1, titre:'12 kg de textiles disponibles',       desc:'Paris 11e, Don · Disponible maintenant', priorite: true },
-  { id:2, titre:'Lot bois, offre premium détectée',   desc:'Vincennes, 3 palettes EUR à 15 €',        priorite: false },
-  { id:3, titre:'Conteneur Bastille presque plein',   desc:'Taux 87%, collecte recommandée',           priorite: false },
-];
-
 async function chargerAlertes() {
   const container = document.getElementById('alertes-list');
   if (!container) return;
 
-  let alertes = MOCK_ALERTES;
+  let notifs = [];
   try {
-    const res = await apiFetch('/professionnel/alertes');
+    const res = await apiFetch('/notifications');
     if (res?.ok) {
       const data = await res.json();
-      if (Array.isArray(data) && data.length) alertes = data;
+      if (Array.isArray(data)) notifs = data.slice(0, 3);
     }
   } catch {}
 
-  container.innerHTML = alertes.map(a => `
+  if (!notifs.length) {
+    container.innerHTML = '<p style="color:var(--text-muted);font-size:13px;padding:20px 0">Aucune alerte pour le moment.</p>';
+    return;
+  }
+
+  container.innerHTML = notifs.map(n => `
     <div class="alerte-item">
-      <div class="alerte-dot ${a.priorite ? 'priority' : ''}"></div>
+      <div class="alerte-dot ${n.statut === 'non_lu' ? 'priority' : ''}"></div>
       <div class="alerte-content">
-        <div class="alerte-titre">${escPro(a.titre)}</div>
-        <div class="alerte-desc">${escPro(a.desc)}</div>
+        <div class="alerte-titre">${escPro(n.titre || n.type || '')}</div>
+        <div class="alerte-desc">${escPro(n.message || '')}</div>
       </div>
     </div>
   `).join('');

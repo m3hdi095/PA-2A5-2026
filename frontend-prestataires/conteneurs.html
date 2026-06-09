@@ -93,46 +93,70 @@
   </div>
 </div>
 
+<!-- Modal scan code barre -->
+<div class="modal-overlay" id="modal-scan" onclick="if(event.target===this)fermerModalScan()">
+  <div class="modal-card" style="max-width:420px">
+    <div class="modal-header">
+      <span style="font-family:Poppins,sans-serif;font-weight:700;font-size:15px">
+        <i class="fa-solid fa-qrcode"></i> Récupération par code barre
+      </span>
+      <button class="modal-close" onclick="fermerModalScan()">&times;</button>
+    </div>
+    <div class="modal-body" style="padding:20px;display:flex;flex-direction:column;gap:14px">
+      <p style="font-size:13px;color:var(--text-soft)">Saisissez ou scannez le code barre imprimé sur l'objet à récupérer.</p>
+      <input id="scan-code-input" type="text" class="input" placeholder="Ex: UC-a3f8d21c4b9e" autocomplete="off"
+             onkeydown="if(event.key==='Enter')confirmerScan()"
+             style="font-family:monospace;font-size:13px;letter-spacing:.05em">
+      <p id="scan-result" style="color:var(--danger-text);font-size:12.5px;min-height:18px"></p>
+      <div style="display:flex;gap:10px">
+        <button class="btn btn-outline" onclick="fermerModalScan()" style="flex:1">Annuler</button>
+        <button id="btn-confirmer-scan" class="btn btn-primary" onclick="confirmerScan()" style="flex:2">
+          Confirmer la récupération
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="js/layout.js"></script>
 <script src="js/conteneurs.js"></script>
 <script>
-// Override pour pointer vers le bon div détail
-const _origAff = window.afficherDetailConteneur;
 window.selectConteneur = function(id) {
-  const c = MOCK_CONTENEURS.find(x => x.id === id);
+  const c = conteneursData.find(x => x.id === id);
   if (!c || !carteLeaflet) return;
 
   document.querySelectorAll('.conteneur-item').forEach(el => el.classList.remove('active'));
   const el = document.getElementById('citem-' + id);
   if (el) { el.classList.add('active'); el.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); }
 
-  carteLeaflet.flyTo([c.lat, c.lng], 15, { duration: 0.8 });
+  carteLeaflet.flyTo([c.latitude, c.longitude], 15, { duration: 0.8 });
   markeurs[id]?.openPopup();
 
   const panel = document.getElementById('detail-conteneur-content');
   const wrapper = document.getElementById('detail-conteneur');
   if (!panel) return;
 
-  const fillClass = c.taux >= 85 ? 'fill-high' : c.taux >= 60 ? 'fill-medium' : 'fill-low';
-  const dateAff = new Date(c.derniere).toLocaleDateString('fr-FR', { day:'2-digit', month:'long', year:'numeric' });
-  const statuts = { actif:'<span class="badge badge-green">Actif</span>', maintenance:'<span class="badge badge-orange">Maintenance</span>', sature:'<span class="badge badge-red">Saturé</span>' };
+  const taux      = tauxRemplissage(c);
+  const nom       = nomConteneur(c);
+  const fillClass = taux >= 85 ? 'fill-high' : taux >= 60 ? 'fill-medium' : 'fill-low';
+  const statuts   = { actif:'<span class="badge badge-green">Actif</span>', maintenance:'<span class="badge badge-orange">Maintenance</span>', sature:'<span class="badge badge-red">Saturé</span>' };
 
   panel.innerHTML = `
     <div style="padding:14px 18px;border-bottom:1px solid var(--border);background:var(--green-50)">
       <div style="display:flex;align-items:center;justify-content:space-between">
-        <span style="font-family:Poppins,sans-serif;font-size:13px;font-weight:700">${c.nom}</span>
+        <span style="font-family:Poppins,sans-serif;font-size:13px;font-weight:700">${nom}</span>
         ${statuts[c.statut] || ''}
       </div>
-      <div style="font-size:12px;color:var(--text-muted);margin-top:2px">${c.adresse}</div>
+      <div style="font-size:12px;color:var(--text-muted);margin-top:2px">${c.adresse || ''}</div>
     </div>
     <div style="padding:16px 18px;display:flex;flex-direction:column;gap:14px">
       <div>
         <div style="display:flex;justify-content:space-between;font-size:11px;font-weight:700;color:var(--text-muted);margin-bottom:6px">
-          <span>Taux de remplissage</span><span style="color:var(--green-700)">${c.taux}%</span>
+          <span>Taux de remplissage</span><span style="color:var(--green-700)">${taux}%</span>
         </div>
         <div class="conteneur-fill-bar" style="height:8px">
-          <div class="conteneur-fill-value ${fillClass}" style="width:${c.taux}%"></div>
+          <div class="conteneur-fill-value ${fillClass}" style="width:${taux}%"></div>
         </div>
       </div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
@@ -141,8 +165,8 @@ window.selectConteneur = function(id) {
           <div style="font-family:Poppins,sans-serif;font-size:18px;font-weight:800">${c.capacite} obj.</div>
         </div>
         <div style="background:var(--green-25);border-radius:8px;padding:12px">
-          <div style="font-size:10px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:3px">Dernière ouverture</div>
-          <div style="font-family:Poppins,sans-serif;font-size:12px;font-weight:700">${dateAff}</div>
+          <div style="font-size:10px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:3px">Objets présents</div>
+          <div style="font-family:Poppins,sans-serif;font-size:18px;font-weight:800">${c.nb_objets}</div>
         </div>
       </div>
       ${c.statut !== 'maintenance' ? `
