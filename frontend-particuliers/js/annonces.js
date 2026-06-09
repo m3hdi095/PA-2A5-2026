@@ -184,14 +184,17 @@ async function soumettreAnnonce(e) {
   if (!payload.titre) { showToast('Le titre est obligatoire', 'warning'); return; }
   try {
     const res = await apiFetch('/annonces', { method: 'POST', body: JSON.stringify(payload) });
-    if (res?.ok) { showToast('Annonce publiée avec succès', 'success'); }
-    else { throw new Error(); }
+    if (res?.ok) {
+      showToast('Annonce soumise à validation', 'success');
+      fermerModal();
+      await chargerAnnonces();
+      return;
+    }
+    showToast('Erreur lors de la soumission', 'error');
   } catch {
-    annoncesData.unshift({ id: Date.now(), ...payload, date: new Date().toISOString().split('T')[0], statut: 'en_attente', auteur: 'Vous', localisation: 'À renseigner', kg: 0 });
-    showToast('Annonce soumise à validation', 'success');
+    showToast('Service indisponible. Réessayez.', 'error');
   }
   fermerModal();
-  renderAnnonces();
 }
 
 function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
