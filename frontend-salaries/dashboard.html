@@ -32,28 +32,28 @@
   <div class="stat-card" style="--accent:var(--green-700);--icon-bg:var(--green-50)">
     <div class="stat-icon-wrap"><i class="fa-solid fa-graduation-cap"></i></div>
     <div class="stat-info">
-      <div class="stat-value">12</div>
+      <div class="stat-value" id="stat-formations">—</div>
       <div class="stat-label" data-i18n="sal_stat_formations">Formations actives</div>
     </div>
   </div>
   <div class="stat-card" style="--accent:#e8a020;--icon-bg:#fef3e2">
     <div class="stat-icon-wrap" style="background:#fef3e2;color:#e8a020"><i class="fa-solid fa-shield-halved"></i></div>
     <div class="stat-info">
-      <div class="stat-value" id="stat-moderation">3</div>
+      <div class="stat-value" id="stat-moderation">—</div>
       <div class="stat-label" data-i18n="sal_stat_moderation">Messages à modérer</div>
     </div>
   </div>
   <div class="stat-card" style="--accent:#2e8b57;--icon-bg:#d4eee3">
     <div class="stat-icon-wrap" style="background:#d4eee3;color:#2e8b57"><i class="fa-solid fa-lightbulb"></i></div>
     <div class="stat-info">
-      <div class="stat-value">28</div>
+      <div class="stat-value" id="stat-conseils">—</div>
       <div class="stat-label" data-i18n="sal_stat_conseils">Conseils publiés</div>
     </div>
   </div>
   <div class="stat-card" style="--accent:#5C7C6E;--icon-bg:var(--green-50)">
     <div class="stat-icon-wrap"><i class="fa-solid fa-users"></i></div>
     <div class="stat-info">
-      <div class="stat-value">340</div>
+      <div class="stat-value" id="stat-participants">—</div>
       <div class="stat-label" data-i18n="sal_stat_participants">Participants ce mois</div>
     </div>
   </div>
@@ -86,12 +86,51 @@
 
 <script src="js/layout.js"></script>
 <script>
+function setStat(id, val) {
+  const el = document.getElementById(id);
+  if (el) el.textContent = val ?? '—';
+}
+
 document.addEventListener('DOMContentLoaded', async () => {
   const user = await initLayout('dashboard');
   if (!user) return;
+
   const prenom = user.prenom || user.nom || 'vous';
   const el = document.getElementById('banner-name');
   if (el) el.textContent = `Bonjour, ${prenom} !`;
+
+  const [evRes, sigRes, consRes] = await Promise.allSettled([
+    apiFetch('/evenements'),
+    apiFetch('/forum/signalements'),
+    apiFetch('/conseils/mes-articles'),
+  ]);
+
+  if (evRes.status === 'fulfilled' && evRes.value?.ok) {
+    const data = await evRes.value.json();
+    if (Array.isArray(data)) {
+      const actives = data.filter(e => e.statut !== 'annule' && e.statut !== 'termine').length;
+      const total_participants = data.reduce((s, e) => s + (e.nb_inscriptions || 0), 0);
+      setStat('stat-formations',   actives);
+      setStat('stat-participants', total_participants);
+    }
+  } else {
+    setStat('stat-formations', 0);
+    setStat('stat-participants', 0);
+  }
+
+  if (sigRes.status === 'fulfilled' && sigRes.value?.ok) {
+    const data = await sigRes.value.json();
+    setStat('stat-moderation', Array.isArray(data) ? data.filter(s => s.statut === 'en_attente' || !s.statut).length : 0);
+  } else {
+    setStat('stat-moderation', 0);
+  }
+
+  if (consRes.status === 'fulfilled' && consRes.value?.ok) {
+    const data = await consRes.value.json();
+    setStat('stat-conseils', Array.isArray(data) ? data.filter(c => c.statut === 'publie').length : 0);
+  } else {
+    setStat('stat-conseils', 0);
+  }
 });
 </script>
 

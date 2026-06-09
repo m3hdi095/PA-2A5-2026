@@ -1,20 +1,7 @@
 // moderation forum
 
-const MOCK_SIGNALEMENTS = [
-  { id:1, type:'Contenu inapproprié',     auteur:'user_42',  forum:'Projets bois',   detail:'Lien externe non autorisé posté dans le fil.',           nb_signalements:2, il_y_a:'2 heures',  severite:'warning' },
-  { id:2, type:'Spam',                    auteur:'user_101', forum:'Annonces',       detail:'Publication répétée de la même annonce commerciale.',    nb_signalements:1, il_y_a:'5 heures',  severite:'warning' },
-  { id:3, type:'Harcèlement potentiel',   auteur:'user_77',  forum:'Communauté',     detail:'Échange agressif entre user_77 et user_23.',             nb_signalements:3, il_y_a:'1 jour',    severite:'danger' },
-];
-
-const MOCK_MESSAGES = [
-  { id:1, auteur:'Sophie L.',   forum:'Projets bois',   contenu:'Super palette ! Est-ce que tu peux partager le plan ?',          il_y_a:'10 min' },
-  { id:2, auteur:'Jean-Paul M.',forum:'Matériaux',      contenu:'Je cherche des chutes d\'aluminium dans le 75',                  il_y_a:'32 min' },
-  { id:3, auteur:'Clara V.',    forum:'Technique',      contenu:'Quelle ponceuse recommandez-vous pour du bois récupéré ?',       il_y_a:'1h 05' },
-  { id:4, auteur:'Lucas B.',    forum:'Projets bois',   contenu:'Voici mon projet de table basse avec des palettes EUR !',        il_y_a:'2h 18' },
-];
-
-let signalements = [...MOCK_SIGNALEMENTS];
-let messagesRecents = [...MOCK_MESSAGES];
+let signalements = [];
+let messagesRecents = [];
 
 function renderSignalements() {
   const container = document.getElementById('signalements-list');
@@ -81,7 +68,10 @@ function updateBadge() {
   badge.className   = n === 0 ? 'badge badge-success' : 'badge badge-warning';
 }
 
-window.validerSignalement = (id) => {
+window.validerSignalement = async (id) => {
+  try {
+    await apiFetch(`/forum/signalements/${id}`, { method: 'PUT', body: JSON.stringify({ statut: 'traite' }) });
+  } catch {}
   signalements = signalements.filter(s => s.id !== id);
   renderSignalements();
   showToast(t('sal_toast_moderation_traite'), 'success');
@@ -100,11 +90,11 @@ document.addEventListener('DOMContentLoaded', async () => {
   await initLayout('moderation');
 
   await Promise.all([
-    apiFetch('/salarie/signalements').then(async res => {
-      if (res?.ok) { const d = await res.json(); if (Array.isArray(d) && d.length) signalements = d; }
+    apiFetch('/forum/signalements').then(async res => {
+      if (res?.ok) { const d = await res.json(); if (Array.isArray(d)) signalements = d; }
     }).catch(() => {}),
-    apiFetch('/forum/messages?limit=4').then(async res => {
-      if (res?.ok) { const d = await res.json(); if (Array.isArray(d) && d.length) messagesRecents = d; }
+    apiFetch('/forum?limit=4').then(async res => {
+      if (res?.ok) { const d = await res.json(); if (Array.isArray(d)) messagesRecents = d; }
     }).catch(() => {}),
   ]);
 

@@ -43,7 +43,7 @@ function bindForms(utilisateur) {
     };
 
     try {
-      const res = await apiFetch(`/users/${utilisateur.id}`, { method:'PUT', body: JSON.stringify(updated) });
+      const res = await apiFetch('/users/me', { method:'PUT', body: JSON.stringify(updated) });
       if (res?.ok) { localStorage.setItem('uc_sal_user', JSON.stringify(updated)); }
     } catch {}
 

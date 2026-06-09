@@ -29,24 +29,55 @@
 
 <script src="js/layout.js"></script>
 <script>
-const MOCK = [
-  { date:'Lun 21 avr', heure:'10h00-12h30', titre:'Atelier mosaïque verre', lieu:'Paris 11e', type:'atelier', places:8 },
-  { date:'Mar 22 avr', heure:'14h00-17h00', titre:'Formation couture recyclée', lieu:'Montreuil', type:'formation', places:12 },
-  { date:'Jeu 24 avr', heure:'09h00-11h00', titre:'Réunion équipe Again²', lieu:'Siège Again²', type:'reunion', places:0 },
-  { date:'Sam 26 avr', heure:'10h00-16h00', titre:'Journée portes ouvertes upcycling', lieu:'Paris 20e', type:'evenement', places:50 },
-];
 const COLORS = { atelier:'var(--green-700)', formation:'#e8a020', reunion:'#5C7C6E', evenement:'#2e8b57' };
+
+function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+function renderPlanning(items) {
+  const container = document.getElementById('planning-list');
+  if (!container) return;
+  const locale = typeof _lang !== 'undefined' && _lang === 'en' ? 'en-GB' : 'fr-FR';
+
+  if (!items.length) {
+    container.innerHTML = '<p style="text-align:center;padding:40px;color:var(--text-muted)">Aucun événement à venir dans votre planning.</p>';
+    return;
+  }
+
+  container.innerHTML = items.map(e => {
+    const type = e.type || 'evenement';
+    const couleur = COLORS[type] || 'var(--green-500)';
+    const dateStr = e.date_debut
+      ? new Date(e.date_debut).toLocaleDateString(locale, { weekday:'short', day:'numeric', month:'short' })
+      : (e.date_heure ? new Date(e.date_heure).toLocaleDateString(locale, { weekday:'short', day:'numeric', month:'short' }) : '');
+    return `
+      <div class="planning-item" style="border-left:3px solid ${couleur}">
+        <div class="planning-date">${esc(dateStr)}</div>
+        <div class="planning-content">
+          <div class="planning-title">${esc(e.titre || '')}</div>
+          <div class="planning-meta">
+            ${e.lieu ? `<i class="fa-solid fa-location-dot"></i> ${esc(e.lieu)}` : ''}
+            ${e.nb_places ? ` &nbsp;·&nbsp; <i class="fa-solid fa-users"></i> ${e.nb_places} places` : ''}
+          </div>
+        </div>
+        <span class="badge" style="background:${couleur}20;color:${couleur};text-transform:capitalize">${esc(type)}</span>
+      </div>`;
+  }).join('');
+}
+
 document.addEventListener('DOMContentLoaded', async () => {
   await initLayout('planning');
-  document.getElementById('planning-list').innerHTML = MOCK.map(e => `
-    <div class="planning-item" style="border-left:3px solid ${COLORS[e.type]||'var(--green-500)'}">
-      <div class="planning-date">${e.date}</div>
-      <div class="planning-content">
-        <div class="planning-title">${e.titre}</div>
-        <div class="planning-meta"><i class="fa-solid fa-clock"></i> ${e.heure} &nbsp;·&nbsp; <i class="fa-solid fa-location-dot"></i> ${e.lieu}${e.places?` &nbsp;·&nbsp; <i class="fa-solid fa-users"></i> ${e.places} places`:''}</div>
-      </div>
-      <span class="badge" style="background:${COLORS[e.type]}20;color:${COLORS[e.type]};text-transform:capitalize">${e.type}</span>
-    </div>`).join('');
+  let items = [];
+  try {
+    const res = await apiFetch('/evenements/mes-inscriptions');
+    if (res?.ok) { const d = await res.json(); if (Array.isArray(d)) items = d; }
+  } catch {}
+  if (!items.length) {
+    try {
+      const res = await apiFetch('/planning/me');
+      if (res?.ok) { const d = await res.json(); if (Array.isArray(d)) items = d; }
+    } catch {}
+  }
+  renderPlanning(items);
 });
 </script>
 </body>

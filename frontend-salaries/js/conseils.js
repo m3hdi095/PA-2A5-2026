@@ -1,12 +1,5 @@
 // gestion des conseils
 
-const MOCK_CONSEILS_SAL = [
-  { id:1, titre:'Comment préparer une palette pour un projet mobilier', categorie:'technique', statut:'publie', date:'2026-04-15', likes:24, auteur:'Marie D.' },
-  { id:2, titre:'5 idées de projets upcycling pour débutants',          categorie:'projets',   statut:'publie', date:'2026-04-10', likes:67, auteur:'Sophie L.' },
-  { id:3, titre:'Teindre du tissu récupéré : techniques naturelles',    categorie:'materiaux', statut:'brouillon', date:'2026-04-01', likes:52, auteur:'Clara V.' },
-  { id:4, titre:'Quels matériaux éviter en upcycling alimentaire',      categorie:'materiaux', statut:'publie', date:'2026-04-12', likes:41, auteur:'Thomas R.' },
-  { id:5, titre:'Les outils indispensables pour un atelier',            categorie:'outils',   statut:'brouillon', date:'2026-04-08', likes:33, auteur:'Lucas M.' },
-];
 
 const CAT_COLORS = {
   technique: { bg:'var(--green-50)',  txt:'var(--green-700)' },
@@ -19,13 +12,12 @@ let conseils = [];
 
 async function fetchConseils() {
   try {
-    const res = await apiFetch('/salarie/conseils');
+    const res = await apiFetch('/conseils/mes-articles');
     if (res?.ok) {
       const data = await res.json();
-      if (Array.isArray(data) && data.length) { conseils = data; renderTable(); return; }
+      conseils = Array.isArray(data) ? data : [];
     }
   } catch {}
-  conseils = [...MOCK_CONSEILS_SAL];
   renderTable();
 }
 
@@ -132,7 +124,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (!data.titre) { showToast('Le titre est obligatoire', 'warning'); return; }
 
     try {
-      const res = await apiFetch(id ? `/salarie/conseils/${id}` : '/salarie/conseils', {
+      const res = await apiFetch(id ? `/conseils/${id}` : '/conseils', {
         method: id ? 'PUT' : 'POST',
         body:   JSON.stringify(data),
       });
