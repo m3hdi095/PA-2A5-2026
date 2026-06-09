@@ -284,15 +284,10 @@
 
 <script src="js/layout.js"></script>
 <script>
-// Données de démonstration, à remplacer par GET /api/admin/notifications/history
-const MOCK_HISTORIQUE = [
-  { id:1, titre:'Forum Upcycling 2026', message:'Inscrivez-vous au grand forum annuel !', segment:'tous', envoyes:124, date:'2026-04-15 10:30' },
-  { id:2, titre:'Nouvelle formation disponible', message:'Couture zéro déchet, Paris 11e, 12 mai.', segment:'particulier', envoyes:68, date:'2026-04-12 14:15' },
-  { id:3, titre:'Rappel : annonce expirante', message:'Votre annonce "Palettes bois" expire dans 48h.', segment:'particulier', envoyes:12, date:'2026-04-10 09:00' },
-  { id:4, titre:'Nouveau lot disponible', message:'5 nouveaux objets à récupérer près de chez vous.', segment:'professionnel', envoyes:34, date:'2026-04-08 16:45' },
-];
+let historiqueData = [];
+let audienceCounts = { tous: 0, particulier: 0, professionnel: 0, salarie: 0 };
 
-const AUDIENCE_PAR_SEGMENT = { tous: 124, particulier: 68, professionnel: 34, salarie: 22 };
+const AUDIENCE_PAR_SEGMENT = audienceCounts;
 function segmentLabel(seg) {
   const keys = { tous: 'notif_label_tous', particulier: 'notif_label_particulier', professionnel: 'notif_label_professionnel', salarie: 'notif_label_salarie' };
   return t(keys[seg] || 'notif_label_tous');
@@ -389,24 +384,20 @@ document.getElementById('formNotif').addEventListener('submit', async e => {
       body: JSON.stringify({ titre, message, url: url || null, segment }),
     });
     if (res && res.ok) {
-      showToast(`${t('notif_toast_prefix')} ${AUDIENCE_PAR_SEGMENT[segment]} ${t('notif_toast_suffix')}`, 'success');
+      const data = await res.json();
+      const locale = document.documentElement.lang === 'en' ? 'en-GB' : 'fr-FR';
+      historiqueData.unshift({
+        titre: titre, message, segment,
+        envoyes: data.count || 0,
+        date: new Date().toLocaleDateString(locale, { day:'2-digit', month:'short', year:'numeric' }),
+      });
+      renderHistorique(historiqueData);
+      showToast(`Notification envoyée à ${data.count} utilisateur(s)`, 'success');
     } else {
       throw new Error('API error');
     }
   } catch {
-    // FIXME: afficher le vrai message d'erreur de l'API quand dispo
-    // Fallback : on simule l'envoi localement
-    const nb = AUDIENCE_PAR_SEGMENT[segment] || 0;
-    MOCK_HISTORIQUE.unshift({
-      id:      Date.now(),
-      titre,
-      message,
-      segment,
-      envoyes: nb,
-      date:    new Date().toLocaleString(_lang === 'en' ? 'en-GB' : 'fr-FR', { dateStyle:'short', timeStyle:'short' }),
-    });
-    renderHistorique(MOCK_HISTORIQUE);
-    showToast(`${t('notif_toast_prefix')} ${nb} ${t('notif_toast_local_suffix')}`, 'success');
+    showToast(t('notif_error_send') || 'Erreur lors de l\'envoi', 'error');
   } finally {
     btnEnv.disabled = false;
     btnEnv.innerHTML = `<i class="fa-solid fa-paper-plane"></i> ${t('btn_envoyer')}`;
@@ -417,7 +408,21 @@ document.getElementById('formNotif').addEventListener('submit', async e => {
 // init
 document.addEventListener('DOMContentLoaded', async () => {
   await initLayout('notifications');
-  renderHistorique(MOCK_HISTORIQUE);
+
+  // Compter les utilisateurs par segment via endpoint dédié (tous les users, pas juste page 1)
+  try {
+    const res = await apiFetch('/admin/users/counts');
+    if (res?.ok) {
+      const counts = await res.json();
+      audienceCounts.tous          = counts.tous          || 0;
+      audienceCounts.particulier   = counts.particulier   || 0;
+      audienceCounts.professionnel = counts.professionnel || 0;
+      audienceCounts.salarie       = counts.salarie       || 0;
+      document.getElementById('audienceCount').textContent = audienceCounts.tous;
+    }
+  } catch {}
+
+  renderHistorique(historiqueData);
   updatePreview();
 });
 </script>

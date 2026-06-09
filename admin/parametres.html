@@ -143,17 +143,13 @@
       <div class="card-body">
         <div class="settings-section">
           <h3>Stripe</h3>
-          <div class="form-group">
-            <label class="form-label" data-i18n="params_cle_pub">Clé publique (pk_)</label>
-            <input type="text" class="form-control" value="pk_test_51..."/>
-          </div>
-          <div class="form-group">
-            <label class="form-label" data-i18n="params_cle_sec">Clé secrète (sk_)</label>
-            <input type="password" class="form-control" value="sk_test_51..."/>
-          </div>
-          <div class="form-group">
-            <label class="form-label" data-i18n="params_webhook_secret">Webhook secret</label>
-            <input type="password" class="form-control" value="whsec_..."/>
+          <div style="display:flex;align-items:flex-start;gap:10px;background:var(--neutral-50);border:1.5px solid var(--neutral-200);border-radius:var(--radius);padding:14px;margin-bottom:16px">
+            <i class="fa-solid fa-circle-info" style="color:var(--uc-teal);margin-top:2px" aria-hidden="true"></i>
+            <div style="font-size:13px;color:var(--neutral-600);line-height:1.5">
+              Les clés Stripe sont des <strong>secrets serveur</strong> — elles ne transitent jamais par le navigateur.<br/>
+              Configurez-les dans le fichier <code style="background:var(--neutral-200);padding:1px 5px;border-radius:3px">api-go/.env</code> :
+              <code style="display:block;margin-top:8px;padding:8px;background:var(--neutral-200);border-radius:4px;font-size:12px">STRIPE_SECRET_KEY=sk_live_...</code>
+            </div>
           </div>
         </div>
         <div class="settings-section">
@@ -253,11 +249,12 @@
       <div class="card-body">
         <div class="settings-section">
           <h3 data-i18n="params_section_jwt">Clé JWT</h3>
-          <div class="form-group">
-            <label class="form-label" data-i18n="params_jwt_secret">Secret JWT</label>
-            <div style="display:flex;gap:8px">
-              <input type="password" id="jwtSecret" class="form-control" value="UC_SECRET_KEY_CHANGE_ME_IN_PROD"/>
-              <button class="btn btn-outline" onclick="document.getElementById('jwtSecret').type=document.getElementById('jwtSecret').type==='password'?'text':'password'" title="Afficher/masquer"><i class="fa-solid fa-eye" aria-hidden="true"></i></button>
+          <div style="display:flex;align-items:flex-start;gap:10px;background:#fff8e1;border:1.5px solid #ffe082;border-radius:var(--radius);padding:14px;margin-bottom:16px">
+            <i class="fa-solid fa-triangle-exclamation" style="color:#f59e0b;margin-top:2px" aria-hidden="true"></i>
+            <div style="font-size:13px;color:var(--neutral-600);line-height:1.5">
+              Le secret JWT est une <strong>clé serveur confidentielle</strong> — l'afficher ici serait une faille de sécurité.<br/>
+              Modifiez-la dans <code style="background:#fff3cd;padding:1px 5px;border-radius:3px">api-go/.env</code> :
+              <code style="display:block;margin-top:8px;padding:8px;background:#fff3cd;border-radius:4px;font-size:12px">JWT_SECRET=votre_secret_fort_ici</code>
             </div>
           </div>
           <div class="form-group">
@@ -315,13 +312,17 @@
           <h3 data-i18n="params_section_account">Informations personnelles</h3>
           <div class="form-row">
             <div class="form-group">
-              <label class="form-label" data-i18n="form_nom_complet">Nom complet</label>
-              <input type="text" class="form-control" id="myNom" value="Admin UpcycleConnect"/>
+              <label class="form-label">Prénom</label>
+              <input type="text" class="form-control" id="myPrenom" placeholder="Jean"/>
             </div>
             <div class="form-group">
-              <label class="form-label" data-i18n="form_email">Email</label>
-              <input type="email" class="form-control" id="myEmail" value="admin@upcycleconnect.fr"/>
+              <label class="form-label" data-i18n="form_nom">Nom</label>
+              <input type="text" class="form-control" id="myNom" placeholder="Dupont"/>
             </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label" data-i18n="form_email">Email</label>
+            <input type="email" class="form-control" id="myEmail" placeholder="admin@upcycleconnect.fr"/>
           </div>
         </div>
         <div class="settings-section">
@@ -353,11 +354,21 @@
 document.addEventListener('DOMContentLoaded', async () => {
   await initLayout('parametres');
 
-  // Pre-fill from localStorage
+  // Pre-fill depuis l'API (source fraîche), fallback localStorage
   try {
-    const user = JSON.parse(localStorage.getItem('uc_user')||'{}');
-    if (user.nom)   document.getElementById('myNom').value   = user.nom;
-    if (user.email) document.getElementById('myEmail').value = user.email;
+    const cached = JSON.parse(localStorage.getItem('uc_admin_user') || '{}');
+    if (cached.prenom) document.getElementById('myPrenom').value = cached.prenom;
+    if (cached.nom)    document.getElementById('myNom').value    = cached.nom;
+    if (cached.email)  document.getElementById('myEmail').value  = cached.email;
+  } catch(e) {}
+  try {
+    const res = await apiFetch('/users/me');
+    if (res?.ok) {
+      const user = await res.json();
+      if (user.prenom !== undefined) document.getElementById('myPrenom').value = user.prenom || '';
+      if (user.nom    !== undefined) document.getElementById('myNom').value    = user.nom    || '';
+      if (user.email  !== undefined) document.getElementById('myEmail').value  = user.email  || '';
+    }
   } catch(e) {}
 
   // Nav tabs
@@ -393,7 +404,32 @@ document.addEventListener('DOMContentLoaded', async () => {
   `).join('');
 });
 
-window.save = () => showToast(t('params_toast_saved'), 'success');
+window.save = async () => {
+  const activePanel = document.querySelector('.settings-nav-item.active')?.dataset.panel;
+  if (activePanel === 'compte') {
+    const prenom = document.getElementById('myPrenom').value.trim();
+    const nom    = document.getElementById('myNom').value.trim();
+    const email  = document.getElementById('myEmail').value.trim();
+    try {
+      const res = await apiFetch('/users/me', {
+        method: 'PUT',
+        body: JSON.stringify({ prenom, nom, email }),
+      });
+      if (res?.ok) {
+        // Re-fetch pour stocker les données fraîches (pas {"status":"ok"})
+        try {
+          const me = await apiFetch('/users/me');
+          if (me?.ok) localStorage.setItem('uc_admin_user', JSON.stringify(await me.json()));
+        } catch {}
+        showToast(t('params_toast_saved') || 'Profil mis à jour', 'success');
+        return;
+      }
+    } catch {}
+    showToast('Erreur lors de la mise à jour', 'error');
+    return;
+  }
+  showToast(t('params_toast_saved') || 'Paramètres enregistrés', 'success');
+};
 window.addLang = () => {
   const code = prompt(t('params_prompt_lang_code'));
   if (!code) return;

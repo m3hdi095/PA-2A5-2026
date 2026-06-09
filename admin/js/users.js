@@ -1,19 +1,10 @@
 // liste des utilisateurs, filtres, edition et suspension
 
-const MOCK_USERS = [
-  { id:1,  nom:'Marie Dupont',   prenom:'Marie',   email:'marie@mail.fr',     role:'particulier',   statut:'actif',    score:120, date:'2025-03-12', telephone:'0612345678', adresse:'Paris 11e' },
-  { id:2,  nom:'Lévy',          prenom:'Jean-Paul',email:'jpl@artisan.fr',    role:'professionnel', statut:'actif',    score:340, date:'2025-04-01', telephone:'0623456789', adresse:'Paris 10e' },
-  { id:3,  nom:'Martin',        prenom:'Sophie',   email:'sophie@edu.fr',     role:'salarie',       statut:'actif',    score:200, date:'2025-01-20', telephone:'', adresse:'' },
-  { id:4,  nom:'Roux',          prenom:'Kevin',    email:'kevin@perso.com',   role:'particulier',   statut:'inactif',  score:40,  date:'2025-05-08', telephone:'', adresse:'' },
-  { id:5,  nom:'Noel',          prenom:'Clara',    email:'clara@design.fr',   role:'professionnel', statut:'actif',    score:510, date:'2025-02-15', telephone:'0634567890', adresse:'Paris 13e' },
-  { id:6,  nom:'Leclerc',       prenom:'Marc',     email:'marc@pro.fr',       role:'professionnel', statut:'suspendu', score:80,  date:'2024-12-01', telephone:'', adresse:'' },
-  { id:7,  nom:'Diallo',        prenom:'Amina',    email:'amina@mail.com',    role:'particulier',   statut:'actif',    score:60,  date:'2025-06-03', telephone:'', adresse:'Montreuil' },
-  { id:8,  nom:'Bernard',       prenom:'Thomas',   email:'thomas@upcycle.fr', role:'admin',         statut:'actif',    score:0,   date:'2024-09-01', telephone:'0645678901', adresse:'Paris 10e' },
-];
 
-let users    = [];
-let filtered = [];
-let page     = 1;
+let users     = [];
+let filtered  = [];
+let page      = 1;
+let maxScore  = 600;
 const perPage = 8;
 
 function roleLabel(role) {
@@ -57,12 +48,12 @@ async function fetchUsers() {
       telephone: u.telephone || '',
       adresse:   u.adresse || '',
     }));
+    maxScore = Math.max(600, ...users.map(u => u.score || 0));
     filtered = [...users];
     renderTable();
-  } catch (err) {
-    console.warn('API indisponible, utilisation des données mockées', err);
-    users    = [...MOCK_USERS];
-    filtered = [...users];
+  } catch {
+    users    = [];
+    filtered = [];
     renderTable();
   }
 }
@@ -100,7 +91,7 @@ function renderTable() {
         <div style="display:flex;align-items:center;gap:8px">
           <div style="font-weight:600;color:var(--uc-green);font-size:13px">${u.score}</div>
           <div class="progress-bar" style="width:60px">
-            <div class="progress-fill" style="width:${Math.min(u.score / 600 * 100, 100).toFixed(0)}%"></div>
+            <div class="progress-fill" style="width:${Math.min(u.score / maxScore * 100, 100).toFixed(0)}%"></div>
           </div>
         </div>
       </td>
@@ -112,6 +103,9 @@ function renderTable() {
           </button>
           <button class="btn btn-ghost btn-icon" title="${u.statut === 'actif' ? t('users_tooltip_suspend') : t('users_tooltip_reactivate')}" onclick="toggleStatus(${u.id})" style="color:var(--warning)">
             <i class="fa-solid ${u.statut === 'actif' ? 'fa-ban' : 'fa-check'}" aria-hidden="true"></i>
+          </button>
+          <button class="btn btn-ghost btn-icon" title="${t('btn_supprimer')}" onclick="deleteUser(${u.id})" style="color:var(--danger)">
+            <i class="fa-solid fa-trash" aria-hidden="true"></i>
           </button>
         </div>
       </td>
@@ -188,6 +182,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     document.getElementById('passGroup').style.display = 'block';
     document.getElementById('modalTitle').innerHTML = `<i class="fa-solid fa-user-plus" aria-hidden="true"></i> ${t('modal_add_user')}`;
     openModal();
+    document.getElementById('statut').value = 'actif';
   });
 
   document.getElementById('modalClose').addEventListener('click', closeModal);
@@ -204,8 +199,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     btn.textContent = t('btn_saving');
 
     const data = {
-      nom:       document.getElementById('nom').value,
-      email:     document.getElementById('email').value,
+      prenom:    document.getElementById('prenom').value.trim(),
+      nom:       document.getElementById('nom').value.trim(),
+      email:     document.getElementById('email').value.trim(),
       role:      document.getElementById('role').value,
       statut:    document.getElementById('statut').value,
       telephone: document.getElementById('telephone').value,
@@ -215,7 +211,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (pwd) data.password = pwd;
 
     try {
-      const res = await apiFetch(id ? `/admin/users/${id}` : '/register', {
+      const res = await apiFetch(id ? `/admin/users/${id}` : '/admin/users', {
         method: id ? 'PUT' : 'POST',
         body:   JSON.stringify(data),
       });
@@ -261,14 +257,15 @@ window.editUser = id => {
   const u = users.find(u => u.id === id);
   if (!u) return;
   document.getElementById('userId').value    = u.id;
-  document.getElementById('nom').value       = u.nom;
+  document.getElementById('prenom').value    = u.prenom || '';
+  document.getElementById('nom').value       = u.nom || '';
   document.getElementById('email').value     = u.email;
   document.getElementById('role').value      = u.role;
   document.getElementById('statut').value    = u.statut;
   document.getElementById('telephone').value = u.telephone || '';
   document.getElementById('adresse').value   = u.adresse || '';
   document.getElementById('passGroup').style.display = 'none';
-  document.getElementById('modalTitle').innerHTML = `<i class="fa-solid fa-pen" aria-hidden="true"></i> ${t('modal_edit_prefix')} ${escAdmin(u.prenom + ' ' + u.nom)}`;
+  document.getElementById('modalTitle').innerHTML = `<i class="fa-solid fa-pen" aria-hidden="true"></i> ${t('modal_edit_prefix')} ${escAdmin((u.prenom + ' ' + u.nom).trim())}`;
   openModal();
 };
 
@@ -282,16 +279,33 @@ window.toggleStatus = async id => {
       body:   JSON.stringify({ user_id: id, actif: nouvelEtat }),
     });
     if (res && res.ok) {
-      u.statut  = nouvelEtat ? 'actif' : 'suspendu';
+      u.statut  = nouvelEtat ? 'actif' : 'inactif';
       filtered  = filtered.map(f => f.id === id ? u : f);
       showToast(u.statut === 'actif' ? t('users_toast_reactivated') : t('users_toast_suspended'), u.statut === 'actif' ? 'success' : 'warning');
       renderTable();
     }
   } catch {
-    // Mise à jour locale si API hors ligne
-    u.statut = nouvelEtat ? 'actif' : 'suspendu';
+    u.statut = nouvelEtat ? 'actif' : 'inactif';
     filtered  = filtered.map(f => f.id === id ? u : f);
     showToast(`${u.statut === 'actif' ? t('users_toast_reactivated') : t('users_toast_suspended')} ${t('toast_mode_local')}`, 'warning');
     renderTable();
   }
+};
+
+window.deleteUser = async id => {
+  const u = users.find(u => u.id === id);
+  if (!u) return;
+  const nom = (u.prenom + ' ' + u.nom).trim() || u.email;
+  if (!confirm(`Désactiver le compte de "${nom}" ? L'utilisateur ne pourra plus se connecter (soft delete RGPD).`)) return;
+  try {
+    const res = await apiFetch(`/admin/users/${id}`, { method: 'DELETE' });
+    if (res?.ok) {
+      users    = users.filter(u => u.id !== id);
+      filtered = filtered.filter(u => u.id !== id);
+      renderTable();
+      showToast(t('users_toast_deleted') || 'Utilisateur supprimé', 'success');
+      return;
+    }
+  } catch {}
+  showToast('Erreur lors de la suppression', 'error');
 };
