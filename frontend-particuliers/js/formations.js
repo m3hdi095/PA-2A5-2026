@@ -62,7 +62,7 @@ function renderFormations() {
     const conf   = typeConf[f.type] || typeConf.evenement;
     const places = f.nb_places ? f.nb_places - (f.places_prises || 0) : null;
     const complet = places !== null && places <= 0;
-    const prixTxt = f.prix > 0 ? `${f.prix} €` : t('formation_gratuit');
+    const prixTxt = f.tarif > 0 ? `${f.tarif} €` : t('formation_gratuit');
     return `
       <div class="formation-card animate-in" style="animation-delay:${i * .06}s">
         <div class="formation-card-header">
