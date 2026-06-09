@@ -1,19 +1,5 @@
 // annonces particuliers
 
-const MOCK_ANNONCES_FULL = [
-  { id:1,  titre:'Palette bois EUR (lot de 4)',      description:'Palettes en bon état, idéales pour mobilier DIY. Dimensions standard 120x80cm.',                          type:'don',   prix:0,   categorie:'bois',        localisation:'Paris 11e',  date:'2026-04-18', statut:'validee', auteur:'Sophie L.',    kg:80  },
-  { id:2,  titre:'Chutes tissu lin naturel (3 kg)',  description:'Chutes de couturière, diverses couleurs et motifs. Parfait pour la couture créative et l\'upcycling.',     type:'don',   prix:0,   categorie:'textile',     localisation:'Paris 14e',  date:'2026-04-17', statut:'validee', auteur:'Atelier Fil',  kg:3   },
-  { id:3,  titre:'Profilés aluminium 40x40 (2m)',    description:'Lot de profilés en excellent état, légères égratignures superficielles. Idéal menuiserie légère.',         type:'vente', prix:35,  categorie:'metal',       localisation:'Montreuil',  date:'2026-04-16', statut:'validee', auteur:'Jean-Paul M.', kg:12  },
-  { id:4,  titre:'Vêtements enfant hiver (sac)',     description:'Sac de vêtements tailles 86-116, très bon état. Marques courantes, propres et repassés.',                  type:'don',   prix:0,   categorie:'textile',     localisation:'Paris 9e',   date:'2026-04-15', statut:'validee', auteur:'Famille D.',   kg:5   },
-  { id:5,  titre:'Cartons d\'emballage (50 unités)', description:'Cartons robustes de récupération, différentes tailles, pliés proprement. Idéals pour déménagement.',      type:'don',   prix:0,   categorie:'autre',       localisation:'Vincennes',  date:'2026-04-14', statut:'validee', auteur:'Marc T.',      kg:15  },
-  { id:6,  titre:'Câbles électriques chutes (5m)',   description:'Chutes de câble 2,5mm², couleurs assorties. Provenance rénovation appartement. Coupes propres.',           type:'don',   prix:0,   categorie:'electronique',localisation:'Paris 15e',  date:'2026-04-13', statut:'validee', auteur:'Éric V.',      kg:2   },
-  { id:7,  titre:'Planches pin maritime (lot)',      description:'10 planches 20x150cm, épaisseur 18mm, légèrement ternies en surface, saines. Parfait pour étagères.',     type:'vente', prix:45,  categorie:'bois',        localisation:'Bagnolet',   date:'2026-04-12', statut:'validee', auteur:'Bois Recup.',  kg:40  },
-  { id:8,  titre:'Laine mérinos naturelle (2kg)',    description:'Laine non traitée, teintes naturelles, lavée proprement. Idéale pour feutrage ou tricot épais.',          type:'vente', prix:22,  categorie:'textile',     localisation:'Paris 18e',  date:'2026-04-11', statut:'validee', auteur:'La Filandière',kg:2   },
-  { id:9,  titre:'Tuyaux PVC 110mm (lot)',           description:'Segments de 1 à 3m, sans emboîtements, propres. Utilisables pour jardinage ou rangement vertical.',       type:'don',   prix:0,   categorie:'plastique',   localisation:'Saint-Denis',date:'2026-04-10', statut:'validee', auteur:'Réno Express', kg:18  },
-  { id:10, titre:'Vieille machine à coudre Singer',  description:'Modèle années 70, mécanique, révisable. Fonctionne, vendue avec accessoires et notice d\'origine.',      type:'vente', prix:60,  categorie:'electronique',localisation:'Paris 12e',  date:'2026-04-09', statut:'validee', auteur:'Marlène C.',   kg:12  },
-  { id:11, titre:'Briques pleines (environ 200)',     description:'Briques récupération de démolition, nettoyées. Idéales pour construction muret, décoration jardin.',      type:'don',   prix:0,   categorie:'autre',       localisation:'Aubervilliers',date:'2026-04-08',statut:'validee', auteur:'Chantier vert',kg:400 },
-  { id:12, titre:'Bobines fil coton coloré',          description:'Bobines industrielles déstockage, couleurs vives, fil 100% coton peigné. Environ 3000m par bobine.',     type:'vente', prix:8,   categorie:'textile',     localisation:'Paris 3e',   date:'2026-04-07', statut:'validee', auteur:'Fil Ethique',  kg:1   },
-];
 
 const PAGE_SIZE = 9;
 let filtreActif = { recherche: '', type: '', categorie: '', tri: 'recent' };
@@ -70,14 +56,12 @@ async function chargerAnnonces() {
     const res = await apiFetch(`/annonces?lang=${_lang}`);
     if (res.ok) {
       const data = await res.json();
-      if (Array.isArray(data) && data.length) {
+      if (Array.isArray(data)) {
         annoncesData = data;
-        renderAnnonces();
         return;
       }
     }
   } catch {}
-  annoncesData = [...MOCK_ANNONCES_FULL];
   renderAnnonces();
 }
 

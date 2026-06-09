@@ -53,55 +53,6 @@
 
 <script src="js/layout.js"></script>
 <script>
-const MOCK_CONSEILS = [
-  {
-    id: 1, categorie: 'technique',
-    titre: 'Comment préparer une palette pour un projet mobilier',
-    auteur: 'Marie D.', role: 'Salariée',
-    date: '2026-04-15',
-    extrait: 'Avant de transformer vos palettes en meuble, voici les étapes clés : ponçage, traitement, assemblage. Suivez ce guide pratique.',
-  },
-  {
-    id: 2, categorie: 'materiaux',
-    titre: 'Quels matériaux éviter absolument en upcycling alimentaire',
-    auteur: 'Thomas R.', role: 'Salarié',
-    date: '2026-04-12', likes: 41, reposts: 15,
-    extrait: 'Certains plastiques, vernis ou colles libèrent des substances toxiques au contact des aliments. Voici la liste des matériaux à bannir.',
-    tags: ['sécurité', 'plastique', 'aliments'],
-  },
-  {
-    id: 3, categorie: 'projets',
-    titre: '5 idées de projets upcycling pour débutants',
-    auteur: 'Sophie L.', role: 'Salariée',
-    date: '2026-04-10', likes: 67, reposts: 22,
-    extrait: 'Vous débutez dans l\'upcycling ? Ces 5 projets simples ne nécessitent que des outils de base et donnent des résultats bluffants.',
-    tags: ['débutant', 'DIY', 'facile'],
-  },
-  {
-    id: 4, categorie: 'outils',
-    titre: 'Les outils indispensables pour un atelier d\'upcycling',
-    auteur: 'Lucas M.', role: 'Salarié',
-    date: '2026-04-08', likes: 33, reposts: 12,
-    extrait: 'De la ponceuse au pistolet à colle, voici les outils que tout amateur d\'upcycling devrait avoir dans son atelier.',
-    tags: ['atelier', 'outils', 'équipement'],
-  },
-  {
-    id: 5, categorie: 'materiaux',
-    titre: 'Verre, céramique, métal : comment les revaloriser',
-    auteur: 'Emma B.', role: 'Salariée',
-    date: '2026-04-05', likes: 29, reposts: 9,
-    extrait: 'Ces matériaux présentent des défis spécifiques mais offrent des résultats magnifiques. Techniques et conseils de pros.',
-    tags: ['verre', 'métal', 'céramique'],
-  },
-  {
-    id: 6, categorie: 'technique',
-    titre: 'Teindre du tissu récupéré : techniques naturelles',
-    auteur: 'Clara V.', role: 'Salariée',
-    date: '2026-04-01', likes: 52, reposts: 18,
-    extrait: 'Avec des pigments naturels (curcuma, indigo, thé…), donnez une seconde vie à vos tissus en toute écologie.',
-    tags: ['tissu', 'teinture', 'naturel'],
-  },
-];
 
 const CATS = { tous: '', technique: '#e8a020', materiaux: '#2e8b57', projets: '#5C7C6E', outils: '#1e4535' };
 
@@ -116,20 +67,18 @@ function rendreCarte(c) {
         </div>
         <h3 style="font-family:var(--font-heading);font-size:14.5px;font-weight:700;color:var(--text);line-height:1.3;margin-bottom:10px">${c.titre}</h3>
         <p style="font-size:12.5px;color:var(--text-soft);line-height:1.55;margin-bottom:16px">${c.extrait}</p>
-        <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px">
-          ${c.tags.map(t => `<span style="background:var(--green-50);color:var(--green-700);font-size:10.5px;font-weight:600;padding:2px 8px;border-radius:4px">#${t}</span>`).join('')}
-        </div>
+        ${(c.tags && c.tags.length) ? `<div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px">${c.tags.map(t => `<span style="background:var(--green-50);color:var(--green-700);font-size:10.5px;font-weight:600;padding:2px 8px;border-radius:4px">#${t}</span>`).join('')}</div>` : ''}
         <div style="display:flex;align-items:center;justify-content:space-between;padding-top:12px;border-top:1px solid var(--border)">
           <div style="display:flex;align-items:center;gap:8px">
-            <div style="width:28px;height:28px;border-radius:50%;background:var(--green-700);color:#fff;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700">${c.auteur.charAt(0)}</div>
+            <div style="width:28px;height:28px;border-radius:50%;background:var(--green-700);color:#fff;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700">${(c.auteur||'?').charAt(0)}</div>
             <div>
-              <div style="font-size:12px;font-weight:600;color:var(--text)">${c.auteur}</div>
-              <div style="font-size:10.5px;color:var(--text-muted)">${c.role} · ${new Date(c.date).toLocaleDateString('fr-FR',{day:'numeric',month:'short'})}</div>
+              <div style="font-size:12px;font-weight:600;color:var(--text)">${c.auteur || 'Équipe UpcycleConnect'}</div>
+              <div style="font-size:10.5px;color:var(--text-muted)">${c.role || 'Salarié'} · ${c.date ? new Date(c.date).toLocaleDateString('fr-FR',{day:'numeric',month:'short'}) : '—'}</div>
             </div>
           </div>
           <div style="display:flex;gap:12px">
-            <span style="font-size:12px;color:var(--text-muted)"><i class="fa-regular fa-heart"></i> ${c.likes}</span>
-            <span style="font-size:12px;color:var(--text-muted)"><i class="fa-solid fa-share-nodes"></i> ${c.reposts}</span>
+            <span style="font-size:12px;color:var(--text-muted)"><i class="fa-regular fa-heart"></i> ${c.likes || 0}</span>
+            <span style="font-size:12px;color:var(--text-muted)"><i class="fa-solid fa-share-nodes"></i> ${c.reposts || 0}</span>
           </div>
         </div>
       </div>
@@ -139,12 +88,8 @@ function rendreCarte(c) {
 let filtreCourant = 'tous';
 function filtrerConseils(cat) {
   filtreCourant = cat;
-  document.querySelectorAll('.card-body > .btn').forEach(b => {
-    b.className = b.textContent.trim().toLowerCase().includes(cat) || (cat === 'tous' && b.textContent.includes('Tous'))
-      ? 'btn btn-primary btn-sm' : 'btn btn-outline btn-sm';
-  });
-  const filtered = cat === 'tous' ? MOCK_CONSEILS : MOCK_CONSEILS.filter(c => c.categorie === cat);
-  document.getElementById('conseils-grid').innerHTML = filtered.map(rendreCarte).join('');
+  const filtered = cat === 'tous' ? conseilsData : conseilsData.filter(c => c.categorie === cat);
+  afficherConseils(filtered);
 }
 
 let conseilsData = [];
@@ -154,22 +99,26 @@ async function chargerConseils() {
     const res = await apiFetch(`/conseils?lang=${_lang}`);
     if (res?.ok) {
       const data = await res.json();
-      if (Array.isArray(data) && data.length) {
+      if (Array.isArray(data)) {
         conseilsData = data.map(c => ({
           id:        c.id,
-          categorie: 'conseil',
+          categorie: c.categorie || 'conseil',
           titre:     c.titre,
           auteur:    'Équipe UpcycleConnect',
           role:      'Salarié',
           date:      c.date_publication,
           extrait:   (c.contenu || '').slice(0, 220) + ((c.contenu || '').length > 220 ? '…' : ''),
+          likes:     c.likes || 0,
+          reposts:   0,
+          tags:      [],
         }));
-        afficherConseils(conseilsData);
-        return;
       }
     }
   } catch {}
-  conseilsData = MOCK_CONSEILS;
+  if (!conseilsData.length) {
+    document.getElementById('conseils-grid').innerHTML = '<p style="text-align:center;color:var(--text-muted);padding:40px">Aucun article disponible pour le moment.</p>';
+    return;
+  }
   afficherConseils(conseilsData);
 }
 

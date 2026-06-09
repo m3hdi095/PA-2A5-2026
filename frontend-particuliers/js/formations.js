@@ -1,15 +1,5 @@
 // formations et ateliers
 
-const MOCK_FORMATIONS = [
-  { id:1, titre:'Atelier création luminaire en bois',         lieu:'Paris 11e,  La Fabrique',  date_debut:'2026-05-03T10:00:00Z', type:'atelier',   prix:0,   places_max:12, places_prises:9,  description:'Transformez des chutes de bois en lampes design. Matériel fourni, niveau débutant.' },
-  { id:2, titre:'Formation upcycling textile - Niveau 1',     lieu:'Paris 20e,  Atelier Fil',  date_debut:'2026-05-10T14:00:00Z', type:'formation', prix:45,  places_max:10, places_prises:4,  description:'Techniques de base pour valoriser tissu et vêtements : patchwork, teinture naturelle.' },
-  { id:3, titre:'Collecte vêtements printemps 2026',          lieu:'Montreuil,  Parvis Marie', date_debut:'2026-05-17T09:00:00Z', type:'evenement', prix:0,   places_max:200, places_prises:62, description:'Grande collecte solidaire : apportez vos vêtements propres, repartez avec d\'autres !' },
-  { id:4, titre:'Atelier réparation électroménager',          lieu:'Paris 13e,  Repair Café',  date_debut:'2026-05-24T10:30:00Z', type:'atelier',   prix:5,   places_max:20, places_prises:18, description:'Apprenez à réparer grille-pain, cafetières, petits appareils. Amenez vos objets cassés !' },
-  { id:5, titre:'Formation upcycling meuble - Niveau 2',      lieu:'Vincennes,  L\'Atelier',   date_debut:'2026-06-07T09:00:00Z', type:'formation', prix:80,  places_max:8,  places_prises:3,  description:'Restauration meuble, peinture à la craie, décapage. Niveau intermédiaire requis.' },
-  { id:6, titre:'Journée portes ouvertes Ressourcerie',       lieu:'Paris 19e,  Ressourcerie', date_debut:'2026-06-14T10:00:00Z', type:'evenement', prix:0,   places_max:null, places_prises:0, description:'Découvrez la ressourcerie de Paris 19e : ateliers, expo et vente de seconde main.' },
-  { id:7, titre:'Atelier teinture végétale sur tissu',        lieu:'Saint-Denis, BotaLab',    date_debut:'2026-06-21T14:00:00Z', type:'atelier',   prix:30,  places_max:14, places_prises:6,  description:'Colorez vos tissus avec plantes et racines. Kit de plantes inclus dans le prix.' },
-  { id:8, titre:'Formation maraîchage urbain & compostage',   lieu:'Paris 10e,  Rooftop Vert', date_debut:'2026-07-05T10:00:00Z', type:'formation', prix:35,  places_max:15, places_prises:2,  description:'Valorisez déchets organiques et compostez en appartement. Bac à compost offert.' },
-];
 
 let filtreType = '';
 let formationsData = [];
@@ -24,15 +14,12 @@ async function chargerFormations() {
     const res = await apiFetch(`/evenements?lang=${_lang}`);
     if (res?.ok) {
       const data = await res.json();
-      if (Array.isArray(data) && data.length) {
+      if (Array.isArray(data)) {
         formationsData = data;
-        mettreAJourCompteurs();
-        renderFormations();
         return;
       }
     }
   } catch {}
-  formationsData = MOCK_FORMATIONS;
   mettreAJourCompteurs();
   renderFormations();
 }
@@ -107,7 +94,7 @@ function renderFormations() {
 
 window.inscrireFormation = async (id, titre) => {
   try {
-    const res = await apiFetch(`/evenements/${id}/inscription`, { method: 'POST' });
+    const res = await apiFetch('/evenements/inscription', { method: 'POST', body: JSON.stringify({ evenement_id: id }) });
     if (res?.ok) { showToast(t('formation_inscription_ok'), 'success'); return; }
     throw new Error();
   } catch {
