@@ -28,8 +28,8 @@ async function chargerPlanning() {
       apiFetch('/planning/me'),
     ]);
 
-    const inscriptions = resInscriptions.ok ? await resInscriptions.json() : [];
-    const planningPerso = resPlanning.ok ? await resPlanning.json() : [];
+    const inscriptions  = resInscriptions?.ok  ? await resInscriptions.json()  : [];
+    const planningPerso = resPlanning?.ok ? await resPlanning.json() : [];
 
     // on a besoin des dates des evenements pour les afficher dans le planning
     const evenements = await chargerEvenements();
@@ -71,7 +71,7 @@ async function chargerPlanning() {
     const itemsFuturs = items.filter(i => i.dateHeure >= maintenant);
 
     if (!itemsFuturs.length) {
-      container.innerHTML = `<div class="empty-state"><i class="fa-solid fa-calendar-xmark" aria-hidden="true"></i><p>Aucun événement à venir. <a href="#" style="color:var(--teal-700);font-weight:600" onclick="chargerEvenementsPublics()">Parcourir les événements</a></p></div>`;
+      container.innerHTML = `<div class="empty-state"><i class="fa-solid fa-calendar-xmark" aria-hidden="true"></i><p>Aucun événement à venir. <a href="formations.html" style="color:var(--teal-700);font-weight:600">Parcourir les événements</a></p></div>`;
       return;
     }
 
@@ -129,7 +129,7 @@ async function chargerPlanning() {
 async function chargerEvenements() {
   try {
     const res = await apiFetch(`/evenements?lang=${_lang}`);
-    if (!res.ok) return [];
+    if (!res?.ok) return [];
     return await res.json();
   } catch { return []; }
 }
@@ -137,8 +137,9 @@ async function chargerEvenements() {
 window.sInscrire = async (evenementId) => {
   try {
     const res = await apiFetch('/evenements/inscription', { method: 'POST', body: JSON.stringify({ evenement_id: evenementId }) });
-    if (res.ok) { showToast('Inscription confirmée !', 'success'); await chargerPlanning(); }
-    else { const d = await res.json(); showToast(d.error || 'Erreur', 'error'); }
+    if (res?.ok) { showToast('Inscription confirmée !', 'success'); await chargerPlanning(); return; }
+    const d = res ? await res.json().catch(() => ({})) : {};
+    showToast(d.error || 'Inscription impossible', 'error');
   } catch { showToast('Service indisponible.', 'error'); }
 };
 
@@ -149,7 +150,8 @@ window.seDesinscrire = async (evenementId) => {
 window.supprimerEntree = async (id) => {
   try {
     const res = await apiFetch(`/planning/${id}`, { method: 'DELETE' });
-    if (res.ok) { showToast('Entrée supprimée.', 'success'); await chargerPlanning(); }
+    if (res?.ok) { showToast('Entrée supprimée.', 'success'); await chargerPlanning(); return; }
+    showToast('Erreur lors de la suppression.', 'error');
   } catch { showToast('Erreur lors de la suppression.', 'error'); }
 };
 
