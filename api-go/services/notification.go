@@ -44,3 +44,16 @@ func (s *NotificationService) GetUserNotifications(userID uint, page, pageSize i
 func (s *NotificationService) MarkAsRead(id uint) error {
     return s.repo.MarkAsRead(id)
 }
+
+func (s *NotificationService) MarkAllAsRead(userID uint) error {
+    return s.repo.MarkAllAsRead(userID)
+}
+
+func (s *NotificationService) BroadcastToSegment(segment, titre, message string) (int, error) {
+    userRepo := &repositories.UserRepository{}
+    ids, err := userRepo.ListIDsByRole(segment)
+    if err != nil {
+        return 0, err
+    }
+    return s.repo.BulkCreate(titre, message, "info", "push", ids)
+}

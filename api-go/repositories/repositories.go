@@ -2,6 +2,7 @@ package repositories
 
 import (
 	"database/sql"
+	"strings"
 	"time"
 
 	"upcycleconnect/api/database"
@@ -75,7 +76,16 @@ func (r *UserRepository) UpdateActivation(id uint, actif bool) error {
 }
 
 func (r *UserRepository) ListAll(limit, offset int) ([]models.Utilisateur, error) {
-	rows, err := database.DB.Query("SELECT id_utilisateur, email, nom, prenom, role, date_inscription, actif FROM utilisateur LIMIT ? OFFSET ?", limit, offset)
+	query := `
+		SELECT u.id_utilisateur, u.email, u.nom, u.prenom, u.role,
+		       COALESCE(u.telephone,''), COALESCE(u.adresse,''),
+		       u.date_inscription, u.actif,
+		       COALESCE(p.upcycling_score_total, 0)
+		FROM utilisateur u
+		LEFT JOIN particulier p ON p.id_particulier = u.id_utilisateur
+		ORDER BY u.date_inscription DESC
+		LIMIT ? OFFSET ?`
+	rows, err := database.DB.Query(query, limit, offset)
 	if err != nil {
 		return nil, err
 	}
@@ -83,13 +93,38 @@ func (r *UserRepository) ListAll(limit, offset int) ([]models.Utilisateur, error
 	users := make([]models.Utilisateur, 0)
 	for rows.Next() {
 		var u models.Utilisateur
-		err := rows.Scan(&u.ID, &u.Email, &u.Nom, &u.Prenom, &u.Role, &u.DateInscription, &u.Actif)
-		if err != nil {
+		if err := rows.Scan(&u.ID, &u.Email, &u.Nom, &u.Prenom, &u.Role,
+			&u.Telephone, &u.Adresse, &u.DateInscription, &u.Actif, &u.UpcyclingScore); err != nil {
 			return nil, err
 		}
 		users = append(users, u)
 	}
 	return users, nil
+}
+
+func (r *UserRepository) ListIDsByRole(role string) ([]uint, error) {
+	var (
+		rows *sql.Rows
+		err  error
+	)
+	if role == "tous" {
+		rows, err = database.DB.Query("SELECT id_utilisateur FROM utilisateur WHERE actif = 1")
+	} else {
+		rows, err = database.DB.Query("SELECT id_utilisateur FROM utilisateur WHERE role = ? AND actif = 1", role)
+	}
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var ids []uint
+	for rows.Next() {
+		var id uint
+		if err := rows.Scan(&id); err != nil {
+			return nil, err
+		}
+		ids = append(ids, id)
+	}
+	return ids, nil
 }
 
 //  ANNONCE
@@ -243,6 +278,9 @@ func (r *DepotRepository) Create(depot *models.Depot) error {
 	}
 	id, _ := result.LastInsertId()
 	depot.ID = uint(id)
+	depot.Statut = "en_attente"
+	now := time.Now()
+	depot.DateDemande = now
 	return nil
 }
 
@@ -412,6 +450,44 @@ func (r *EvenementRepository) ListPublic(limit, offset int) ([]models.Evenement,
 	return events, nil
 }
 
+func (r *EvenementRepository) ListAll(limit, offset int) ([]models.Evenement, error) {
+	rows, err := database.DB.Query(
+		`SELECT id_evenement, titre, type, description, date_debut, date_fin, lieu, tarif, nb_places, statut, id_salarie_createur
+		 FROM evenement ORDER BY date_debut DESC LIMIT ? OFFSET ?`, limit, offset)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	events := make([]models.Evenement, 0)
+	for rows.Next() {
+		var e models.Evenement
+		if err := rows.Scan(&e.ID, &e.Titre, &e.Type, &e.Description, &e.DateDebut, &e.DateFin, &e.Lieu, &e.Tarif, &e.NbPlaces, &e.Statut, &e.IDSalarieCreateur); err != nil {
+			return nil, err
+		}
+		events = append(events, e)
+	}
+	return events, nil
+}
+
+func (r *EvenementRepository) ListByCreator(salarieID uint) ([]models.Evenement, error) {
+	rows, err := database.DB.Query(
+		`SELECT id_evenement, titre, type, description, date_debut, date_fin, lieu, tarif, nb_places, statut, id_salarie_createur
+		 FROM evenement WHERE id_salarie_createur = ? ORDER BY date_debut DESC`, salarieID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	events := make([]models.Evenement, 0)
+	for rows.Next() {
+		var e models.Evenement
+		if err := rows.Scan(&e.ID, &e.Titre, &e.Type, &e.Description, &e.DateDebut, &e.DateFin, &e.Lieu, &e.Tarif, &e.NbPlaces, &e.Statut, &e.IDSalarieCreateur); err != nil {
+			return nil, err
+		}
+		events = append(events, e)
+	}
+	return events, nil
+}
+
 func (r *EvenementRepository) UpdateStatus(id uint, statut string) error {
 	_, err := database.DB.Exec("UPDATE evenement SET statut = ? WHERE id_evenement = ?", statut, id)
 	return err
@@ -516,6 +592,26 @@ func (r *NotificationRepository) Create(notif *models.Notification) error {
 	return nil
 }
 
+func (r *NotificationRepository) BulkCreate(titre, contenu, notifType, canal string, userIDs []uint) (int, error) {
+	if len(userIDs) == 0 {
+		return 0, nil
+	}
+	placeholders := make([]string, len(userIDs))
+	args := make([]interface{}, 0, len(userIDs)*5)
+	for i, id := range userIDs {
+		placeholders[i] = "(?, ?, ?, ?, NOW(), 0, '', ?)"
+		args = append(args, titre, contenu, notifType, canal, id)
+	}
+	query := "INSERT INTO notification (titre, contenu, type, canal, date_envoi, lu, ref_onesignal, id_utilisateur) VALUES " +
+		strings.Join(placeholders, ", ")
+	result, err := database.DB.Exec(query, args...)
+	if err != nil {
+		return 0, err
+	}
+	affected, _ := result.RowsAffected()
+	return int(affected), nil
+}
+
 func (r *NotificationRepository) ListByUser(userID uint, limit, offset int) ([]models.Notification, error) {
 	rows, err := database.DB.Query("SELECT id_notification, titre, contenu, type, canal, date_envoi, lu, ref_onesignal, id_utilisateur FROM notification WHERE id_utilisateur = ? ORDER BY date_envoi DESC LIMIT ? OFFSET ?", userID, limit, offset)
 	if err != nil {
@@ -525,17 +621,24 @@ func (r *NotificationRepository) ListByUser(userID uint, limit, offset int) ([]m
 	notifs := make([]models.Notification, 0)
 	for rows.Next() {
 		var n models.Notification
-		err := rows.Scan(&n.ID, &n.Titre, &n.Contenu, &n.Type, &n.Canal, &n.DateEnvoi, &n.Lu, &n.RefOneSignal, &n.IDUtilisateur)
-		if err != nil {
+		if err := rows.Scan(&n.ID, &n.Titre, &n.Contenu, &n.Type, &n.Canal, &n.DateEnvoi, &n.Lu, &n.RefOneSignal, &n.IDUtilisateur); err != nil {
 			return nil, err
 		}
 		notifs = append(notifs, n)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
 	}
 	return notifs, nil
 }
 
 func (r *NotificationRepository) MarkAsRead(id uint) error {
 	_, err := database.DB.Exec("UPDATE notification SET lu = 1 WHERE id_notification = ?", id)
+	return err
+}
+
+func (r *NotificationRepository) MarkAllAsRead(userID uint) error {
+	_, err := database.DB.Exec("UPDATE notification SET lu = 1 WHERE id_utilisateur = ? AND lu = 0", userID)
 	return err
 }
 
@@ -689,6 +792,26 @@ func (r *ConteneurRepository) UpdateNbObjets(id uint, nb int) error {
 	return err
 }
 
+func (r *ConteneurRepository) UpdateStatut(id uint, statut string) error {
+	_, err := database.DB.Exec("UPDATE conteneur SET statut = ? WHERE id_conteneur = ?", statut, id)
+	return err
+}
+
+func (r *ConteneurRepository) Create(c *models.Conteneur) error {
+	res, err := database.DB.Exec(
+		"INSERT INTO conteneur (adresse, ville, latitude, longitude, capacite, nb_objets, statut) VALUES (?, ?, ?, ?, ?, 0, 'disponible')",
+		c.Adresse, c.Ville, c.Latitude, c.Longitude, c.Capacite,
+	)
+	if err != nil {
+		return err
+	}
+	id, _ := res.LastInsertId()
+	c.ID = uint(id)
+	c.Statut = "disponible"
+	c.NbObjets = 0
+	return nil
+}
+
 //  DÉPÔT (méthodes manquantes)
 
 func (r *DepotRepository) UpdateRecuperationDate(id uint) error {
@@ -699,14 +822,27 @@ func (r *DepotRepository) UpdateRecuperationDate(id uint) error {
 	return err
 }
 
+func (r *DepotRepository) GetByCodeBarre(code string) (*models.Depot, error) {
+	row := database.DB.QueryRow(
+		"SELECT id_depot, statut, date_demande, date_validation, date_depot, date_recuperation, code_ouverture, code_barre_retrait, motif_refus, id_particulier, id_conteneur, id_objet FROM depot WHERE code_barre_retrait = ? LIMIT 1",
+		code,
+	)
+	d := &models.Depot{}
+	err := row.Scan(&d.ID, &d.Statut, &d.DateDemande, &d.DateValidation, &d.DateDepot, &d.DateRecuperation, &d.CodeOuverture, &d.CodeBarreRetrait, &d.MotifRefus, &d.IDParticulier, &d.IDConteneur, &d.IDObjet)
+	if err != nil {
+		return nil, err
+	}
+	return d, nil
+}
+
 //  CATEGORIE
 
 type CategorieRepository struct{}
 
 func (r *CategorieRepository) Create(cat *models.Categorie) error {
 	result, err := database.DB.Exec(
-		"INSERT INTO categorie (nom, description, parent_id) VALUES (?, ?, ?)",
-		cat.Nom, cat.Description, cat.ParentID,
+		"INSERT INTO categorie (nom, description, icone, parent_id) VALUES (?, ?, ?, ?)",
+		cat.Nom, cat.Description, cat.Icone, cat.ParentID,
 	)
 	if err != nil {
 		return err
@@ -718,10 +854,10 @@ func (r *CategorieRepository) Create(cat *models.Categorie) error {
 
 func (r *CategorieRepository) GetByID(id uint) (*models.Categorie, error) {
 	row := database.DB.QueryRow(
-		"SELECT id_categorie, nom, description, parent_id FROM categorie WHERE id_categorie = ?", id,
+		"SELECT id_categorie, nom, COALESCE(description,''), COALESCE(icone,''), parent_id FROM categorie WHERE id_categorie = ?", id,
 	)
 	var c models.Categorie
-	err := row.Scan(&c.ID, &c.Nom, &c.Description, &c.ParentID)
+	err := row.Scan(&c.ID, &c.Nom, &c.Description, &c.Icone, &c.ParentID)
 	if err == sql.ErrNoRows {
 		return nil, nil
 	}
@@ -729,7 +865,7 @@ func (r *CategorieRepository) GetByID(id uint) (*models.Categorie, error) {
 }
 
 func (r *CategorieRepository) ListAll() ([]models.Categorie, error) {
-	rows, err := database.DB.Query("SELECT id_categorie, nom, description, parent_id FROM categorie WHERE nom NOT LIKE '[supprimee]%' ORDER BY nom")
+	rows, err := database.DB.Query("SELECT id_categorie, nom, COALESCE(description,''), COALESCE(icone,''), parent_id FROM categorie WHERE nom NOT LIKE '[supprimee]%' ORDER BY nom")
 	if err != nil {
 		return nil, err
 	}
@@ -737,7 +873,7 @@ func (r *CategorieRepository) ListAll() ([]models.Categorie, error) {
 	cats := make([]models.Categorie, 0)
 	for rows.Next() {
 		var c models.Categorie
-		if err := rows.Scan(&c.ID, &c.Nom, &c.Description, &c.ParentID); err != nil {
+		if err := rows.Scan(&c.ID, &c.Nom, &c.Description, &c.Icone, &c.ParentID); err != nil {
 			return nil, err
 		}
 		cats = append(cats, c)
@@ -747,8 +883,8 @@ func (r *CategorieRepository) ListAll() ([]models.Categorie, error) {
 
 func (r *CategorieRepository) Update(cat *models.Categorie) error {
 	_, err := database.DB.Exec(
-		"UPDATE categorie SET nom = ?, description = ?, parent_id = ? WHERE id_categorie = ?",
-		cat.Nom, cat.Description, cat.ParentID, cat.ID,
+		"UPDATE categorie SET nom = ?, description = ?, icone = ?, parent_id = ? WHERE id_categorie = ?",
+		cat.Nom, cat.Description, cat.Icone, cat.ParentID, cat.ID,
 	)
 	return err
 }
@@ -764,13 +900,13 @@ func (r *CategorieRepository) List(lang string) ([]models.Categorie, error) {
 	query := `
 		SELECT c.id_categorie,
 			COALESCE(MAX(t.valeur_traduite), c.nom),
-			COALESCE(c.description,''), c.parent_id,
+			COALESCE(c.description,''), COALESCE(c.icone,''), c.parent_id,
 			COUNT(o.id_objet) AS nb_objets
 		FROM categorie c
 		LEFT JOIN objet o ON o.categorie_id = c.id_categorie
 		LEFT JOIN traduction t ON t.table_concernee = 'categorie' AND t.id_enregistrement = c.id_categorie AND t.champ = 'nom' AND t.langue = ?
 		WHERE c.nom NOT LIKE '[supprimee]%'
-		GROUP BY c.id_categorie, c.nom, c.description, c.parent_id
+		GROUP BY c.id_categorie, c.nom, c.description, c.icone, c.parent_id
 		ORDER BY c.nom`
 	rows, err := database.DB.Query(query, lang)
 	if err != nil {
@@ -780,7 +916,7 @@ func (r *CategorieRepository) List(lang string) ([]models.Categorie, error) {
 	cats := make([]models.Categorie, 0)
 	for rows.Next() {
 		var c models.Categorie
-		if err := rows.Scan(&c.ID, &c.Nom, &c.Description, &c.ParentID, &c.NbObjets); err != nil {
+		if err := rows.Scan(&c.ID, &c.Nom, &c.Description, &c.Icone, &c.ParentID, &c.NbObjets); err != nil {
 			return nil, err
 		}
 		cats = append(cats, c)
@@ -798,8 +934,11 @@ type AdminStats struct {
 	TotalEvenements    int     `json:"total_evenements"`
 	TotalConteneurs    int     `json:"total_conteneurs"`
 	TotalCategories    int     `json:"total_categories"`
-	AnnoncesEnAttente  int     `json:"annonces_en_attente"`
-	CAMois             float64 `json:"ca_mois"`
+	TotalFactures      int     `json:"total_factures"`
+	AnnoncesEnAttente   int     `json:"annonces_en_attente"`
+	DepotsEnAttente     int     `json:"depots_en_attente"`
+	EvenementsEnAttente int     `json:"evenements_en_attente"`
+	CAMois              float64 `json:"ca_mois"`
 	CATotal            float64 `json:"ca_total"`
 	CommissionsMois    float64 `json:"commissions_mois"`
 	CommissionsTotal   float64 `json:"commissions_total"`
@@ -814,7 +953,10 @@ func (r *StatsRepository) Get() (*AdminStats, error) {
 	_ = database.DB.QueryRow(`SELECT COUNT(*) FROM evenement`).Scan(&s.TotalEvenements)
 	_ = database.DB.QueryRow(`SELECT COUNT(*) FROM conteneur`).Scan(&s.TotalConteneurs)
 	_ = database.DB.QueryRow(`SELECT COUNT(*) FROM categorie`).Scan(&s.TotalCategories)
+	_ = database.DB.QueryRow(`SELECT COUNT(*) FROM facture`).Scan(&s.TotalFactures)
 	_ = database.DB.QueryRow(`SELECT COUNT(*) FROM annonce WHERE statut='en_attente'`).Scan(&s.AnnoncesEnAttente)
+	_ = database.DB.QueryRow(`SELECT COUNT(*) FROM depot WHERE statut='en_attente'`).Scan(&s.DepotsEnAttente)
+	_ = database.DB.QueryRow(`SELECT COUNT(*) FROM evenement WHERE statut='en_attente'`).Scan(&s.EvenementsEnAttente)
 	_ = database.DB.QueryRow(`SELECT COALESCE(SUM(montant),0) FROM paiement WHERE statut='paye' AND MONTH(date_paiement)=MONTH(NOW()) AND YEAR(date_paiement)=YEAR(NOW())`).Scan(&s.CAMois)
 	_ = database.DB.QueryRow(`SELECT COALESCE(SUM(montant),0) FROM paiement WHERE statut='paye'`).Scan(&s.CATotal)
 	_ = database.DB.QueryRow(`SELECT COALESCE(SUM(commission_montant),0) FROM transaction_achat WHERE statut='payee' AND MONTH(date_transaction)=MONTH(NOW()) AND YEAR(date_transaction)=YEAR(NOW())`).Scan(&s.CommissionsMois)

@@ -135,6 +135,40 @@ func (s *ConteneurService) ListDepotsUser(userID uint) ([]models.Depot, error) {
 	return s.depotRepo.ListByParticulier(userID, 50, 0)
 }
 
+func (s *ConteneurService) RecupererDepotParCode(code string) (*models.Depot, error) {
+	depot, err := s.depotRepo.GetByCodeBarre(code)
+	if err != nil || depot == nil {
+		return nil, errors.New("code barre introuvable")
+	}
+	if depot.Statut != "valide" {
+		return nil, errors.New("dépôt non disponible pour récupération (statut: " + depot.Statut + ")")
+	}
+	if err := s.depotRepo.UpdateRecuperationDate(depot.ID); err != nil {
+		return nil, err
+	}
+	depot.Statut = "recupere"
+	conteneur, _ := s.conteneurRepo.GetByID(depot.IDConteneur)
+	if conteneur != nil && conteneur.NbObjets > 0 {
+		_ = s.conteneurRepo.UpdateNbObjets(conteneur.ID, conteneur.NbObjets-1)
+	}
+	return depot, nil
+}
+
+func (s *ConteneurService) UpdateStatutConteneur(id uint, statut string) error {
+	valid := map[string]bool{"disponible": true, "plein": true, "en_maintenance": true}
+	if !valid[statut] {
+		return errors.New("statut invalide")
+	}
+	return s.conteneurRepo.UpdateStatut(id, statut)
+}
+
+func (s *ConteneurService) CreateConteneur(c *models.Conteneur) error {
+	if c.Adresse == "" || c.Capacite <= 0 {
+		return errors.New("adresse et capacité requis")
+	}
+	return s.conteneurRepo.Create(c)
+}
+
 func generateRandomCode(length int) (string, error) {
     bytes := make([]byte, length)
     if _, err := rand.Read(bytes); err != nil {
