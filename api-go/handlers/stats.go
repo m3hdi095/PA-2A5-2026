@@ -101,8 +101,11 @@ func SoftDeleteUser(w http.ResponseWriter, r *http.Request) {
 func ListDepotsEnAttente(w http.ResponseWriter, r *http.Request) {
 	rows, err := database.DB.Query(
 		`SELECT d.id_depot, d.statut, d.date_demande, d.id_particulier, d.id_conteneur, d.id_objet,
-                COALESCE(d.code_ouverture,''), COALESCE(d.code_barre_retrait,'')
-         FROM depot d WHERE d.statut = 'en_attente' ORDER BY d.date_demande ASC`,
+                COALESCE(d.code_ouverture,''), COALESCE(d.code_barre_retrait,''),
+                COALESCE(u.prenom,''), COALESCE(u.nom,'')
+         FROM depot d
+         LEFT JOIN utilisateur u ON u.id_utilisateur = d.id_particulier
+         WHERE d.statut = 'en_attente' ORDER BY d.date_demande ASC`,
 	)
 	if err != nil {
 		http.Error(w, `{"error":"Erreur interne"}`, http.StatusInternalServerError)
@@ -110,13 +113,54 @@ func ListDepotsEnAttente(w http.ResponseWriter, r *http.Request) {
 	}
 	defer rows.Close()
 
-	var depots []models.Depot
+	type depotAvecAuteur struct {
+		models.Depot
+		AuteurPrenom string `json:"auteur_prenom"`
+		AuteurNom    string `json:"auteur_nom"`
+	}
+	var depots []depotAvecAuteur
 	for rows.Next() {
-		var d models.Depot
+		var d depotAvecAuteur
 		rows.Scan(&d.ID, &d.Statut, &d.DateDemande, &d.IDParticulier, &d.IDConteneur, &d.IDObjet,
-			&d.CodeOuverture, &d.CodeBarreRetrait)
+			&d.CodeOuverture, &d.CodeBarreRetrait, &d.AuteurPrenom, &d.AuteurNom)
 		depots = append(depots, d)
+	}
+	if depots == nil {
+		depots = []depotAvecAuteur{}
 	}
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(depots)
+}
+
+func ListEvenementsEnAttente(w http.ResponseWriter, r *http.Request) {
+	rows, err := database.DB.Query(
+		`SELECT e.id_evenement, e.titre, e.type, e.description, e.date_debut, e.date_fin, e.lieu, e.tarif, e.nb_places, e.statut, e.id_salarie_createur,
+                COALESCE(u.prenom,''), COALESCE(u.nom,'')
+         FROM evenement e
+         LEFT JOIN utilisateur u ON u.id_utilisateur = e.id_salarie_createur
+         WHERE e.statut = 'en_attente' ORDER BY e.id_evenement DESC`,
+	)
+	if err != nil {
+		http.Error(w, `{"error":"Erreur interne"}`, http.StatusInternalServerError)
+		return
+	}
+	defer rows.Close()
+
+	type evenementAvecAuteur struct {
+		models.Evenement
+		AuteurPrenom string `json:"auteur_prenom"`
+		AuteurNom    string `json:"auteur_nom"`
+	}
+	var events []evenementAvecAuteur
+	for rows.Next() {
+		var e evenementAvecAuteur
+		rows.Scan(&e.ID, &e.Titre, &e.Type, &e.Description, &e.DateDebut, &e.DateFin, &e.Lieu, &e.Tarif, &e.NbPlaces, &e.Statut, &e.IDSalarieCreateur,
+			&e.AuteurPrenom, &e.AuteurNom)
+		events = append(events, e)
+	}
+	if events == nil {
+		events = []evenementAvecAuteur{}
+	}
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(events)
 }

@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"strconv"
 
+	"upcycleconnect/api/database"
 	"upcycleconnect/api/models"
 	"upcycleconnect/api/repositories"
 	"upcycleconnect/api/services"
@@ -170,11 +171,38 @@ func ListPendingAnnonces(w http.ResponseWriter, r *http.Request) {
 	if page < 1 {
 		page = 1
 	}
+	offset := (page - 1) * 20
 
-	annonces, err := annonceService.ListPending(page, 20)
+	rows, err := database.DB.Query(
+		`SELECT a.id_annonce, a.titre, a.description, a.type_annonce, a.prix, a.statut, a.date_publication,
+		        a.id_utilisateur, a.id_objet,
+		        COALESCE(u.prenom,''), COALESCE(u.nom,'')
+		 FROM annonce a
+		 LEFT JOIN utilisateur u ON u.id_utilisateur = a.id_utilisateur
+		 WHERE a.statut = 'en_attente'
+		 ORDER BY a.date_publication ASC
+		 LIMIT 20 OFFSET ?`, offset,
+	)
 	if err != nil {
 		http.Error(w, `{"error":"Erreur interne"}`, http.StatusInternalServerError)
 		return
+	}
+	defer rows.Close()
+
+	type annonceAvecAuteur struct {
+		models.Annonce
+		AuteurPrenom string `json:"auteur_prenom"`
+		AuteurNom    string `json:"auteur_nom"`
+	}
+	var annonces []annonceAvecAuteur
+	for rows.Next() {
+		var a annonceAvecAuteur
+		rows.Scan(&a.ID, &a.Titre, &a.Description, &a.TypeAnnonce, &a.Prix, &a.Statut, &a.DatePublication,
+			&a.IDUtilisateur, &a.IDObjet, &a.AuteurPrenom, &a.AuteurNom)
+		annonces = append(annonces, a)
+	}
+	if annonces == nil {
+		annonces = []annonceAvecAuteur{}
 	}
 
 	w.Header().Set("Content-Type", "application/json")
