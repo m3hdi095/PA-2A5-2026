@@ -14,10 +14,7 @@ async function chargerFormations() {
     const res = await apiFetch(`/evenements?lang=${_lang}`);
     if (res?.ok) {
       const data = await res.json();
-      if (Array.isArray(data)) {
-        formationsData = data;
-        return;
-      }
+      if (Array.isArray(data)) formationsData = data;
     }
   } catch {}
   mettreAJourCompteurs();
