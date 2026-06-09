@@ -167,7 +167,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 window.contacterAuteur = (id) => {
   document.getElementById('modal-detail').classList.remove('open');
-  showToast('Message envoyé au déposant', 'success');
+  showToast('Messagerie non disponible pour le moment', 'info');
 };
 
 function fermerModal() { document.getElementById('modal-annonce').classList.remove('open'); }
@@ -175,11 +175,11 @@ function fermerModal() { document.getElementById('modal-annonce').classList.remo
 async function soumettreAnnonce(e) {
   e.preventDefault();
   const payload = {
-    titre:       document.getElementById('a-titre').value.trim(),
-    description: document.getElementById('a-desc').value.trim(),
-    type:        document.getElementById('a-type').value,
-    prix:        parseFloat(document.getElementById('a-prix').value) || 0,
-    categorie:   document.getElementById('a-categorie').value,
+    titre:        document.getElementById('a-titre').value.trim(),
+    description:  document.getElementById('a-desc').value.trim(),
+    type_annonce: document.getElementById('a-type').value,
+    prix:         parseFloat(document.getElementById('a-prix').value) || 0,
+    categorie:    document.getElementById('a-categorie').value,
   };
   if (!payload.titre) { showToast('Le titre est obligatoire', 'warning'); return; }
   try {
