@@ -66,6 +66,7 @@ func main() {
     mux.HandleFunc("GET /api/depots", middleware.AuthMiddleware(handlers.ListDepots))
     // reservee aux professionnels, le service verifie le role
     mux.HandleFunc("POST /api/depots/{id}/recuperer", middleware.AuthMiddleware(handlers.RecupererDepot))
+    mux.HandleFunc("POST /api/depots/recuperer-par-code", middleware.AuthMiddleware(handlers.RecupererDepotParCode))
 
     // Projets upcycling
     mux.HandleFunc("POST /api/projets", middleware.AuthMiddleware(handlers.CreateProjet))
@@ -90,7 +91,9 @@ func main() {
 
     // Notifications push
     mux.HandleFunc("POST /api/notifications/send", middleware.AuthMiddleware(handlers.SendNotification))
+    mux.HandleFunc("POST /api/admin/notifications", middleware.AuthMiddleware(middleware.RoleMiddleware("admin")(handlers.BroadcastNotification)))
     mux.HandleFunc("GET /api/notifications", middleware.AuthMiddleware(handlers.GetNotifications))
+    mux.HandleFunc("PUT /api/notifications/read-all", middleware.AuthMiddleware(handlers.MarkAllNotificationsRead))
     mux.HandleFunc("PUT /api/notifications/{id}/read", middleware.AuthMiddleware(handlers.MarkNotificationRead))
 
     // traductions, ecriture reservee a l'admin
@@ -122,6 +125,8 @@ func main() {
     // back-office admin
     mux.HandleFunc("GET /api/admin/stats", middleware.AuthMiddleware(middleware.RoleMiddleware("admin")(handlers.GetAdminStats)))
     mux.HandleFunc("GET /api/admin/users", middleware.AuthMiddleware(middleware.RoleMiddleware("admin")(handlers.ListUsers)))
+    mux.HandleFunc("GET /api/admin/users/counts", middleware.AuthMiddleware(middleware.RoleMiddleware("admin")(handlers.CountUsersByRole)))
+    mux.HandleFunc("POST /api/admin/users", middleware.AuthMiddleware(middleware.RoleMiddleware("admin")(handlers.AdminCreateUser)))
     mux.HandleFunc("PUT /api/admin/users/{id}", middleware.AuthMiddleware(middleware.RoleMiddleware("admin")(handlers.UpdateAdminUser)))
     mux.HandleFunc("PUT /api/admin/users/{id}/activate", middleware.AuthMiddleware(middleware.RoleMiddleware("admin")(handlers.ActivateUser)))
     // soft delete RGPD, pas de suppression physique
@@ -129,7 +134,13 @@ func main() {
     mux.HandleFunc("GET /api/admin/annonces/en-attente", middleware.AuthMiddleware(middleware.RoleMiddleware("admin")(handlers.ListPendingAnnonces)))
     mux.HandleFunc("POST /api/admin/annonces/validate", middleware.AuthMiddleware(middleware.RoleMiddleware("admin")(handlers.ValidateAnnonce)))
     mux.HandleFunc("POST /api/admin/evenements/validate", middleware.AuthMiddleware(middleware.RoleMiddleware("admin")(handlers.ValidateEvenement)))
+    mux.HandleFunc("GET /api/admin/evenements", middleware.AuthMiddleware(middleware.RoleMiddleware("admin")(handlers.AdminListEvenements)))
+    mux.HandleFunc("GET /api/admin/evenements/en-attente", middleware.AuthMiddleware(middleware.RoleMiddleware("admin")(handlers.ListEvenementsEnAttente)))
+    mux.HandleFunc("GET /api/evenements/mes-creations", middleware.AuthMiddleware(handlers.MesCreations))
     mux.HandleFunc("GET /api/admin/depots/en-attente", middleware.AuthMiddleware(middleware.RoleMiddleware("admin")(handlers.ListDepotsEnAttente)))
+    mux.HandleFunc("POST /api/admin/depots/validate", middleware.AuthMiddleware(middleware.RoleMiddleware("admin")(handlers.ValidateDepotAdmin)))
+    mux.HandleFunc("POST /api/admin/conteneurs", middleware.AuthMiddleware(middleware.RoleMiddleware("admin")(handlers.CreateConteneur)))
+    mux.HandleFunc("PUT /api/admin/conteneurs/{id}/statut", middleware.AuthMiddleware(middleware.RoleMiddleware("admin")(handlers.UpdateConteneurStatut)))
     // categories en lecture publique, admin en ecriture
     mux.HandleFunc("POST /api/categories", middleware.AuthMiddleware(middleware.RoleMiddleware("admin")(handlers.CreateCategorie)))
     mux.HandleFunc("PUT /api/categories/{id}", middleware.AuthMiddleware(middleware.RoleMiddleware("admin")(handlers.UpdateCategorie)))

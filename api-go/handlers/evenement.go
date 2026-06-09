@@ -12,6 +12,7 @@ import (
     "time"
 
     "upcycleconnect/api/models"
+    "upcycleconnect/api/repositories"
     "upcycleconnect/api/services"
 )
 
@@ -25,29 +26,46 @@ func CreateEvenement(w http.ResponseWriter, r *http.Request) {
     }
     userID := r.Context().Value(middleware.ContextUserID).(uint)
     var input struct {
-        Titre       string    `json:"titre"`
-        Type        string    `json:"type"`
-        Description string    `json:"description"`
-        DateDebut   time.Time `json:"date_debut"`
-        DateFin     time.Time `json:"date_fin"`
-        Lieu        string    `json:"lieu"`
-        Tarif       float64   `json:"tarif"`
-        NbPlaces    int       `json:"nb_places"`
+        Titre       string  `json:"titre"`
+        Type        string  `json:"type"`
+        Description string  `json:"description"`
+        DateDebut   string  `json:"date_debut"`
+        DateFin     string  `json:"date_fin"`
+        Lieu        string  `json:"lieu"`
+        Tarif       float64 `json:"tarif"`
+        NbPlaces    int     `json:"nb_places"`
     }
     if err := json.NewDecoder(r.Body).Decode(&input); err != nil {
         http.Error(w, `{"error":"Données invalides"}`, http.StatusBadRequest)
         return
     }
+    parseDate := func(s string) time.Time {
+        for _, layout := range []string{time.RFC3339, "2006-01-02T15:04", "2006-01-02T15:04:05", "2006-01-02"} {
+            if t, err := time.ParseInLocation(layout, s, time.Local); err == nil {
+                return t
+            }
+        }
+        return time.Time{}
+    }
+    var salarieID *uint
+    if role == "salarie" {
+        salarieID = &userID
+    }
+    dateDebut := parseDate(input.DateDebut)
+    dateFin   := parseDate(input.DateFin)
+    if dateFin.IsZero() {
+        dateFin = dateDebut.Add(2 * time.Hour)
+    }
     evt := &models.Evenement{
         Titre:             input.Titre,
         Type:              input.Type,
         Description:       input.Description,
-        DateDebut:         input.DateDebut,
-        DateFin:           input.DateFin,
+        DateDebut:         dateDebut,
+        DateFin:           dateFin,
         Lieu:              input.Lieu,
         Tarif:             input.Tarif,
         NbPlaces:          input.NbPlaces,
-        IDSalarieCreateur: userID,
+        IDSalarieCreateur: salarieID,
     }
     if err := evenementService.CreateEvenement(evt); err != nil {
         jsonError(w, err.Error(), http.StatusBadRequest)
@@ -113,27 +131,35 @@ func UpdateEvenement(w http.ResponseWriter, r *http.Request) {
         return
     }
     var input struct {
-        Titre       string    `json:"titre"`
-        Type        string    `json:"type"`
-        Description string    `json:"description"`
-        DateDebut   time.Time `json:"date_debut"`
-        DateFin     time.Time `json:"date_fin"`
-        Lieu        string    `json:"lieu"`
-        Tarif       float64   `json:"tarif"`
-        NbPlaces    int       `json:"nb_places"`
-        Statut      string    `json:"statut"`
+        Titre       string  `json:"titre"`
+        Type        string  `json:"type"`
+        Description string  `json:"description"`
+        DateDebut   string  `json:"date_debut"`
+        DateFin     string  `json:"date_fin"`
+        Lieu        string  `json:"lieu"`
+        Tarif       float64 `json:"tarif"`
+        NbPlaces    int     `json:"nb_places"`
+        Statut      string  `json:"statut"`
     }
     if err := json.NewDecoder(r.Body).Decode(&input); err != nil {
         http.Error(w, `{"error":"Données invalides"}`, http.StatusBadRequest)
         return
+    }
+    parseDate := func(s string) time.Time {
+        for _, layout := range []string{time.RFC3339, "2006-01-02T15:04", "2006-01-02T15:04:05", "2006-01-02"} {
+            if t, err := time.ParseInLocation(layout, s, time.Local); err == nil {
+                return t
+            }
+        }
+        return time.Time{}
     }
     evt := &models.Evenement{
         ID:          uint(id),
         Titre:       input.Titre,
         Type:        input.Type,
         Description: input.Description,
-        DateDebut:   input.DateDebut,
-        DateFin:     input.DateFin,
+        DateDebut:   parseDate(input.DateDebut),
+        DateFin:     parseDate(input.DateFin),
         Lieu:        input.Lieu,
         Tarif:       input.Tarif,
         NbPlaces:    input.NbPlaces,
@@ -181,4 +207,26 @@ func ValidateEvenement(w http.ResponseWriter, r *http.Request) {
     }
     w.WriteHeader(http.StatusOK)
     json.NewEncoder(w).Encode(map[string]string{"status": "ok"})
+}
+func AdminListEvenements(w http.ResponseWriter, r *http.Request) {
+    repo := repositories.EvenementRepository{}
+    events, err := repo.ListAll(200, 0)
+    if err != nil {
+        http.Error(w, `{"error":"Erreur interne"}`, http.StatusInternalServerError)
+        return
+    }
+    w.Header().Set("Content-Type", "application/json")
+    json.NewEncoder(w).Encode(events)
+}
+
+func MesCreations(w http.ResponseWriter, r *http.Request) {
+    userID := r.Context().Value(middleware.ContextUserID).(uint)
+    repo   := repositories.EvenementRepository{}
+    events, err := repo.ListByCreator(userID)
+    if err != nil {
+        http.Error(w, `{"error":"Erreur interne"}`, http.StatusInternalServerError)
+        return
+    }
+    w.Header().Set("Content-Type", "application/json")
+    json.NewEncoder(w).Encode(events)
 }
