@@ -243,7 +243,7 @@ async function chargerBadgeValidations() {
     const res = await apiFetch('/admin/stats');
     if (!res || !res.ok) return;
     const stats = await res.json();
-    const nb = stats.annonces_en_attente || 0;
+    const nb = (stats.annonces_en_attente || 0) + (stats.depots_en_attente || 0) + (stats.evenements_en_attente || 0);
 
     const badge = document.getElementById('badge-validations');
     if (badge && nb > 0) {
@@ -277,7 +277,7 @@ async function verifierAuth() {
 
   // API hors ligne, fallback localStorage (mode démo)
   try {
-    const stored = JSON.parse(localStorage.getItem('uc_user') || '{}');
+    const stored = JSON.parse(localStorage.getItem('uc_admin_user') || '{}');
     if (stored && stored.role === 'admin') return stored;
   } catch {}
   clearToken();
