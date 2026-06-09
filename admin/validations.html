@@ -24,6 +24,10 @@
       <i class="fa-solid fa-users" aria-hidden="true"></i>
       <span data-i18n="nav_users">Utilisateurs</span>
     </a>
+    <button class="btn btn-outline btn-sm" id="refreshBtn">
+      <i class="fa-solid fa-rotate-right" aria-hidden="true"></i>
+      <span data-i18n="btn_rafraichir">Rafraîchir</span>
+    </button>
     <span id="totalBadge" class="badge badge-orange" style="font-size:13px;padding:6px 14px"></span>
   </div>
 </div>
@@ -127,27 +131,14 @@ const ICONE_VAL = {
   formation: '<i class="fa-solid fa-graduation-cap" aria-hidden="true"></i>',
 };
 
-const MOCK_VAL = {
-  annonces: [
-    { id:1, titre:'Lot de palettes bois',  type:'don',   auteur:'Marie Dupont',   date:'2026-03-13', desc:'5 palettes EUR en bon état, idéales pour mobilier DIY. Localisées Paris 11e.' },
-    { id:2, titre:'Vieux vélos (x3)',       type:'don',   auteur:'Henri Petit',    date:'2026-03-12', desc:'3 vélos de ville en état variable. Pièces récupérables. À Ivry-sur-Seine.' },
-    { id:3, titre:'Tissu lin naturel',      type:'vente', auteur:'Clara Noel',     date:'2026-03-11', desc:'2 kg de chutes de lin naturel, teinture végétale. Prix demandé : 20 €.' },
-  ],
-  conteneurs: [
-    { id:4, titre:'Dépôt Box 10ème',     type:'conteneur', auteur:'Lucie Moreau',  date:'2026-03-13', desc:'Demande de dépôt : 1 carton de bocaux en verre (6 pièces). Box Lafayette.' },
-    { id:5, titre:'Dépôt Box Montreuil', type:'conteneur', auteur:'Paul Gauthier', date:'2026-03-10', desc:'Dépôt de chutes de cuir (1 kg). Box Montreuil, demande validée en interne.' },
-  ],
-  formations: [
-    { id:6, titre:'Initiation macramé', type:'formation', auteur:'Sophie Martin', date:'2026-03-09', desc:'Nouvelle formation proposée par Sophie Martin. 10 places, Paris 11e, 12 avril. Tarif : 30€.' },
-  ],
-};
-
+let valData = { annonces: [], conteneurs: [], formations: [] };
 let activeTab = 'annonces';
 
 function renderTab(tab) {
   activeTab = tab;
-  const items = MOCK_VAL[tab] || [];
+  const items = valData[tab] || [];
   const container = document.getElementById('valItems');
+  const locale = _lang === 'en' ? 'en-GB' : 'fr-FR';
 
   if (!items.length) {
     container.innerHTML = `<div class="empty-state card" style="padding:60px">
@@ -161,20 +152,20 @@ function renderTab(tab) {
     <div class="val-card" id="valCard${v.id}">
       <div class="val-type-icon">${ICONE_VAL[v.type] || ''}</div>
       <div class="val-info">
-        <div class="val-title">${v.titre}</div>
+        <div class="val-title">${escVal(v.titre)}</div>
         <div class="val-meta">
-          <strong>${v.auteur}</strong> · 
-          <span class="badge badge-orange" style="font-size:10px">${v.type}</span>
+          <strong>${escVal(v.auteur)}</strong> ·
+          <span class="badge badge-orange" style="font-size:10px">${escVal(v.type)}</span>
         </div>
       </div>
-      <div class="val-date">${new Date(v.date).toLocaleDateString(_lang === 'en' ? 'en-GB' : 'fr-FR',{day:'2-digit',month:'short'})}</div>
+      <div class="val-date">${new Date(v.date).toLocaleDateString(locale,{day:'2-digit',month:'short'})}</div>
       <div class="val-actions">
         <button class="btn btn-outline btn-sm" onclick="showDetail(${v.id})">${t('btn_detail')}</button>
-        <button class="btn btn-primary btn-sm" onclick="approve(${v.id}, '${tab}')">
+        <button class="btn btn-primary btn-sm" onclick="approve(${v.id},'${tab}')">
           <i class="fa-solid fa-check" aria-hidden="true"></i>
           ${t('btn_approuver')}
         </button>
-        <button class="btn btn-danger btn-sm" onclick="reject(${v.id}, '${tab}')">
+        <button class="btn btn-danger btn-sm" onclick="reject(${v.id},'${tab}')">
           <i class="fa-solid fa-xmark" aria-hidden="true"></i>
           ${t('btn_refuser')}
         </button>
@@ -184,27 +175,28 @@ function renderTab(tab) {
 }
 
 function updateCounts() {
-  const total = Object.values(MOCK_VAL).reduce((a,b)=>a+b.length,0);
-  document.getElementById('countAnnonces').textContent   = MOCK_VAL.annonces.length;
-  document.getElementById('countConteneurs').textContent = MOCK_VAL.conteneurs.length;
-  document.getElementById('countFormations').textContent = MOCK_VAL.formations.length;
+  const total = Object.values(valData).reduce((a,b) => a + b.length, 0);
+  document.getElementById('countAnnonces').textContent   = valData.annonces.length;
+  document.getElementById('countConteneurs').textContent = valData.conteneurs.length;
+  document.getElementById('countFormations').textContent = valData.formations.length;
   document.getElementById('totalBadge').textContent = `${total} ${t('badge_en_attente')}`;
 }
 
 function showDetail(id) {
-  const all = [...MOCK_VAL.annonces,...MOCK_VAL.conteneurs,...MOCK_VAL.formations];
-  const v   = all.find(x=>x.id===id);
+  const all = [...valData.annonces, ...valData.conteneurs, ...valData.formations];
+  const v   = all.find(x => x.id === id);
   if (!v) return;
+  const locale = _lang === 'en' ? 'en-GB' : 'fr-FR';
   document.getElementById('detailTitle').textContent = v.titre;
   document.getElementById('detailBody').innerHTML = `
     <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px">
       <div style="font-size:36px;color:var(--uc-teal)">${ICONE_VAL[v.type] || ''}</div>
       <div>
-        <div style="font-weight:600;font-size:15px;color:var(--neutral-900)">${v.titre}</div>
-        <div style="font-size:12px;color:var(--neutral-400)">${t('validations_par')} <strong>${v.auteur}</strong> ${new Date(v.date).toLocaleDateString(_lang === 'en' ? 'en-GB' : 'fr-FR')}</div>
+        <div style="font-weight:600;font-size:15px;color:var(--neutral-900)">${escVal(v.titre)}</div>
+        <div style="font-size:12px;color:var(--neutral-400)">${t('validations_par')} <strong>${escVal(v.auteur)}</strong> · ${new Date(v.date).toLocaleDateString(locale)}</div>
       </div>
     </div>
-    <div style="background:var(--neutral-50);border-radius:var(--radius);padding:14px;margin-bottom:16px;font-size:13.5px;color:var(--neutral-700);line-height:1.6">${v.desc}</div>
+    <div style="background:var(--neutral-50);border-radius:var(--radius);padding:14px;margin-bottom:16px;font-size:13.5px;color:var(--neutral-700);line-height:1.6">${escVal(v.desc)}</div>
     <div class="form-actions">
       <button class="btn btn-outline" onclick="closeDetail()">${t('btn_fermer')}</button>
       <button class="btn btn-danger" onclick="reject(${v.id},'${activeTab}');closeDetail()">${t('btn_refuser')}</button>
@@ -214,91 +206,175 @@ function showDetail(id) {
   document.getElementById('detailModal').classList.add('open');
 }
 window.closeDetail = () => document.getElementById('detailModal').classList.remove('open');
-
 window.showDetail = showDetail;
+
+function escVal(str) {
+  return String(str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
 
 async function loadAnnoncesFromAPI() {
   try {
     const res = await apiFetch('/admin/annonces/en-attente');
-    if (!res || !res.ok) return false;
+    if (!res?.ok) return;
     const data = await res.json();
     const list = Array.isArray(data) ? data : (data.annonces || []);
-    MOCK_VAL.annonces = list.map(a => ({
-      id: a.id,
-      titre: a.titre || a.title || 'Sans titre',
-      type: a.type || 'don',
-      auteur: a.auteur || (a.user && (a.user.prenom + ' ' + a.user.nom)) || 'Inconnu',
-      date: a.created_at || a.date || new Date().toISOString(),
-      desc: a.description || a.desc || '',
-      _apiItem: a
-    }));
-    return true;
-  } catch(e) {
-    return false;
-  }
+    valData.annonces = list.map(a => {
+      const prenom = a.auteur_prenom || '';
+      const nom    = a.auteur_nom    || '';
+      const auteur = (prenom + ' ' + nom).trim() || ('Utilisateur #' + (a.id_utilisateur || '?'));
+      return {
+        id:     a.id,
+        titre:  a.titre || 'Sans titre',
+        type:   a.type_annonce || a.type || 'don',
+        auteur,
+        date:   a.date_publication || a.created_at || new Date().toISOString(),
+        desc:   a.description || '',
+      };
+    });
+  } catch {}
+}
+
+async function loadDepotsFromAPI() {
+  try {
+    const res = await apiFetch('/admin/depots/en-attente');
+    if (!res?.ok) return;
+    const data = await res.json();
+    const list = Array.isArray(data) ? data : [];
+    valData.conteneurs = list.map(d => {
+      const prenom = d.auteur_prenom || '';
+      const nom    = d.auteur_nom    || '';
+      const auteur = (prenom + ' ' + nom).trim() || ('Particulier #' + d.id_particulier);
+      return {
+        id:     d.id,
+        titre:  `Dépôt dans conteneur #${d.id_conteneur}`,
+        type:   'conteneur',
+        auteur,
+        date:   d.date_demande || new Date().toISOString(),
+        desc:   `Objet #${d.id_objet} · Code ouverture : ${d.code_ouverture || '—'} · Code retrait : ${d.code_barre_retrait || '—'}`,
+      };
+    });
+  } catch {}
+}
+
+async function loadFormationsFromAPI() {
+  try {
+    const res = await apiFetch('/admin/evenements/en-attente');
+    if (!res?.ok) return;
+    const data = await res.json();
+    const list = Array.isArray(data) ? data : [];
+    valData.formations = list.map(e => {
+      const prenom = e.auteur_prenom || '';
+      const nom    = e.auteur_nom    || '';
+      const auteur = (prenom + ' ' + nom).trim() || (e.id_salarie_createur ? 'Salarié #' + e.id_salarie_createur : 'Administrateur');
+      return {
+        id:     e.id,
+        titre:  e.titre || 'Sans titre',
+        type:   'formation',
+        auteur,
+        date:   e.date_debut || new Date().toISOString(),
+        desc:   `${e.description || ''} · ${e.nb_places || 0} places · Lieu : ${e.lieu || '—'} · Tarif : ${e.tarif || 0} €`,
+      };
+    });
+  } catch {}
 }
 
 window.approve = async (id, tab) => {
-  if (tab === 'annonces') {
-    try {
-      await apiFetch('/admin/annonces/validate', {
+  let ok = false;
+  try {
+    let res;
+    if (tab === 'annonces') {
+      res = await apiFetch('/admin/annonces/validate', {
         method: 'POST',
-        body: JSON.stringify({ annonce_id: id, decision: 'validee', commentaire: '' })
+        body: JSON.stringify({ annonce_id: id, decision: 'validee', commentaire: '' }),
       });
-    } catch(e) {}
-  }
-  MOCK_VAL[tab] = MOCK_VAL[tab].filter(v => v.id !== id);
-  const card = document.getElementById(`valCard${id}`);
-  if (card) {
-    card.style.borderColor = 'var(--uc-teal)';
-    card.style.background  = 'var(--uc-teal-pale)';
-    setTimeout(() => card.remove(), 400);
-  }
-  showToast(t('toast_approved'), 'success');
-  updateCounts();
-  setTimeout(() => renderTab(tab), 450);
+    } else if (tab === 'conteneurs') {
+      res = await apiFetch('/admin/depots/validate', {
+        method: 'POST',
+        body: JSON.stringify({ depot_id: id, decision: 'valide', motif: '' }),
+      });
+    } else if (tab === 'formations') {
+      res = await apiFetch('/admin/evenements/validate', {
+        method: 'POST',
+        body: JSON.stringify({ evenement_id: id, decision: 'valide' }),
+      });
+    }
+    ok = res?.ok === true;
+  } catch {}
+  if (!ok) { showToast(t('toast_error') || 'Erreur lors de la validation', 'error'); return; }
+  removeCard(id, tab, true);
 };
 
 window.reject = async (id, tab) => {
-  if (tab === 'annonces') {
-    try {
-      await apiFetch('/admin/annonces/validate', {
+  let ok = false;
+  try {
+    let res;
+    if (tab === 'annonces') {
+      res = await apiFetch('/admin/annonces/validate', {
         method: 'POST',
-        body: JSON.stringify({ annonce_id: id, decision: 'refusee', commentaire: '' })
+        body: JSON.stringify({ annonce_id: id, decision: 'refusee', commentaire: '' }),
       });
-    } catch(e) {}
-  }
-  MOCK_VAL[tab] = MOCK_VAL[tab].filter(v => v.id !== id);
+    } else if (tab === 'conteneurs') {
+      res = await apiFetch('/admin/depots/validate', {
+        method: 'POST',
+        body: JSON.stringify({ depot_id: id, decision: 'refuse', motif: '' }),
+      });
+    } else if (tab === 'formations') {
+      res = await apiFetch('/admin/evenements/validate', {
+        method: 'POST',
+        body: JSON.stringify({ evenement_id: id, decision: 'annule' }),
+      });
+    }
+    ok = res?.ok === true;
+  } catch {}
+  if (!ok) { showToast(t('toast_error') || 'Erreur lors du refus', 'error'); return; }
+  removeCard(id, tab, false);
+};
+
+function removeCard(id, tab, accepted) {
+  valData[tab] = valData[tab].filter(v => v.id !== id);
   const card = document.getElementById(`valCard${id}`);
   if (card) {
-    card.style.borderColor = '#ef5350';
-    card.style.background  = 'var(--danger-bg)';
-    setTimeout(() => card.remove(), 400);
+    card.style.borderColor = accepted ? 'var(--uc-teal)' : '#ef5350';
+    card.style.background  = accepted ? 'var(--uc-teal-pale)' : 'var(--danger-bg)';
+    setTimeout(() => { card.remove(); renderTab(tab); }, 400);
   }
-  showToast(t('toast_rejected'), 'warning');
+  showToast(accepted ? t('toast_approved') : t('toast_rejected'), accepted ? 'success' : 'warning');
   updateCounts();
-  setTimeout(() => renderTab(tab), 450);
-};
+}
 
 document.addEventListener('DOMContentLoaded', async () => {
   await initLayout('validations');
 
-  await loadAnnoncesFromAPI();
+  await Promise.all([
+    loadAnnoncesFromAPI(),
+    loadDepotsFromAPI(),
+    loadFormationsFromAPI(),
+  ]);
 
   updateCounts();
   renderTab('annonces');
 
   document.querySelectorAll('.val-tab').forEach(tab => {
     tab.addEventListener('click', () => {
-      document.querySelectorAll('.val-tab').forEach(t=>t.classList.remove('active'));
+      document.querySelectorAll('.val-tab').forEach(t => t.classList.remove('active'));
       tab.classList.add('active');
       renderTab(tab.dataset.tab);
     });
   });
 
+  document.getElementById('refreshBtn').addEventListener('click', async () => {
+    const btn = document.getElementById('refreshBtn');
+    btn.disabled = true;
+    await Promise.all([loadAnnoncesFromAPI(), loadDepotsFromAPI(), loadFormationsFromAPI()]);
+    updateCounts();
+    renderTab(activeTab);
+    btn.disabled = false;
+    showToast(t('toast_refreshed') || 'Données rechargées', 'success');
+  });
+
   document.getElementById('detailClose').addEventListener('click', closeDetail);
   document.getElementById('detailModal').addEventListener('click', e => {
-    if (e.target===document.getElementById('detailModal')) closeDetail();
+    if (e.target === document.getElementById('detailModal')) closeDetail();
   });
 });
 </script>

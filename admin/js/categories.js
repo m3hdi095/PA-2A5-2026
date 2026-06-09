@@ -1,13 +1,5 @@
 // CRUD categories, les appels vont vers l'API Go
 
-let MOCK_CATS = [
-  { id:1, nom:'Textiles',      description:'Vêtements, tissus, chutes...',    parent_id:null, nb_objets:58 },
-  { id:2, nom:'Bois',          description:'Palettes, planches, mobilier...', parent_id:null, nb_objets:34 },
-  { id:3, nom:'Métal',         description:'Ferraille, profilés, câbles...',  parent_id:null, nb_objets:21 },
-  { id:4, nom:'Plastique',     description:'Bouteilles, bacs, films...',      parent_id:null, nb_objets:15 },
-  { id:5, nom:'Électronique',  description:'Composants, appareils...',        parent_id:null, nb_objets:29 },
-  { id:6, nom:'Autre',         description:'Divers non classé',             parent_id:null, nb_objets:12 },
-];
 
 let categories = [];
 let filtered   = [];
@@ -134,10 +126,9 @@ async function fetchCategories() {
     filtered = [...categories];
     renderTable();
     renderTree();
-  } catch (err) {
-    console.warn('API indisponible, utilisation des mocks', err);
-    categories = [...MOCK_CATS];
-    filtered   = [...categories];
+  } catch {
+    categories = [];
+    filtered   = [];
     renderTable();
     renderTree();
   }
@@ -151,7 +142,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     const q  = document.getElementById('searchInput').value.toLowerCase();
     const pf = document.getElementById('parentFilter').value;
     filtered = categories.filter(c => {
-      const matchQ = c.nom.toLowerCase().includes(q);
+      const matchQ = c.nom.toLowerCase().includes(q) || (c.description || '').toLowerCase().includes(q);
       const matchP = pf === '' ? true : pf === 'root' ? !c.parent_id : !!c.parent_id;
       return matchQ && matchP;
     });
@@ -183,6 +174,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     const data = {
       nom:         document.getElementById('nom').value,
       description: document.getElementById('description').value,
+      icone:       document.getElementById('icone').value.trim() || null,
       parent_id:   document.getElementById('parent_id').value ? parseInt(document.getElementById('parent_id').value) : null,
     };
 
@@ -221,6 +213,7 @@ window.editCat = id => {
   document.getElementById('catId').value          = c.id;
   document.getElementById('nom').value            = c.nom;
   document.getElementById('description').value    = c.description || '';
+  document.getElementById('icone').value          = c.icone || '';
   fillParentSelect(c.parent_id);
   document.getElementById('modalTitle').innerHTML = `<i class="fa-solid fa-pen" aria-hidden="true"></i> ${t('modal_edit_prefix')} ${escAdmin(c.nom)}`;
   openModal();
@@ -232,7 +225,7 @@ window.deleteCat = async id => {
   try {
     const res = await apiFetch(`/categories/${id}`, { method: 'DELETE' });
     if (res && (res.ok || res.status === 204)) {
-      showToast(t('cat_toast_deleted'), 'error');
+      showToast(t('cat_toast_deleted'), 'success');
       fetchCategories();
       return;
     }
