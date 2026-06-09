@@ -54,12 +54,9 @@ async function chargerCategories() {
 async function chargerAnnonces() {
   try {
     const res = await apiFetch(`/annonces?lang=${_lang}`);
-    if (res.ok) {
+    if (res?.ok) {
       const data = await res.json();
-      if (Array.isArray(data)) {
-        annoncesData = data;
-        return;
-      }
+      if (Array.isArray(data)) annoncesData = data;
     }
   } catch {}
   renderAnnonces();
@@ -68,7 +65,7 @@ async function chargerAnnonces() {
 function getAnnoncesFiltered() {
   let list = [...annoncesData];
   if (filtreActif.recherche)  list = list.filter(a => a.titre.toLowerCase().includes(filtreActif.recherche) || (a.description || '').toLowerCase().includes(filtreActif.recherche));
-  if (filtreActif.type)       list = list.filter(a => a.type === filtreActif.type);
+  if (filtreActif.type)       list = list.filter(a => a.type_annonce === filtreActif.type);
   if (filtreActif.categorie)  list = list.filter(a => a.categorie === filtreActif.categorie);
   if (filtreActif.tri === 'prix_asc')  list.sort((a, b) => a.prix - b.prix);
   if (filtreActif.tri === 'prix_desc') list.sort((a, b) => b.prix - a.prix);
@@ -95,7 +92,7 @@ function renderAnnonces() {
   }
 
   container.innerHTML = slice.map((a, i) => {
-    const typeBadge = a.type === 'don'
+    const typeBadge = a.type_annonce === 'don'
       ? `<span class="badge badge-don"><i class="fa-solid fa-hand-holding-heart" aria-hidden="true"></i> ${t('annonce_type_don')}</span>`
       : `<span class="badge badge-vente"><i class="fa-solid fa-tag" aria-hidden="true"></i> ${t('annonce_type_vente')}</span>`;
     const prix = a.prix > 0 ? `${a.prix.toFixed(2)} €` : t('annonce_gratuit');
@@ -140,7 +137,7 @@ window.ouvrirDetail = (id) => {
   document.getElementById('detail-body').innerHTML = `
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px">
       <div><span style="font-size:11px;font-weight:700;text-transform:uppercase;color:var(--text-muted)">Type</span><br>
-        ${a.type === 'don' ? `<span class="badge badge-don"><i class="fa-solid fa-hand-holding-heart"></i> ${t('annonce_type_don')}</span>` : `<span class="badge badge-vente"><i class="fa-solid fa-tag"></i> ${t('annonce_type_vente')}</span>`}
+        ${a.type_annonce === 'don' ? `<span class="badge badge-don"><i class="fa-solid fa-hand-holding-heart"></i> ${t('annonce_type_don')}</span>` : `<span class="badge badge-vente"><i class="fa-solid fa-tag"></i> ${t('annonce_type_vente')}</span>`}
       </div>
       <div><span style="font-size:11px;font-weight:700;text-transform:uppercase;color:var(--text-muted)">Prix</span><br>
         <span style="font-family:Poppins,sans-serif;font-size:18px;font-weight:800;color:var(--teal-700)">${prix}</span>
