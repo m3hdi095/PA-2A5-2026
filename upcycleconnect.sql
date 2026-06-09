@@ -57,6 +57,7 @@ CREATE TABLE categorie (
     id_categorie INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     nom VARCHAR(100) NOT NULL,
     description TEXT,
+    icone VARCHAR(100) NULL DEFAULT NULL,
     parent_id INT UNSIGNED DEFAULT NULL,
     FOREIGN KEY (parent_id) REFERENCES categorie(id_categorie) ON DELETE SET NULL
 );
@@ -254,7 +255,7 @@ CREATE TABLE evenement (
     tarif DECIMAL(10,2),
     nb_places INT UNSIGNED,
     statut ENUM('en_attente', 'valide', 'annule', 'cloture') DEFAULT 'en_attente',
-    id_salarie_createur INT UNSIGNED NOT NULL,
+    id_salarie_createur INT UNSIGNED NULL DEFAULT NULL,
     FOREIGN KEY (id_salarie_createur) REFERENCES salarie(id_salarie)
 );
 

@@ -23,6 +23,7 @@ type Utilisateur struct {
     TutorielVu     bool      `json:"tutoriel_vu"`
     LanguePreferee string    `json:"langue_preferee"`
     Plan           string    `json:"plan,omitempty"`
+    UpcyclingScore int       `json:"upcycling_score"`
 }
 
 type Particulier struct {
@@ -123,7 +124,7 @@ type Evenement struct {
     NbPlaces          int       `json:"nb_places"`
     NbInscriptions    int       `json:"places_prises"`
     Statut            string    `json:"statut"`
-    IDSalarieCreateur uint      `json:"id_salarie_createur"`
+    IDSalarieCreateur *uint     `json:"id_salarie_createur"`
 }
 
 type Inscription struct {
@@ -183,6 +184,7 @@ type Categorie struct {
 	ID          uint   `json:"id"`
 	Nom         string `json:"nom"`
 	Description string `json:"description,omitempty"`
+	Icone       string `json:"icone,omitempty"`
 	ParentID    *uint  `json:"parent_id,omitempty"`
 	NbObjets    int    `json:"nb_objets"`
 }
