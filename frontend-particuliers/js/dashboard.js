@@ -81,7 +81,7 @@ async function chargerAnnoncesRecentes() {
   }
 
   container.innerHTML = annonces.slice(0, 4).map((a, i) => {
-    const typeBadge = a.type === 'don'
+    const typeBadge = a.type_annonce === 'don'
       ? `<span class="badge badge-don"><i class="fa-solid fa-hand-holding-heart"></i> ${t('annonce_type_don')}</span>`
       : `<span class="badge badge-vente"><i class="fa-solid fa-tag"></i> ${t('annonce_type_vente')}</span>`;
     const prix = a.prix > 0 ? `<span class="annonce-prix">${a.prix.toFixed(2)} €</span>` : `<span class="annonce-prix">${t('annonce_gratuit')}</span>`;
