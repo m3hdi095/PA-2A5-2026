@@ -329,16 +329,16 @@
           <h3 data-i18n="params_section_pwd">Changer le mot de passe</h3>
           <div class="form-group">
             <label class="form-label" data-i18n="params_pwd_actuel">Mot de passe actuel</label>
-            <input type="password" class="form-control" placeholder="••••••••"/>
+            <input type="password" class="form-control" id="pwd-actuel" placeholder="••••••••"/>
           </div>
           <div class="form-row">
             <div class="form-group">
               <label class="form-label" data-i18n="params_pwd_nouveau">Nouveau mot de passe</label>
-              <input type="password" class="form-control" placeholder="••••••••"/>
+              <input type="password" class="form-control" id="pwd-nouveau" placeholder="••••••••"/>
             </div>
             <div class="form-group">
               <label class="form-label" data-i18n="params_pwd_confirm">Confirmation</label>
-              <input type="password" class="form-control" placeholder="••••••••"/>
+              <input type="password" class="form-control" id="pwd-confirm" placeholder="••••••••"/>
             </div>
           </div>
         </div>
@@ -407,16 +407,45 @@ document.addEventListener('DOMContentLoaded', async () => {
 window.save = async () => {
   const activePanel = document.querySelector('.settings-nav-item.active')?.dataset.panel;
   if (activePanel === 'compte') {
-    const prenom = document.getElementById('myPrenom').value.trim();
-    const nom    = document.getElementById('myNom').value.trim();
-    const email  = document.getElementById('myEmail').value.trim();
+    const prenom     = document.getElementById('myPrenom').value.trim();
+    const nom        = document.getElementById('myNom').value.trim();
+    const email      = document.getElementById('myEmail').value.trim();
+    const pwdActuel  = document.getElementById('pwd-actuel').value;
+    const pwdNouveau = document.getElementById('pwd-nouveau').value;
+    const pwdConfirm = document.getElementById('pwd-confirm').value;
+
+    // changement mot de passe si les champs sont remplis
+    if (pwdActuel || pwdNouveau || pwdConfirm) {
+      if (!pwdActuel || !pwdNouveau || !pwdConfirm) {
+        showToast('Remplissez les trois champs mot de passe', 'warning'); return;
+      }
+      if (pwdNouveau !== pwdConfirm) {
+        showToast('Les mots de passe ne correspondent pas', 'warning'); return;
+      }
+      if (pwdNouveau.length < 8) {
+        showToast('Le mot de passe doit faire au moins 8 caractères', 'warning'); return;
+      }
+      try {
+        const resPwd = await apiFetch('/users/change-password', {
+          method: 'POST',
+          body: JSON.stringify({ old_password: pwdActuel, new_password: pwdNouveau }),
+        });
+        if (!resPwd?.ok) {
+          const d = resPwd ? await resPwd.json().catch(() => ({})) : {};
+          showToast(d.error || 'Mot de passe actuel incorrect', 'error'); return;
+        }
+        document.getElementById('pwd-actuel').value  = '';
+        document.getElementById('pwd-nouveau').value = '';
+        document.getElementById('pwd-confirm').value = '';
+      } catch { showToast('Erreur lors du changement de mot de passe', 'error'); return; }
+    }
+
     try {
       const res = await apiFetch('/users/me', {
         method: 'PUT',
         body: JSON.stringify({ prenom, nom, email }),
       });
       if (res?.ok) {
-        // Re-fetch pour stocker les données fraîches (pas {"status":"ok"})
         try {
           const me = await apiFetch('/users/me');
           if (me?.ok) localStorage.setItem('uc_admin_user', JSON.stringify(await me.json()));

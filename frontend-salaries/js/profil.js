@@ -66,9 +66,9 @@ function bindForms(utilisateur) {
         body:   JSON.stringify({ old_password: actuel, new_password: nouveau }),
       });
       if (res?.ok) { showToast(t('profil_toast_pwd_updated'), 'success'); formPwd.reset(); return; }
-    } catch {}
-    showToast(t('profil_toast_pwd_updated'), 'success');
-    formPwd.reset();
+      const d = res ? await res.json().catch(() => ({})) : {};
+      showToast(d.error || 'Mot de passe actuel incorrect', 'error');
+    } catch { showToast('Service indisponible.', 'error'); }
   });
 }
 
