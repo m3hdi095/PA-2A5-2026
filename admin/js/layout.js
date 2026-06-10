@@ -180,10 +180,19 @@ function buildTopbarHTML(nomPage) {
       <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
       <input type="text" placeholder="${t('users_search')}" aria-label="${_lang === 'en' ? 'Global search' : 'Recherche globale'}"/>
     </div>
-    <a href="validations.html" class="topbar-btn" title="${t('nav_validations')}" id="topbar-notif-btn">
-      <i class="fa-solid fa-bell" aria-hidden="true"></i>
-      <span class="dot" id="topbar-notif-dot" style="display:none"></span>
-    </a>
+    <div class="notif-bell-wrap" id="notif-bell-wrap">
+      <button class="notif-bell-btn" id="notif-bell-btn" aria-label="Notifications">
+        <i class="fa-solid fa-bell" aria-hidden="true"></i>
+        <span class="notif-badge" id="notif-badge" style="display:none">0</span>
+      </button>
+      <div class="notif-dropdown" id="notif-dropdown">
+        <div class="notif-dropdown-header">
+          <span>${_lang === 'en' ? 'Notifications' : 'Notifications'}</span>
+          <button class="notif-mark-all-btn" id="notif-mark-all">${_lang === 'en' ? 'Mark all read' : 'Tout marquer lu'}</button>
+        </div>
+        <div id="notif-list"><p class="notif-empty">${_lang === 'en' ? 'No notifications' : 'Aucune notification'}</p></div>
+      </div>
+    </div>
     <a href="parametres.html" class="topbar-user" title="${t('nav_parametres')}">
       <div class="topbar-user-avatar" id="topbar-avatar">A</div>
       <span id="topbar-user-name">Admin</span>
@@ -237,6 +246,86 @@ function injecterMiseEnPage() {
   });
 }
 
+function initNotifBell() {
+  const btn      = document.getElementById('notif-bell-btn');
+  const dropdown = document.getElementById('notif-dropdown');
+  const badge    = document.getElementById('notif-badge');
+  const list     = document.getElementById('notif-list');
+  const markAll  = document.getElementById('notif-mark-all');
+  if (!btn || !dropdown) return;
+
+  let notifs = [];
+
+  async function charger() {
+    try {
+      const res = await apiFetch('/notifications');
+      if (res?.ok) {
+        const data = await res.json();
+        notifs = Array.isArray(data) ? data : [];
+        const nonLues = notifs.filter(n => !n.lu).length;
+        badge.textContent = nonLues > 9 ? '9+' : nonLues;
+        badge.style.display = nonLues > 0 ? 'flex' : 'none';
+        if (dropdown.classList.contains('open')) renderNotifs();
+      }
+    } catch {}
+  }
+
+  function renderNotifs() {
+    if (!notifs.length) {
+      list.innerHTML = `<p class="notif-empty">${_lang === 'en' ? 'No notifications' : 'Aucune notification'}</p>`;
+      return;
+    }
+    const locale = _lang === 'en' ? 'en-GB' : 'fr-FR';
+    list.innerHTML = notifs.slice(0, 8).map(n => `
+      <div class="notif-item${n.lu ? '' : ' notif-unread'}" data-id="${n.id}">
+        <div class="notif-item-icon"><i class="fa-solid fa-bell"></i></div>
+        <div class="notif-item-body">
+          <div class="notif-item-titre">${escNotifAdmin(n.titre)}</div>
+          <div class="notif-item-msg">${escNotifAdmin(n.contenu)}</div>
+          <div class="notif-item-date">${n.date_envoi ? new Date(n.date_envoi).toLocaleDateString(locale, {day:'2-digit', month:'short'}) : ''}</div>
+        </div>
+      </div>`).join('');
+    list.querySelectorAll('.notif-item.notif-unread').forEach(el => {
+      el.addEventListener('click', async () => {
+        const id = el.dataset.id;
+        await apiFetch(`/notifications/${id}/read`, { method: 'PUT' });
+        const n = notifs.find(n => String(n.id) === id);
+        if (n) n.lu = true;
+        el.classList.remove('notif-unread');
+        const nonLues = notifs.filter(n => !n.lu).length;
+        badge.textContent = nonLues > 9 ? '9+' : nonLues;
+        badge.style.display = nonLues > 0 ? 'flex' : 'none';
+      }, { once: true });
+    });
+  }
+
+  btn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    const open = dropdown.classList.toggle('open');
+    if (open) charger();
+  });
+
+  document.addEventListener('click', (e) => {
+    if (!btn.contains(e.target) && !dropdown.contains(e.target)) {
+      dropdown.classList.remove('open');
+    }
+  });
+
+  markAll?.addEventListener('click', async () => {
+    await apiFetch('/notifications/read-all', { method: 'PUT' });
+    notifs.forEach(n => n.lu = true);
+    badge.style.display = 'none';
+    renderNotifs();
+  });
+
+  charger();
+  setInterval(charger, 30000);
+}
+
+function escNotifAdmin(s) {
+  return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
 // badge du nombre de validations en attente, pour le menu latéral
 async function chargerBadgeValidations() {
   try {
@@ -250,9 +339,6 @@ async function chargerBadgeValidations() {
       badge.textContent = nb;
       badge.style.display = 'inline-block';
     }
-    // Allumer le point rouge sur la cloche topbar
-    const dot = document.getElementById('topbar-notif-dot');
-    if (dot && nb > 0) dot.style.display = 'block';
   } catch { /* silencieux : API peut être hors ligne */ }
 }
 
@@ -344,6 +430,7 @@ async function initLayout(_nomPage) {
   if (topbarName)   topbarName.textContent   = utilisateur.prenom || nomAffiche.split(' ')[0] || 'Admin';
 
   chargerBadgeValidations();
+  initNotifBell();
 }
 
 // injecter Font Awesome si pas déjà chargé

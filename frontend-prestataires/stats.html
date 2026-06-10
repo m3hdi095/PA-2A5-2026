@@ -33,34 +33,30 @@
   <div class="stat-card" style="--accent:var(--green-700);--icon-bg:var(--green-50)">
     <div class="stat-icon"><i class="fa-solid fa-hand-holding-box"></i></div>
     <div class="stat-info">
-      <div class="stat-value">47</div>
+      <div class="stat-value" id="stat-recup">—</div>
       <div class="stat-label" data-i18n="stat_recup_totales">Récupérations totales</div>
     </div>
-    <span class="stat-trend trend-up">+18% ce mois</span>
   </div>
   <div class="stat-card" style="--accent:#3d7a60;--icon-bg:#e8f5ee">
     <div class="stat-icon" style="background:#e8f5ee;color:#3d7a60"><i class="fa-solid fa-leaf"></i></div>
     <div class="stat-info">
-      <div class="stat-value">284 kg</div>
-      <div class="stat-label" data-i18n="stat_materiaux_valorises">Matériaux valorisés</div>
+      <div class="stat-value" id="stat-kg">—</div>
+      <div class="stat-label" data-i18n="stat_materiaux_valorises">Kg recyclés</div>
     </div>
-    <span class="stat-trend trend-up">+24 kg</span>
   </div>
   <div class="stat-card" style="--accent:#1e4535;--icon-bg:#d4eee3">
     <div class="stat-icon" style="background:#d4eee3;color:#1e4535"><i class="fa-solid fa-cloud"></i></div>
     <div class="stat-info">
-      <div class="stat-value">142 kg</div>
-      <div class="stat-label" data-i18n="stat_co2_economise">CO₂ économisé</div>
+      <div class="stat-value" id="stat-co2">—</div>
+      <div class="stat-label" data-i18n="stat_co2_economise">CO₂ économisé (est.)</div>
     </div>
-    <span class="stat-trend trend-up">+12%</span>
   </div>
   <div class="stat-card" style="--accent:#6BA870;--icon-bg:var(--green-100)">
     <div class="stat-icon" style="background:var(--green-100);color:#6BA870"><i class="fa-solid fa-diagram-project"></i></div>
     <div class="stat-info">
-      <div class="stat-value">8</div>
+      <div class="stat-value" id="stat-projets">—</div>
       <div class="stat-label" data-i18n="stat_projets_termines">Projets terminés</div>
     </div>
-    <span class="stat-trend trend-neu">Ce trimestre</span>
   </div>
 </div>
 
@@ -78,7 +74,7 @@
 
   <div class="card">
     <div class="card-header">
-      <h2><i class="fa-solid fa-chart-pie"></i> <span data-i18n="stats_chart_cats_title">Matériaux par catégorie</span></h2>
+      <h2><i class="fa-solid fa-chart-pie"></i> <span>Dépôts par statut</span></h2>
     </div>
     <div class="card-body" style="display:flex;align-items:center;justify-content:center">
       <canvas id="chart-cats" height="220" width="220"></canvas>
@@ -97,11 +93,8 @@
       <thead>
         <tr>
           <th data-i18n="th_date">Date</th>
-          <th data-i18n="th_materiau">Matériau</th>
-          <th data-i18n="th_categorie">Catégorie</th>
-          <th data-i18n="th_quantite">Quantité</th>
+          <th>Objet</th>
           <th data-i18n="historique_conteneur">Conteneur</th>
-          <th data-i18n="th_co2_evite">CO₂ évité</th>
           <th data-i18n="th_statut">Statut</th>
         </tr>
       </thead>
@@ -113,64 +106,128 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <script src="js/layout.js"></script>
 <script>
-const MOCK_RECUPS = [
-  { date:'2026-04-18', materiau:'Palettes bois',        categorie:'Bois',     qte:'4 unités', conteneur:'Paris 11e', co2:'12 kg', statut:'Valorisé' },
-  { date:'2026-04-15', materiau:'Chutes tissu lin',     categorie:'Textile',  qte:'3 kg',     conteneur:'Montreuil', co2:'6 kg',  statut:'En projet' },
-  { date:'2026-04-12', materiau:'Profilés aluminium',   categorie:'Métal',    qte:'8 m',      conteneur:'Paris 20e', co2:'18 kg', statut:'Valorisé' },
-  { date:'2026-04-10', materiau:'Bouteilles verre',     categorie:'Verre',    qte:'2 kg',     conteneur:'Vincennes', co2:'4 kg',  statut:'Valorisé' },
-  { date:'2026-04-06', materiau:'Vêtements adulte',     categorie:'Textile',  qte:'5 kg',     conteneur:'Paris 11e', co2:'10 kg', statut:'En projet' },
-  { date:'2026-04-01', materiau:'Planches pin',         categorie:'Bois',     qte:'6 m²',     conteneur:'Montreuil', co2:'15 kg', statut:'Valorisé' },
-];
-
-function statutBadge(s) {
-  return s === 'Valorisé'
-    ? `<span class="badge badge-success">${s}</span>`
-    : `<span class="badge badge-warning">${s}</span>`;
-}
-
 document.addEventListener('DOMContentLoaded', async () => {
   await initLayout('stats');
-
-  // Tableau
-  document.getElementById('stats-tbody').innerHTML = MOCK_RECUPS.map(r => `
-    <tr>
-      <td>${new Date(r.date).toLocaleDateString('fr-FR',{day:'numeric',month:'short',year:'numeric'})}</td>
-      <td style="font-weight:600">${r.materiau}</td>
-      <td><span class="badge" style="background:var(--green-50);color:var(--green-700)">${r.categorie}</span></td>
-      <td>${r.qte}</td>
-      <td><i class="fa-solid fa-location-dot" style="color:var(--green-500);margin-right:4px"></i>${r.conteneur}</td>
-      <td style="color:var(--green-700);font-weight:600">${r.co2}</td>
-      <td>${statutBadge(r.statut)}</td>
-    </tr>`).join('');
-
-  // Chart barres
-  new Chart(document.getElementById('chart-recup'), {
-    type: 'bar',
-    data: {
-      labels: ['Nov','Déc','Jan','Fév','Mar','Avr'],
-      datasets: [{
-        label: 'Récupérations',
-        data: [4, 7, 5, 9, 11, 11],
-        backgroundColor: 'rgba(45,102,79,.75)',
-        borderRadius: 6,
-      }]
-    },
-    options: { responsive: true, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } } }
-  });
-
-  // Chart camembert
-  new Chart(document.getElementById('chart-cats'), {
-    type: 'doughnut',
-    data: {
-      labels: ['Bois','Textile','Métal','Verre','Autre'],
-      datasets: [{ data: [35, 25, 20, 12, 8], backgroundColor: ['#2D664F','#6BA870','#B2DEC3','#5C7C6E','#A3BFB3'], borderWidth: 0 }]
-    },
-    options: { responsive: true, plugins: { legend: { position: 'bottom' } } }
-  });
+  await chargerStats();
 });
 
+async function chargerStats() {
+  let depots  = [];
+  let projets = [];
+  let score   = { kg_recycles: 0 };
+
+  const [resDepots, resProjets, resScore] = await Promise.all([
+    apiFetch('/depots'),
+    apiFetch('/projets/mes-projets'),
+    apiFetch('/score'),
+  ]);
+
+  if (resDepots?.ok)  { const d = await resDepots.json();  if (Array.isArray(d)) depots  = d; }
+  if (resProjets?.ok) { const d = await resProjets.json(); if (Array.isArray(d)) projets = d; }
+  if (resScore?.ok)   { const d = await resScore.json();   score = d; }
+
+  const recuperes  = depots.filter(d => d.statut === 'recupere');
+  const termines   = projets.filter(p => p.statut === 'termine');
+  const kgRecycles = Math.round(score.kg_recycles ?? 0);
+  const co2        = Math.round(kgRecycles * 0.9);
+
+  document.getElementById('stat-recup').textContent   = recuperes.length;
+  document.getElementById('stat-kg').textContent      = kgRecycles + ' kg';
+  document.getElementById('stat-co2').textContent     = co2 + ' kg';
+  document.getElementById('stat-projets').textContent = termines.length;
+
+  // Graphe barres : dépôts par mois (6 derniers mois)
+  const now = new Date();
+  const locale = _lang === 'en' ? 'en-GB' : 'fr-FR';
+  const moisLabels = [];
+  const moisData   = [];
+  for (let i = 5; i >= 0; i--) {
+    const d  = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    const ym = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+    moisLabels.push(d.toLocaleDateString(locale, { month: 'short' }));
+    moisData.push(depots.filter(dep => (dep.date_demande || '').startsWith(ym)).length);
+  }
+
+  if (window.Chart) {
+    new Chart(document.getElementById('chart-recup'), {
+      type: 'bar',
+      data: {
+        labels: moisLabels,
+        datasets: [{
+          label: 'Dépôts',
+          data: moisData,
+          backgroundColor: 'rgba(45,102,79,.75)',
+          borderRadius: 6,
+        }],
+      },
+      options: {
+        responsive: true,
+        plugins: { legend: { display: false } },
+        scales: { y: { beginAtZero: true, ticks: { precision: 0 } } },
+      },
+    });
+
+    // Graphe doughnut : répartition par statut
+    const statutCounts = {};
+    depots.forEach(d => { statutCounts[d.statut] = (statutCounts[d.statut] || 0) + 1; });
+    const COLORS = ['#2D664F','#6BA870','#B2DEC3','#c67c28','#c0392b'];
+    const labels = Object.keys(statutCounts);
+    const data   = Object.values(statutCounts);
+
+    if (labels.length) {
+      new Chart(document.getElementById('chart-cats'), {
+        type: 'doughnut',
+        data: {
+          labels,
+          datasets: [{ data, backgroundColor: COLORS.slice(0, labels.length), borderWidth: 0 }],
+        },
+        options: { responsive: true, plugins: { legend: { position: 'bottom' } } },
+      });
+    } else {
+      const canvas = document.getElementById('chart-cats');
+      if (canvas) canvas.parentElement.innerHTML = '<p style="text-align:center;color:var(--text-muted);padding:40px 0">Aucun dépôt enregistré.</p>';
+    }
+  }
+
+  // Tableau des dépôts
+  const tbody = document.getElementById('stats-tbody');
+  if (!tbody) return;
+
+  if (!depots.length) {
+    tbody.innerHTML = `<tr><td colspan="4" style="text-align:center;padding:40px;color:var(--text-muted)">Aucun dépôt enregistré.</td></tr>`;
+    return;
+  }
+
+  const STATUT_BADGE = {
+    recupere:   '<span class="badge badge-success">Récupéré</span>',
+    valide:     '<span class="badge badge-green">Validé</span>',
+    en_attente: '<span class="badge badge-warning">En attente</span>',
+    refuse:     '<span class="badge badge-danger">Refusé</span>',
+  };
+
+  tbody.innerHTML = depots.map(d => {
+    const date = d.date_demande
+      ? new Date(d.date_demande).toLocaleDateString(locale, { day:'numeric', month:'short', year:'numeric' })
+      : '—';
+    return `
+      <tr>
+        <td style="color:var(--text-muted);font-size:12px">${date}</td>
+        <td style="font-weight:600">Objet #${d.id_objet}</td>
+        <td>
+          <i class="fa-solid fa-location-dot" style="color:var(--green-500);margin-right:4px" aria-hidden="true"></i>
+          Conteneur #${d.id_conteneur}
+        </td>
+        <td>${STATUT_BADGE[d.statut] || `<span class="badge badge-gray">${esc(d.statut)}</span>`}</td>
+      </tr>`;
+  }).join('');
+}
+
+function esc(str) {
+  return String(str||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
 function exportRapport() {
-  alert('Export PDF, fonctionnalité disponible avec l\'API.');
+  showToast('Export PDF disponible avec l\'abonnement Premium', 'info');
 }
 </script>
 

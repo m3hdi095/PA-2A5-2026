@@ -580,11 +580,32 @@ document.addEventListener('DOMContentLoaded', async () => {
     document.getElementById('tourneeModal').classList.remove('open');
   });
 
-  document.getElementById('tourneeForm').addEventListener('submit', e => {
+  document.getElementById('tourneeForm').addEventListener('submit', async e => {
     e.preventDefault();
-    // TODO: appel POST /api/admin/tournees quand l'endpoint sera dispo
-    showToast(t('cont_toast_tournee'), 'success');
-    document.getElementById('tourneeModal').classList.remove('open');
+    const date = document.getElementById('tourneeDate').value;
+    const note = document.getElementById('tourneeNote')?.value?.trim() || '';
+    const sel  = document.getElementById('tourneeConteneurs');
+    const conteneurs = sel ? Array.from(sel.selectedOptions).map(o => o.value) : [];
+    const btn = e.target.querySelector('[type="submit"]');
+    if (btn) btn.disabled = true;
+    try {
+      const res = await apiFetch('/admin/tournees', {
+        method: 'POST',
+        body:   JSON.stringify({ date_tournee: date, note, conteneurs }),
+      });
+      if (res?.ok) {
+        showToast(t('cont_toast_tournee') || 'Tournée planifiée avec succès', 'success');
+        document.getElementById('tourneeModal').classList.remove('open');
+        document.getElementById('tourneeForm').reset();
+        return;
+      }
+      const err = res ? await res.json().catch(() => ({})) : {};
+      showToast(err.error || 'Erreur lors de la planification', 'error');
+    } catch {
+      showToast('Service indisponible. Réessayez.', 'error');
+    } finally {
+      if (btn) btn.disabled = false;
+    }
   });
 
   const openAdd  = () => document.getElementById('addConteneurModal').classList.add('open');

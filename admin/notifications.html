@@ -226,6 +226,7 @@
       <div class="card-body" id="historiqueNotifs"></div>
     </div>
 
+
   </div>
 
   <!-- Colonne droite : prévisualisation -->
@@ -409,7 +410,7 @@ document.getElementById('formNotif').addEventListener('submit', async e => {
 document.addEventListener('DOMContentLoaded', async () => {
   await initLayout('notifications');
 
-  // Compter les utilisateurs par segment via endpoint dédié (tous les users, pas juste page 1)
+  // Compter les utilisateurs par segment
   try {
     const res = await apiFetch('/admin/users/counts');
     if (res?.ok) {
@@ -422,9 +423,26 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
   } catch {}
 
-  renderHistorique(historiqueData);
+  await chargerHistorique();
   updatePreview();
 });
+
+async function chargerHistorique() {
+  try {
+    const res = await apiFetch('/admin/notifications/history');
+    if (res?.ok) {
+      const data = await res.json();
+      if (Array.isArray(data) && data.length) {
+        const locale = _lang === 'en' ? 'en-GB' : 'fr-FR';
+        historiqueData = data.map(n => ({
+          ...n,
+          date: n.date ? new Date(n.date).toLocaleDateString(locale, { day: '2-digit', month: 'short', year: 'numeric' }) : '—',
+        }));
+      }
+    }
+  } catch {}
+  renderHistorique(historiqueData);
+}
 </script>
 </body>
 </html>

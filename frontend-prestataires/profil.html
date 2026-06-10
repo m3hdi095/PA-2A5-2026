@@ -43,15 +43,15 @@
       </div>
       <div style="display:flex;justify-content:space-between;text-align:center">
         <div>
-          <div style="font-family:Poppins,sans-serif;font-size:18px;font-weight:800;color:var(--green-700)" id="profil-stat-recup">7</div>
+          <div style="font-family:Poppins,sans-serif;font-size:18px;font-weight:800;color:var(--green-700)" id="profil-stat-recup">—</div>
           <div style="font-size:11px;color:var(--text-muted);font-weight:600" data-i18n="profil_stat_recup">Récupérations</div>
         </div>
         <div>
-          <div style="font-family:Poppins,sans-serif;font-size:18px;font-weight:800;color:var(--green-700)" id="profil-stat-projets">3</div>
+          <div style="font-family:Poppins,sans-serif;font-size:18px;font-weight:800;color:var(--green-700)" id="profil-stat-projets">—</div>
           <div style="font-size:11px;color:var(--text-muted);font-weight:600" data-i18n="profil_stat_projets_label">Projets</div>
         </div>
         <div>
-          <div style="font-family:Poppins,sans-serif;font-size:18px;font-weight:800;color:var(--green-700)" id="profil-stat-impact">124</div>
+          <div style="font-family:Poppins,sans-serif;font-size:18px;font-weight:800;color:var(--green-700)" id="profil-stat-impact">—</div>
           <div style="font-size:11px;color:var(--text-muted);font-weight:600" data-i18n="profil_stat_co2">Kg CO₂</div>
         </div>
       </div>
@@ -196,8 +196,31 @@ document.addEventListener('DOMContentLoaded', async () => {
   if (!utilisateur) return;
 
   remplirProfil(utilisateur);
+  chargerStats();
   bindForms();
 });
+
+async function chargerStats() {
+  document.getElementById('profil-stat-recup').textContent    = 0;
+  document.getElementById('profil-stat-projets').textContent  = 0;
+  document.getElementById('profil-stat-impact').textContent   = 0;
+
+  apiFetch('/depots').then(async r => {
+    if (!r?.ok) return;
+    const d = await r.json();
+    if (Array.isArray(d)) document.getElementById('profil-stat-recup').textContent = d.filter(x => x.statut === 'recupere').length;
+  });
+  apiFetch('/projets/mes-projets').then(async r => {
+    if (!r?.ok) return;
+    const p = await r.json();
+    if (Array.isArray(p)) document.getElementById('profil-stat-projets').textContent = p.length;
+  });
+  apiFetch('/score').then(async r => {
+    if (!r?.ok) return;
+    const s = await r.json();
+    document.getElementById('profil-stat-impact').textContent = Math.round(s.kg_recycles ?? 0);
+  });
+}
 
 function remplirProfil(user) {
   const prenom = user.prenom || '';
@@ -243,7 +266,7 @@ function bindForms() {
     user.adresse   = document.getElementById('p-adresse').value.trim();
 
     try {
-      const res = await apiFetch(`/users/${user.id}`, {
+      const res = await apiFetch('/users/me', {
         method: 'PUT',
         body:   JSON.stringify(user),
       });
@@ -252,13 +275,11 @@ function bindForms() {
         showToast('Profil mis à jour', 'success');
         remplirProfil(user);
       } else {
-        throw new Error();
+        const err = res ? await res.json().catch(() => ({})) : {};
+        showToast(err.error || 'Erreur lors de la mise à jour', 'error');
       }
     } catch {
-      // TODO: sync API
-      localStorage.setItem('uc_pro_user', JSON.stringify(user));
-      showToast('Profil mis à jour (local)', 'success');
-      remplirProfil(user);
+      showToast('Service indisponible. Réessayez.', 'error');
     }
   });
 
@@ -270,12 +291,16 @@ function bindForms() {
     user.description = document.getElementById('p-description').value.trim();
 
     try {
-      const res = await apiFetch(`/users/${user.id}`, { method: 'PUT', body: JSON.stringify(user) });
-      if (res?.ok) localStorage.setItem('uc_pro_user', JSON.stringify(user));
-      showToast('Informations entreprise mises à jour', 'success');
+      const res = await apiFetch('/users/me', { method: 'PUT', body: JSON.stringify(user) });
+      if (res?.ok) {
+        localStorage.setItem('uc_pro_user', JSON.stringify(user));
+        showToast('Informations entreprise mises à jour', 'success');
+      } else {
+        const err = res ? await res.json().catch(() => ({})) : {};
+        showToast(err.error || 'Erreur lors de la mise à jour', 'error');
+      }
     } catch {
-      localStorage.setItem('uc_pro_user', JSON.stringify(user));
-      showToast('Informations mises à jour (local)', 'success');
+      showToast('Service indisponible. Réessayez.', 'error');
     }
   });
 
@@ -295,11 +320,11 @@ function bindForms() {
         showToast('Mot de passe modifié avec succès', 'success');
         e.target.reset();
       } else {
-        throw new Error();
+        const err = res ? await res.json().catch(() => ({})) : {};
+        showToast(err.error || 'Mot de passe actuel incorrect', 'error');
       }
     } catch {
-      showToast('Mot de passe modifié (simulation)', 'success');
-      e.target.reset();
+      showToast('Service indisponible. Réessayez.', 'error');
     }
   });
 }

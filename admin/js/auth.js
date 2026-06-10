@@ -41,13 +41,7 @@ document.getElementById('loginForm')?.addEventListener('submit', async (e) => {
     window.location.href = 'dashboard.html';
 
   } catch {
-    // API hors ligne, mode démo
-    setToken('demo-admin-token');
-    localStorage.setItem('uc_admin_user', JSON.stringify({
-      id: 1, prenom: 'Admin', nom: 'Demo', email, role: 'admin',
-    }));
-    window.location.href = 'dashboard.html';
-    return;
+    errEl.textContent = t('auth_error_unavailable') || 'Service indisponible. Réessayez plus tard.';
   } finally {
     btnSubmit.disabled    = false;
     btnSubmit.innerHTML   = `<i class="fa-solid fa-right-to-bracket" aria-hidden="true"></i> ${t('auth_btn_login')}`;

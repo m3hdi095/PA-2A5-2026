@@ -224,17 +224,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         showToast(err.error || t('users_toast_save_error'), 'error');
       }
     } catch {
-      // Fallback local si API hors ligne
-      if (id) {
-        const idx = users.findIndex(u => u.id == id);
-        if (idx !== -1) users[idx] = { ...users[idx], ...data };
-      } else {
-        users.push({ id: Date.now(), ...data, score: 0, date: new Date().toISOString().slice(0,10) });
-      }
-      filtered = [...users];
-      showToast(id ? t('toast_local_updated') : t('toast_local_created'), 'warning');
-      closeModal();
-      renderTable();
+      showToast(t('users_toast_save_error') || 'Erreur lors de l\'enregistrement', 'error');
     } finally {
       btn.disabled = false;
       btn.innerHTML = `<i class="fa-solid fa-check" aria-hidden="true"></i> ${t('btn_save')}`;
@@ -285,10 +275,7 @@ window.toggleStatus = async id => {
       renderTable();
     }
   } catch {
-    u.statut = nouvelEtat ? 'actif' : 'inactif';
-    filtered  = filtered.map(f => f.id === id ? u : f);
-    showToast(`${u.statut === 'actif' ? t('users_toast_reactivated') : t('users_toast_suspended')} ${t('toast_mode_local')}`, 'warning');
-    renderTable();
+    showToast(t('toast_error') || 'Erreur lors de la mise à jour', 'error');
   }
 };
 

@@ -70,18 +70,41 @@ function updateBadge() {
 
 window.validerSignalement = async (id) => {
   try {
-    await apiFetch(`/forum/signalements/${id}`, { method: 'PUT', body: JSON.stringify({ statut: 'traite' }) });
-  } catch {}
-  signalements = signalements.filter(s => s.id !== id);
-  renderSignalements();
-  showToast(t('sal_toast_moderation_traite'), 'success');
+    const res = await apiFetch(`/forum/signalements/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify({ action: 'supprimer' }),
+    });
+    if (res?.ok) {
+      signalements = signalements.filter(s => s.id !== id);
+      renderSignalements();
+      showToast(t('sal_toast_moderation_traite'), 'success');
+      return;
+    }
+    const err = res ? await res.json().catch(() => ({})) : {};
+    showToast(err.error || t('toast_error'), 'error');
+  } catch {
+    showToast(t('toast_error'), 'error');
+  }
 };
 
-window.supprimerSignalement = (id) => {
+window.supprimerSignalement = async (id) => {
   if (!confirm(t('confirm_action'))) return;
-  signalements = signalements.filter(s => s.id !== id);
-  renderSignalements();
-  showToast(t('sal_toast_message_deleted'), 'warning');
+  try {
+    const res = await apiFetch(`/forum/signalements/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify({ action: 'restaurer' }),
+    });
+    if (res?.ok) {
+      signalements = signalements.filter(s => s.id !== id);
+      renderSignalements();
+      showToast(t('sal_toast_message_deleted'), 'warning');
+      return;
+    }
+    const err = res ? await res.json().catch(() => ({})) : {};
+    showToast(err.error || t('toast_error'), 'error');
+  } catch {
+    showToast(t('toast_error'), 'error');
+  }
 };
 
 function esc(s) { return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }

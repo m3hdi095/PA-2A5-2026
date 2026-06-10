@@ -21,29 +21,26 @@ function afficherDate() {
 }
 
 async function chargerStats(utilisateur) {
-  let nbAnnonces = 0, nbProjets = 0;
+  let nbAnnonces = 0, nbProjets = 0, nbRecups = 0, kgImpact = 0;
+  let depots = [];
 
-  try {
-    const res = await apiFetch('/annonces?statut=validee');
-    if (res?.ok) {
-      const data = await res.json();
-      nbAnnonces = Array.isArray(data) ? data.length : 0;
-    }
-  } catch {}
+  const [resAnnonces, resProjets, resDepots, resScore] = await Promise.all([
+    apiFetch('/annonces?statut=validee'),
+    apiFetch('/projets/mes-projets'),
+    apiFetch('/depots'),
+    apiFetch('/score'),
+  ]);
 
-  try {
-    const res = await apiFetch('/projets/mes-projets');
-    if (res?.ok) {
-      const data = await res.json();
-      nbProjets = Array.isArray(data) ? data.filter(p => p.statut === 'en_cours').length : 0;
-    }
-  } catch {}
+  if (resAnnonces?.ok) { const d = await resAnnonces.json(); nbAnnonces = Array.isArray(d) ? d.length : 0; }
+  if (resProjets?.ok)  { const d = await resProjets.json();  nbProjets  = Array.isArray(d) ? d.filter(p => p.statut === 'en_cours').length : 0; }
+  if (resDepots?.ok)   { const d = await resDepots.json();   if (Array.isArray(d)) { depots = d; nbRecups = d.filter(x => x.statut === 'recupere').length; } }
+  if (resScore?.ok)    { const d = await resScore.json();    kgImpact   = Math.round(d.kg_recycles ?? 0); }
 
   setStatValue('stat-annonces',      nbAnnonces);
-  setStatValue('stat-recuperations', 0);
+  setStatValue('stat-recuperations', nbRecups);
   setStatValue('stat-projets',       nbProjets);
-  setStatValue('stat-impact',        0);
-  initGrapheActivite({ recuperations_mois: 0 });
+  setStatValue('stat-impact',        kgImpact);
+  initGrapheActivite(depots);
 }
 
 function setStatValue(id, valeur) {
@@ -51,20 +48,20 @@ function setStatValue(id, valeur) {
   if (el) el.textContent = valeur ?? '—';
 }
 
-function initGrapheActivite(stats) {
+function initGrapheActivite(depots) {
   const ctx = document.getElementById('chart-activite');
   if (!ctx || !window.Chart) return;
 
-  const mois   = ['Nov', 'Déc', 'Jan', 'Fév', 'Mar', 'Avr'];
-  const base   = stats.recuperations_mois || 7;
-  const donnees = [
-    Math.max(1, base - 4),
-    Math.max(1, base - 2),
-    Math.max(1, base + 1),
-    Math.max(1, base + 3),
-    Math.max(1, base + 5),
-    base,
-  ];
+  const now = new Date();
+  const locale = _lang === 'en' ? 'en-GB' : 'fr-FR';
+  const mois   = [];
+  const donnees = [];
+  for (let i = 5; i >= 0; i--) {
+    const d  = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    const ym = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+    mois.push(d.toLocaleDateString(locale, { month: 'short' }));
+    donnees.push(depots.filter(dep => (dep.date_demande || '').startsWith(ym)).length);
+  }
 
   new Chart(ctx, {
     type: 'bar',
@@ -133,7 +130,7 @@ function renderAnnoncesRecentes(container, annonces) {
   container.innerHTML = annonces.map((a, i) => {
     const icone = CAT_ICONES[a.categorie] || 'fa-box';
     const prixLabel = a.prix === 0 ? 'Gratuit' : `${a.prix} €`;
-    const badge = a.type === 'don'
+    const badge = a.type_annonce === 'don'
       ? '<span class="badge badge-don">Don</span>'
       : '<span class="badge badge-vente">Vente</span>';
     return `
@@ -210,10 +207,10 @@ async function chargerAlertes() {
 
   container.innerHTML = notifs.map(n => `
     <div class="alerte-item">
-      <div class="alerte-dot ${n.statut === 'non_lu' ? 'priority' : ''}"></div>
+      <div class="alerte-dot ${!n.lu ? 'priority' : ''}"></div>
       <div class="alerte-content">
-        <div class="alerte-titre">${escPro(n.titre || n.type || '')}</div>
-        <div class="alerte-desc">${escPro(n.message || '')}</div>
+        <div class="alerte-titre">${escPro(n.titre || '')}</div>
+        <div class="alerte-desc">${escPro(n.contenu || '')}</div>
       </div>
     </div>
   `).join('');

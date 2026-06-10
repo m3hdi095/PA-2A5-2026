@@ -213,11 +213,69 @@
 
 <script src="js/layout.js"></script>
 <script>
+let planActuel = 'freemium';
+
 document.addEventListener('DOMContentLoaded', async () => {
   await initLayout('abonnement');
-  // Charger les factures depuis l'API si disponible
-  chargerFactures();
+  await chargerPlan();
+  await chargerFactures();
+  document.getElementById('modal-upgrade')?.addEventListener('click', e => {
+    if (e.target === document.getElementById('modal-upgrade')) fermerUpgrade();
+  });
 });
+
+async function chargerPlan() {
+  try {
+    const res = await apiFetch('/abonnements/me');
+    if (!res?.ok) return;
+    const a = await res.json();
+    planActuel = a.type_abonnement || 'freemium';
+    const isPremium = planActuel === 'mensuel';
+
+    document.getElementById('plan-titre-current').textContent = isPremium ? 'Plan Premium' : 'Plan Gratuit';
+    document.getElementById('plan-desc-current').textContent  = isPremium
+      ? 'Réservations illimitées · Alertes prioritaires · Stats avancées'
+      : '3 réservations/mois · 10 contacts/jour · Stats basiques';
+
+    if (isPremium && a.date_fin) {
+      const locale = _lang === 'en' ? 'en-GB' : 'fr-FR';
+      const dateAff = new Date(a.date_fin).toLocaleDateString(locale, { day:'numeric', month:'long', year:'numeric' });
+      document.getElementById('plan-renewal-date').textContent = 'Renouvellement le ' + dateAff;
+      document.querySelector('[id="plan-renewal-date"]').previousElementSibling.textContent = (a.prix_mensuel || 15).toFixed(2).replace('.',',') + ' €/mois';
+    }
+
+    // Afficher/masquer les boutons selon le plan
+    const btnUpgrade = document.querySelector('.btn-premium[onclick="lancerUpgrade()"]');
+    if (isPremium && btnUpgrade) {
+      btnUpgrade.outerHTML = `<button class="btn btn-outline btn-lg" onclick="confirmerResilier()">
+        <i class="fa-solid fa-circle-xmark" aria-hidden="true"></i>
+        <span>Résilier l'abonnement</span>
+      </button>`;
+    }
+
+    // Mettre à jour le tableau comparatif
+    const cards = document.querySelectorAll('.plan-card');
+    cards.forEach(card => {
+      const titre = card.querySelector('.plan-titre')?.textContent?.trim();
+      const estActif = (isPremium && titre === 'Premium') || (!isPremium && titre === 'Gratuit');
+      card.classList.toggle('plan-actif', estActif);
+      const badge = card.querySelector('.plan-badge-actif');
+      if (badge) badge.style.display = estActif ? '' : 'none';
+      const btnCard = card.querySelector('button');
+      if (btnCard && titre === 'Gratuit' && isPremium) {
+        btnCard.disabled = false;
+        btnCard.style.opacity = '0.5';
+        btnCard.style.cursor = 'default';
+        btnCard.textContent = 'Plan précédent';
+      }
+      if (btnCard && titre === 'Premium' && isPremium) {
+        btnCard.disabled = true;
+        btnCard.style.opacity = '0.5';
+        btnCard.textContent = 'Plan actuel';
+      }
+    });
+  } catch {}
+}
 
 async function chargerFactures() {
   let factures = [];
@@ -232,45 +290,64 @@ async function chargerFactures() {
     tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:20px;color:var(--text-muted)">Aucune facture disponible.</td></tr>';
     return;
   }
-
   const STAT = { 'payée':'badge-success', 'en_attente':'badge-warning', 'impayée':'badge-red' };
-  tbody.innerHTML = factures.map(f => `
+  const locale = _lang === 'en' ? 'en-GB' : 'fr-FR';
+  tbody.innerHTML = factures.map((f, i) => `
     <tr>
-      <td style="font-family:Poppins,sans-serif;font-weight:600;font-size:13px">${f.num}</td>
-      <td>${new Date(f.date).toLocaleDateString('fr-FR',{day:'numeric',month:'long',year:'numeric'})}</td>
-      <td><span class="badge" style="background:var(--green-50);color:var(--green-700)">${f.plan||'Premium'}</span></td>
-      <td style="font-weight:700;color:var(--green-700)">${(+f.ttc).toFixed(2).replace('.',',')} €</td>
-      <td><span class="badge ${STAT[f.statut]||'badge-gray'}">${f.statut}</span></td>
+      <td style="font-family:Poppins,sans-serif;font-weight:600;font-size:13px">F-${String(f.id||i+1).padStart(4,'0')}</td>
+      <td>${f.date_paiement ? new Date(f.date_paiement).toLocaleDateString(locale,{day:'numeric',month:'long',year:'numeric'}) : '—'}</td>
+      <td><span class="badge" style="background:var(--green-50);color:var(--green-700)">Premium</span></td>
+      <td style="font-weight:700;color:var(--green-700)">${(+f.montant||15).toFixed(2).replace('.',',')} €</td>
+      <td><span class="badge ${STAT[f.statut]||'badge-success'}">${f.statut||'payée'}</span></td>
       <td style="text-align:right">
-        <button class="btn btn-ghost btn-sm" onclick="showToast('PDF généré','success')">
+        <button class="btn btn-ghost btn-sm" onclick="showToast('Téléchargement PDF non disponible en sandbox','info')">
           <i class="fa-solid fa-download"></i>
         </button>
       </td>
     </tr>`).join('');
 }
 
-window.lancerUpgrade = () => {
-  document.getElementById('modal-upgrade').classList.add('open');
+window.lancerUpgrade = () => document.getElementById('modal-upgrade').classList.add('open');
+window.fermerUpgrade = () => document.getElementById('modal-upgrade').classList.remove('open');
+
+window.confirmerStripe = async () => {
+  const btn = document.querySelector('#modal-upgrade .btn-premium');
+  if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Activation...'; }
+  try {
+    const res = await apiFetch('/abonnements/upgrade', { method: 'POST' });
+    if (res?.ok) {
+      fermerUpgrade();
+      showToast('Abonnement Premium activé !', 'success');
+      await chargerPlan();
+      await chargerFactures();
+      return;
+    }
+    const err = res ? await res.json().catch(() => ({})) : {};
+    showToast(err.error || 'Erreur lors de l\'activation', 'error');
+  } catch {
+    showToast('Service indisponible. Réessayez.', 'error');
+  } finally {
+    if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fa-brands fa-stripe-s"></i> Payer avec Stripe : 15 €/mois'; }
+  }
 };
 
-window.fermerUpgrade = () => {
-  document.getElementById('modal-upgrade').classList.remove('open');
+window.confirmerResilier = async () => {
+  if (!confirm('Résilier votre abonnement Premium ? Il restera actif jusqu\'à la fin du mois.')) return;
+  try {
+    const res = await apiFetch('/abonnements/resilier', { method: 'POST' });
+    if (res?.ok) {
+      showToast('Résiliation programmée en fin de mois.', 'success');
+      await chargerPlan();
+      return;
+    }
+    const err = res ? await res.json().catch(() => ({})) : {};
+    showToast(err.error || 'Erreur lors de la résiliation', 'error');
+  } catch {
+    showToast('Service indisponible. Réessayez.', 'error');
+  }
 };
 
-window.confirmerStripe = () => {
-  fermerUpgrade();
-  showToast('Redirection vers Stripe Checkout (mode sandbox)...', 'info');
-  // TODO: intégrer Stripe.js, stripe.redirectToCheckout({ sessionId })
-  setTimeout(() => showToast('Fonctionnalité Stripe disponible en production', 'warning'), 2000);
-};
-
-window.exporterFactures = () => {
-  showToast('Aucune facture à exporter', 'info');
-};
-
-document.getElementById('modal-upgrade')?.addEventListener('click', e => {
-  if (e.target === document.getElementById('modal-upgrade')) fermerUpgrade();
-});
+window.exporterFactures = () => showToast('Export disponible avec l\'abonnement Premium activé', 'info');
 </script>
 
 </body>

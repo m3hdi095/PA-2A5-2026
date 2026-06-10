@@ -187,23 +187,13 @@ document.addEventListener('DOMContentLoaded', async () => {
         showToast(id ? t('cat_toast_updated') : t('cat_toast_created'), 'success');
         closeModal();
         fetchCategories();
-        return;
+      } else {
+        const err = res ? await res.json().catch(() => ({})) : {};
+        showToast(err.error || t('cat_toast_save_error') || 'Erreur lors de l\'enregistrement', 'error');
       }
-    } catch { /* fallback local */ }
-
-    // Fallback local si API hors ligne
-    if (id) {
-      const index = categories.findIndex(c => c.id == id);
-      if (index !== -1) categories[index] = { ...categories[index], ...data };
-    } else {
-      const newId = Math.max(0, ...categories.map(c => c.id)) + 1;
-      categories.push({ id: newId, ...data, nb_objets: 0 });
+    } catch {
+      showToast(t('cat_toast_save_error') || 'Erreur lors de l\'enregistrement', 'error');
     }
-    filtered = [...categories];
-    renderTable();
-    renderTree();
-    showToast(id ? t('toast_local_updated') : t('toast_local_created'), 'warning');
-    closeModal();
   });
 });
 
@@ -229,11 +219,9 @@ window.deleteCat = async id => {
       fetchCategories();
       return;
     }
-  } catch { /* fallback local */ }
-  // Fallback local
-  categories = categories.filter(c => c.id !== id && c.parent_id !== id);
-  filtered   = [...categories];
-  renderTable();
-  renderTree();
-  showToast(t('cat_toast_local_deleted'), 'warning');
+    const err = res ? await res.json().catch(() => ({})) : {};
+    showToast(err.error || t('toast_error') || 'Erreur lors de la suppression', 'error');
+  } catch {
+    showToast(t('toast_error') || 'Erreur lors de la suppression', 'error');
+  }
 };

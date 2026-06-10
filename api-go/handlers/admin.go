@@ -35,6 +35,34 @@ func CountUsersByRole(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(counts)
 }
 
+func GetNotificationHistory(w http.ResponseWriter, r *http.Request) {
+	repo := repositories.NotificationRepository{}
+	history, err := repo.GetBroadcastHistory(50)
+	if err != nil {
+		http.Error(w, `{"error":"Erreur interne"}`, http.StatusInternalServerError)
+		return
+	}
+	type Item struct {
+		Titre   string `json:"titre"`
+		Message string `json:"message"`
+		Segment string `json:"segment"`
+		Envoyes int    `json:"envoyes"`
+		Date    string `json:"date"`
+	}
+	items := make([]Item, 0, len(history))
+	for _, h := range history {
+		items = append(items, Item{
+			Titre:   h.Titre,
+			Message: h.Contenu,
+			Segment: "tous",
+			Envoyes: h.NbEnvoyes,
+			Date:    h.DateEnvoi.UTC().Format("2006-01-02T15:04:05Z"),
+		})
+	}
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(items)
+}
+
 func ListUsers(w http.ResponseWriter, r *http.Request) {
 	page, _ := strconv.Atoi(r.URL.Query().Get("page"))
 	if page < 1 {

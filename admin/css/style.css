@@ -298,3 +298,58 @@
   .topbar-search { display: none; }
   .page-title-row { flex-direction: column; align-items: flex-start; }
 }
+
+/* Cloche notifications (même design que les espaces pro/particulier/salarié) */
+.notif-bell-wrap { position: relative; }
+.notif-bell-btn {
+  position: relative; background: none; border: none; cursor: pointer;
+  width: 36px; height: 36px; border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  color: var(--neutral-500); font-size: 16px;
+  transition: background .15s, color .15s;
+}
+.notif-bell-btn:hover { background: var(--uc-teal-pale); color: var(--uc-forest); }
+.notif-badge {
+  position: absolute; top: 4px; right: 4px;
+  min-width: 16px; height: 16px;
+  background: #ef4444; color: #fff;
+  border-radius: 999px; font-size: 10px; font-weight: 700;
+  display: flex; align-items: center; justify-content: center;
+  padding: 0 3px; pointer-events: none;
+}
+.notif-dropdown {
+  display: none; position: absolute; top: calc(100% + 8px); right: 0;
+  width: 320px; background: #fff;
+  border: 1px solid var(--neutral-200); border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(0,0,0,.12); z-index: 9999; overflow: hidden;
+}
+.notif-dropdown.open { display: block; }
+.notif-dropdown-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 12px 16px; border-bottom: 1px solid var(--neutral-100);
+  font-weight: 700; font-size: 13px;
+}
+.notif-mark-all-btn {
+  background: none; border: none; cursor: pointer;
+  font-size: 11px; color: var(--uc-teal); font-weight: 600;
+}
+.notif-mark-all-btn:hover { text-decoration: underline; }
+.notif-item {
+  display: flex; gap: 10px; padding: 10px 16px;
+  border-bottom: 1px solid var(--neutral-100); transition: background .1s; cursor: pointer;
+}
+.notif-item:last-child { border-bottom: none; }
+.notif-item:hover { background: var(--neutral-50); }
+.notif-unread { background: var(--uc-teal-pale); }
+.notif-unread:hover { background: #d1f5ee; }
+.notif-item-icon {
+  width: 28px; height: 28px; border-radius: 50%;
+  background: var(--uc-teal-pale); color: var(--uc-forest);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 12px; flex-shrink: 0; margin-top: 2px;
+}
+.notif-item-body { flex: 1; min-width: 0; }
+.notif-item-titre { font-size: 13px; font-weight: 600; color: var(--neutral-900); }
+.notif-item-msg { font-size: 12px; color: var(--neutral-500); margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.notif-item-date { font-size: 11px; color: var(--neutral-400); margin-top: 3px; }
+.notif-empty { text-align: center; padding: 20px; color: var(--neutral-400); font-size: 13px; margin: 0; }

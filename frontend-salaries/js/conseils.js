@@ -85,18 +85,42 @@ function fermerModalConseil() {
 }
 
 window.ouvrirModalConseil = ouvrirModalConseil;
-window.toggleStatut = (id) => {
+window.toggleStatut = async (id) => {
   const c = conseils.find(x => x.id === id);
   if (!c) return;
-  c.statut = c.statut === 'publie' ? 'brouillon' : 'publie';
-  renderTable();
-  showToast(c.statut === 'publie' ? t('sal_toast_conseil_publie') : t('sal_toast_conseil_depublie'), 'success');
+  const nouveauStatut = c.statut === 'publie' ? 'brouillon' : 'publie';
+  try {
+    const res = await apiFetch(`/conseils/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify({ titre: c.titre, contenu: c.contenu || '', categorie: c.categorie, statut: nouveauStatut }),
+    });
+    if (res?.ok) {
+      c.statut = nouveauStatut;
+      renderTable();
+      showToast(nouveauStatut === 'publie' ? t('sal_toast_conseil_publie') : t('sal_toast_conseil_depublie'), 'success');
+      return;
+    }
+    const err = res ? await res.json().catch(() => ({})) : {};
+    showToast(err.error || t('toast_error'), 'error');
+  } catch {
+    showToast(t('toast_error'), 'error');
+  }
 };
-window.supprimerConseil = (id) => {
+window.supprimerConseil = async (id) => {
   if (!confirm(t('confirm_action'))) return;
-  conseils = conseils.filter(c => c.id !== id);
-  renderTable();
-  showToast(t('sal_toast_conseil_deleted'), 'warning');
+  try {
+    const res = await apiFetch(`/conseils/${id}`, { method: 'DELETE' });
+    if (res?.ok) {
+      conseils = conseils.filter(c => c.id !== id);
+      renderTable();
+      showToast(t('sal_toast_conseil_deleted'), 'warning');
+      return;
+    }
+    const err = res ? await res.json().catch(() => ({})) : {};
+    showToast(err.error || t('toast_error'), 'error');
+  } catch {
+    showToast(t('toast_error'), 'error');
+  }
 };
 
 function esc(s) { return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
@@ -129,16 +153,10 @@ document.addEventListener('DOMContentLoaded', async () => {
         body:   JSON.stringify(data),
       });
       if (res?.ok) { showToast(id ? 'Conseil mis à jour' : 'Conseil créé', 'success'); fermerModalConseil(); fetchConseils(); return; }
-    } catch {}
-
-    if (id) {
-      const idx = conseils.findIndex(c => c.id == id);
-      if (idx !== -1) conseils[idx] = { ...conseils[idx], ...data };
-    } else {
-      conseils.unshift({ id: Date.now(), likes: 0, date: new Date().toISOString().slice(0,10), ...data });
+      const err = res ? await res.json().catch(() => ({})) : {};
+      showToast(err.error || 'Erreur lors de l\'enregistrement', 'error');
+    } catch {
+      showToast('Service indisponible. Réessayez.', 'error');
     }
-    renderTable();
-    fermerModalConseil();
-    showToast(id ? 'Mis à jour (local)' : 'Conseil créé (local)', 'success');
   });
 });

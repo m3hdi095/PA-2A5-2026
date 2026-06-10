@@ -51,8 +51,8 @@
       <thead>
         <tr>
           <th data-i18n="th_date">Date</th>
-          <th data-i18n="th_materiau">Matériau</th>
-          <th data-i18n="th_localisation">Localisation</th>
+          <th>Titre</th>
+          <th>Message</th>
           <th data-i18n="th_type">Type</th>
           <th data-i18n="th_action">Action</th>
         </tr>
@@ -120,39 +120,39 @@
 
 <script src="js/layout.js"></script>
 <script>
-const MOCK_ALERTES_CONFIG = [
-  { id:1, categorie:'bois',     type:'',      rayon:10, keyword:'palette', actif:true,  nb_notifs:5 },
-  { id:2, categorie:'textiles', type:'don',   rayon:5,  keyword:'',        actif:true,  nb_notifs:3 },
-  { id:3, categorie:'metal',    type:'vente', rayon:20, keyword:'cuivre',  actif:false, nb_notifs:0 },
-];
-
-const MOCK_NOTIFS = [
-  { id:1, date:'2026-04-19', materiau:'Chutes tissu lin naturel',  localisation:'Paris 11e',   type:'don',   lu:false },
-  { id:2, date:'2026-04-18', materiau:'Palettes bois EUR (x5)',    localisation:'Montreuil',   type:'vente', lu:false },
-  { id:3, date:'2026-04-17', materiau:'Profilés cuivre (2kg)',     localisation:'Paris 19e',   type:'vente', lu:true  },
-  { id:4, date:'2026-04-16', materiau:'Laine mérinos (3 kg)',      localisation:'Paris 14e',   type:'don',   lu:true  },
-  { id:5, date:'2026-04-15', materiau:'Câble électrique (10m)',    localisation:'Vincennes',   type:'don',   lu:true  },
-];
-
-const CAT_LABELS = {
-  bois:'Bois', textiles:'Textiles', metal:'Métal', plastique:'Plastique', electronique:'Électronique'
-};
+let alertes = [];
 
 document.addEventListener('DOMContentLoaded', async () => {
   await initLayout('alertes');
-  renderAlertesActives();
-  renderNotifs();
+  await chargerAlertes();
+  await chargerNotifications();
 
-  document.getElementById('form-alerte').addEventListener('submit', (e) => {
+  document.getElementById('form-alerte').addEventListener('submit', async (e) => {
     e.preventDefault();
-    const cat     = document.getElementById('alerte-cat').value;
-    const type    = document.getElementById('alerte-type').value;
-    const rayon   = parseInt(document.getElementById('alerte-rayon').value);
-    const keyword = document.getElementById('alerte-keyword').value.trim();
-    MOCK_ALERTES_CONFIG.push({ id: Date.now(), categorie: cat || 'tous', type, rayon, keyword, actif:true, nb_notifs:0 });
-    fermerAlerte();
-    renderAlertesActives();
-    showToast('Alerte créée. Vous serez notifié des nouveaux matériaux', 'success');
+    const btn = e.target.querySelector('[type="submit"]');
+    if (btn) btn.disabled = true;
+    const data = {
+      categorie:    document.getElementById('alerte-cat').value,
+      type_annonce: document.getElementById('alerte-type').value,
+      rayon:        parseInt(document.getElementById('alerte-rayon').value) || 10,
+      mot_cle:      document.getElementById('alerte-keyword').value.trim(),
+    };
+    try {
+      const res = await apiFetch('/alertes', { method: 'POST', body: JSON.stringify(data) });
+      if (res?.ok) {
+        fermerAlerte();
+        showToast('Alerte créée avec succès', 'success');
+        document.getElementById('form-alerte').reset();
+        await chargerAlertes();
+        return;
+      }
+      const err = res ? await res.json().catch(() => ({})) : {};
+      showToast(err.error || 'Erreur lors de la création', 'error');
+    } catch {
+      showToast('Service indisponible. Réessayez.', 'error');
+    } finally {
+      if (btn) btn.disabled = false;
+    }
   });
 
   document.getElementById('modal-alerte').addEventListener('click', e => {
@@ -160,68 +160,89 @@ document.addEventListener('DOMContentLoaded', async () => {
   });
 });
 
+async function chargerAlertes() {
+  try {
+    const res = await apiFetch('/alertes');
+    if (res?.ok) { const d = await res.json(); if (Array.isArray(d)) alertes = d; }
+  } catch {}
+  renderAlertesActives();
+}
+
 function renderAlertesActives() {
   const container = document.getElementById('alertes-actives');
   if (!container) return;
+  const badge = document.getElementById('count-alertes');
 
-  if (!MOCK_ALERTES_CONFIG.length) {
-    container.innerHTML = `<div class="empty-state"><i class="fa-solid fa-bell" aria-hidden="true"></i><p>Aucune alerte configurée</p></div>`;
+  if (!alertes.length) {
+    container.innerHTML = `
+      <div style="padding:32px;text-align:center;color:var(--text-muted)">
+        <i class="fa-solid fa-bell" style="font-size:28px;color:var(--green-200);display:block;margin-bottom:10px" aria-hidden="true"></i>
+        <p style="font-size:13.5px">Aucune alerte configurée. Créez votre première alerte matériau.</p>
+      </div>`;
+    if (badge) badge.textContent = '0 active';
     return;
   }
 
-  container.innerHTML = MOCK_ALERTES_CONFIG.map((a, i) => {
-    const catLabel = CAT_LABELS[a.categorie] || a.categorie || 'Toutes catégories';
-    const typeLabel = a.type === 'don' ? 'Dons' : a.type === 'vente' ? 'Ventes' : 'Tous types';
+  if (badge) badge.textContent = alertes.length + ' active' + (alertes.length > 1 ? 's' : '');
+
+  const CAT_ICON = { textiles:'fa-shirt', bois:'fa-tree', metal:'fa-gear', plastique:'fa-recycle', electronique:'fa-microchip' };
+  container.innerHTML = alertes.map(a => {
+    const icon = CAT_ICON[a.categorie] || 'fa-bell';
+    const label = a.categorie ? (a.categorie.charAt(0).toUpperCase() + a.categorie.slice(1)) : 'Toutes catégories';
+    const typeLabel = a.type_annonce === 'don' ? 'Dons uniquement' : a.type_annonce === 'vente' ? 'Ventes uniquement' : 'Dons & ventes';
+    const detail = [typeLabel, a.rayon + ' km', a.mot_cle ? '"' + esc(a.mot_cle) + '"' : ''].filter(Boolean).join(' · ');
     return `
-      <div class="alerte-item" style="padding:14px 22px">
-        <div class="alerte-dot ${a.actif ? '' : 'priority'}" style="background:${a.actif ? 'var(--green-700)' : 'var(--text-muted)'}"></div>
-        <div class="alerte-content">
-          <div class="alerte-titre">
-            ${catLabel}
-            ${a.keyword ? `· <em style="font-weight:500">"${esc(a.keyword)}"</em>` : ''}
-          </div>
-          <div class="alerte-desc">${typeLabel} · ${a.rayon} km de rayon · <strong>${a.nb_notifs}</strong> notification${a.nb_notifs !== 1 ? 's' : ''}</div>
+      <div style="display:flex;align-items:center;gap:14px;padding:14px 20px;border-bottom:1px solid var(--neutral-100)">
+        <div style="width:36px;height:36px;border-radius:50%;background:var(--uc-teal-pale);color:var(--uc-forest);display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0">
+          <i class="fa-solid ${icon}" aria-hidden="true"></i>
         </div>
-        <div style="display:flex;gap:8px;align-items:center">
-          <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:12px;font-weight:600;color:var(--text-muted)">
-            <input type="checkbox" ${a.actif ? 'checked' : ''} onchange="toggleAlerte(${a.id}, this.checked)"/>
-            Actif
-          </label>
-          <button class="btn btn-ghost btn-sm" onclick="supprimerAlerte(${a.id})" style="color:var(--danger-text)">
-            <i class="fa-solid fa-trash" aria-hidden="true"></i>
-          </button>
+        <div style="flex:1;min-width:0">
+          <div style="font-weight:600;font-size:13px">${label}</div>
+          <div style="font-size:12px;color:var(--text-muted);margin-top:2px">${detail}</div>
         </div>
+        <button class="btn btn-ghost btn-sm" onclick="supprimerAlerte(${a.id})" style="color:var(--danger)" title="Supprimer">
+          <i class="fa-solid fa-trash" aria-hidden="true"></i>
+        </button>
       </div>`;
   }).join('');
-
-  const actives = MOCK_ALERTES_CONFIG.filter(a => a.actif).length;
-  const badge = document.getElementById('count-alertes');
-  if (badge) badge.textContent = `${actives} active${actives !== 1 ? 's' : ''}`;
 }
 
-function renderNotifs() {
+async function chargerNotifications() {
   const tbody = document.getElementById('notifs-body');
   if (!tbody) return;
 
-  tbody.innerHTML = MOCK_NOTIFS.map(n => {
-    const date     = new Date(n.date).toLocaleDateString('fr-FR', { day:'2-digit', month:'short', year:'numeric' });
-    const typeBadge = n.type === 'don'
-      ? '<span class="badge badge-don">Don</span>'
-      : '<span class="badge badge-vente">Vente</span>';
+  let notifs = [];
+  try {
+    const res = await apiFetch('/notifications');
+    if (res?.ok) {
+      const data = await res.json();
+      if (Array.isArray(data)) notifs = data;
+    }
+  } catch {}
+
+  if (!notifs.length) {
+    tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;padding:40px;color:var(--text-muted)">Aucune notification reçue.</td></tr>`;
+    return;
+  }
+
+  const locale = _lang === 'en' ? 'en-GB' : 'fr-FR';
+  tbody.innerHTML = notifs.map(n => {
+    const date = n.date_envoi
+      ? new Date(n.date_envoi).toLocaleDateString(locale, { day:'2-digit', month:'short', year:'numeric' })
+      : '—';
     return `
       <tr style="${!n.lu ? 'background:var(--green-25);' : ''}">
         <td style="color:var(--text-muted);font-size:12px">${date}</td>
         <td class="td-primary" style="${!n.lu ? 'font-weight:700' : ''}">
           ${!n.lu ? '<span style="width:6px;height:6px;background:var(--green-700);border-radius:50%;display:inline-block;margin-right:6px"></span>' : ''}
-          ${esc(n.materiau)}
+          ${esc(n.titre)}
         </td>
-        <td style="font-size:12.5px;color:var(--text-soft)">${esc(n.localisation)}</td>
-        <td>${typeBadge}</td>
+        <td style="font-size:12.5px;color:var(--text-soft)">${esc(n.contenu || '')}</td>
+        <td><span class="badge badge-gray">${esc(n.type || '—')}</span></td>
         <td>
-          <a href="annonces.html" class="btn btn-outline btn-sm">
-            <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
-            Voir
-          </a>
+          ${!n.lu
+            ? `<button class="btn btn-ghost btn-sm" onclick="marquerLue(${n.id})">Marquer lu</button>`
+            : ''}
         </td>
       </tr>`;
   }).join('');
@@ -230,24 +251,31 @@ function renderNotifs() {
 window.ouvrirNouvelleAlerte = () => document.getElementById('modal-alerte').classList.add('open');
 window.fermerAlerte         = () => document.getElementById('modal-alerte').classList.remove('open');
 
-window.toggleAlerte = (id, actif) => {
-  const a = MOCK_ALERTES_CONFIG.find(x => x.id === id);
-  if (a) { a.actif = actif; renderAlertesActives(); }
-};
-
-window.supprimerAlerte = (id) => {
-  const idx = MOCK_ALERTES_CONFIG.findIndex(x => x.id === id);
-  if (idx !== -1) {
-    MOCK_ALERTES_CONFIG.splice(idx, 1);
-    renderAlertesActives();
-    showToast('Alerte supprimée', 'info');
+window.supprimerAlerte = async (id) => {
+  if (!confirm('Supprimer cette alerte ?')) return;
+  try {
+    const res = await apiFetch(`/alertes/${id}`, { method: 'DELETE' });
+    if (res?.ok) {
+      alertes = alertes.filter(a => a.id !== id);
+      renderAlertesActives();
+      showToast('Alerte supprimée', 'success');
+      return;
+    }
+    showToast('Erreur lors de la suppression', 'error');
+  } catch {
+    showToast('Service indisponible', 'error');
   }
 };
 
-window.marquerToutesLues = () => {
-  MOCK_NOTIFS.forEach(n => n.lu = true);
-  renderNotifs();
+window.marquerToutesLues = async () => {
+  await apiFetch('/notifications/read-all', { method: 'PUT' });
+  await chargerNotifications();
   showToast('Toutes les notifications marquées comme lues', 'success');
+};
+
+window.marquerLue = async (id) => {
+  await apiFetch(`/notifications/${id}/read`, { method: 'PUT' });
+  await chargerNotifications();
 };
 
 function esc(str) {
