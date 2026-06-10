@@ -288,7 +288,82 @@ async function initLayout(nomPage) {
   if (tbNom)    tbNom.textContent    = prenom || nomAff.split(' ')[0] || 'Moi';
 
   initNotifBell();
+  chargerBadgeMessages();
+
+  if (utilisateur.tutoriel_vu === false || utilisateur.tutoriel_vu === 0) {
+    lancerTutoriel();
+  }
+
   return utilisateur;
+}
+
+function lancerTutoriel() {
+  const etapes = [
+    {
+      titre: 'Bienvenue sur UpcycleConnect !',
+      texte: 'Votre espace particulier vous permet de déposer des objets, créer des projets upcycling et gagner des points.',
+      icone: 'fa-seedling',
+    },
+    {
+      titre: 'Dépôt en conteneur',
+      texte: 'Déposez vos objets dans un conteneur UpcycleConnect proche de chez vous et gagnez +10 points à chaque dépôt.',
+      icone: 'fa-box-archive',
+    },
+    {
+      titre: 'Projets upcycling',
+      texte: 'Créez et suivez vos projets de transformation. Chaque nouveau projet vous rapporte +15 points.',
+      icone: 'fa-hammer',
+    },
+    {
+      titre: 'Score & communauté',
+      texte: 'Votre score upcycling reflète votre engagement écologique. Publiez vos projets pour inspirer la communauté !',
+      icone: 'fa-star',
+    },
+  ];
+
+  let etape = 0;
+
+  const overlay = document.createElement('div');
+  overlay.id = 'tuto-overlay';
+  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:9999;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(2px)';
+
+  function render() {
+    const e = etapes[etape];
+    overlay.innerHTML = `
+      <div style="background:#fff;border-radius:16px;padding:40px 36px;max-width:420px;width:90%;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.25)">
+        <div style="width:64px;height:64px;border-radius:50%;background:var(--green-100,#d1fae5);display:flex;align-items:center;justify-content:center;margin:0 auto 20px">
+          <i class="fa-solid ${e.icone}" style="font-size:28px;color:var(--green-700,#15803d)"></i>
+        </div>
+        <div style="font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--text-muted,#6b7280);margin-bottom:8px">Étape ${etape + 1} / ${etapes.length}</div>
+        <h2 style="font-family:Poppins,sans-serif;font-size:20px;font-weight:700;margin:0 0 12px">${e.titre}</h2>
+        <p style="font-size:14px;color:var(--text-soft,#4b5563);line-height:1.65;margin:0 0 28px">${e.texte}</p>
+        <div style="display:flex;gap:10px;justify-content:center">
+          ${etape > 0 ? `<button id="tuto-prev" class="btn btn-outline" style="min-width:90px">Précédent</button>` : ''}
+          <button id="tuto-next" class="btn btn-primary" style="min-width:110px">${etape === etapes.length - 1 ? 'Commencer !' : 'Suivant'}</button>
+        </div>
+        <div style="display:flex;justify-content:center;gap:6px;margin-top:20px">
+          ${etapes.map((_, i) => `<span style="width:8px;height:8px;border-radius:50%;background:${i === etape ? 'var(--green-600,#16a34a)' : 'var(--neutral-300,#d1d5db)'}"></span>`).join('')}
+        </div>
+      </div>`;
+
+    overlay.querySelector('#tuto-next')?.addEventListener('click', async () => {
+      if (etape < etapes.length - 1) {
+        etape++;
+        render();
+      } else {
+        overlay.remove();
+        await apiFetch('/users/tutorial', { method: 'POST' });
+      }
+    });
+
+    overlay.querySelector('#tuto-prev')?.addEventListener('click', () => {
+      etape--;
+      render();
+    });
+  }
+
+  render();
+  document.body.appendChild(overlay);
 }
 
 function initNotifBell() {
@@ -365,6 +440,22 @@ function initNotifBell() {
 
   charger();
   setInterval(charger, 30000);
+}
+
+async function chargerBadgeMessages() {
+  try {
+    const res = await apiFetch('/annonces/mes-conversations/count');
+    if (!res?.ok) return;
+    const data = await res.json();
+    const badge = document.getElementById('badge-annonces');
+    if (!badge) return;
+    if (data.count > 0) {
+      badge.textContent = data.count > 9 ? '9+' : data.count;
+      badge.style.display = 'inline-flex';
+    } else {
+      badge.style.display = 'none';
+    }
+  } catch {}
 }
 
 function escNotif(s) {
