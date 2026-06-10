@@ -2,7 +2,6 @@ package handlers
 
 // messages du forum communautaire et moderation
 // la moderation se fait par signalement puis traitement, les roles sont verifies dans chaque handler
-// FIXME: créer une vraie table signalement pour tracer qui a signalé quoi
 
 import (
 	"upcycleconnect/api/middleware"
@@ -67,46 +66,46 @@ func PostForumMessage(w http.ResponseWriter, r *http.Request) {
 }
 
 func SignalerMessage(w http.ResponseWriter, r *http.Request) {
-	role := r.Context().Value(middleware.ContextRole).(string)
-	if role != "salarie" && role != "admin" {
-		http.Error(w, `{"error":"Accès réservé à la modération"}`, http.StatusForbidden)
-		return
-	}
+	userID := r.Context().Value(middleware.ContextUserID).(uint)
 	var req struct {
-		MessageID uint `json:"message_id"`
+		MessageID uint   `json:"message_id"`
+		Raison    string `json:"raison"`
 	}
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		http.Error(w, `{"error":"Données invalides"}`, http.StatusBadRequest)
 		return
 	}
-	if err := forumService.Signaler(req.MessageID); err != nil {
+	if err := forumService.AddSignalement(req.MessageID, userID, req.Raison); err != nil {
 		jsonError(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(map[string]string{"status": "message masqué"})
+	json.NewEncoder(w).Encode(map[string]string{"status": "message signalé"})
 }
 
-// TODO: table signalement pas dans le schema pour l'instant, on retourne vide en attendant
 func ListSignalements(w http.ResponseWriter, r *http.Request) {
 	role := r.Context().Value(middleware.ContextRole).(string)
 	if role != "salarie" && role != "admin" {
 		http.Error(w, `{"error":"Accès réservé à la modération"}`, http.StatusForbidden)
 		return
 	}
+	results, err := forumService.ListSignalements()
+	if err != nil {
+		http.Error(w, `{"error":"Erreur interne"}`, http.StatusInternalServerError)
+		return
+	}
 	w.Header().Set("Content-Type", "application/json")
-	w.Write([]byte(`[]`))
+	json.NewEncoder(w).Encode(results)
 }
 
-// restaure ou cache un message, on reutilise Signaler() pour les deux directions
+// TraiterSignalement valide ou rejette un signalement (id = id_message)
 func TraiterSignalement(w http.ResponseWriter, r *http.Request) {
 	role := r.Context().Value(middleware.ContextRole).(string)
 	if role != "salarie" && role != "admin" {
 		http.Error(w, `{"error":"Accès réservé à la modération"}`, http.StatusForbidden)
 		return
 	}
-	idStr := r.PathValue("id")
-	parsed, err := strconv.ParseUint(idStr, 10, 32)
+	parsed, err := strconv.ParseUint(r.PathValue("id"), 10, 32)
 	if err != nil {
 		http.Error(w, `{"error":"ID invalide"}`, http.StatusBadRequest)
 		return
@@ -119,6 +118,9 @@ func TraiterSignalement(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	messageID := uint(parsed)
+	// marquer les signalements comme traités
+	forumService.MarquerTraite(messageID)
+	// appliquer l'action sur le message
 	if req.Action == "restaurer" {
 		err = forumService.Restaurer(messageID)
 	} else {
