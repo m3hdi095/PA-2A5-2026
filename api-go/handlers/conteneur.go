@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"strconv"
 
+	"upcycleconnect/api/database"
 	"upcycleconnect/api/models"
 	"upcycleconnect/api/services"
 )
@@ -47,6 +48,7 @@ func CreateDepot(w http.ResponseWriter, r *http.Request) {
 		jsonError(w, err.Error(), http.StatusBadRequest)
 		return
 	}
+	database.AddUpcyclingScore(userID, 10, "depot_conteneur")
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusCreated)
 	json.NewEncoder(w).Encode(depot)

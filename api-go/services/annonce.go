@@ -12,6 +12,13 @@ import (
 	"upcycleconnect/api/repositories"
 )
 
+// propriétaireAnnonce retourne l'id_utilisateur de l'annonce, 0 si introuvable
+func propriétaireAnnonce(id uint) uint {
+	var ownerID uint
+	database.DB.QueryRow(`SELECT id_utilisateur FROM annonce WHERE id_annonce = ?`, id).Scan(&ownerID)
+	return ownerID
+}
+
 type AnnonceService struct {
 	repo *repositories.AnnonceRepository
 }
@@ -80,6 +87,11 @@ func (s *AnnonceService) ValidateAnnonce(id uint, adminID uint, decision, commen
 	)
 	if err != nil {
 		return err
+	}
+	if decision == "validee" {
+		if ownerID := propriétaireAnnonce(id); ownerID != 0 {
+			database.AddUpcyclingScore(ownerID, 5, "annonce_validee")
+		}
 	}
 	return s.repo.UpdateStatus(id, decision)
 }
