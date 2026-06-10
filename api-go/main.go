@@ -52,14 +52,24 @@ func main() {
     // Profil utilisateur
     mux.HandleFunc("GET /api/users/me", middleware.AuthMiddleware(handlers.GetCurrentUser))
     mux.HandleFunc("PUT /api/users/me", middleware.AuthMiddleware(handlers.UpdateUser))
-    // FIXME: le tutoriel devrait aussi vérifier que l'utilisateur est un particulier
+    mux.HandleFunc("POST /api/users/change-password", middleware.AuthMiddleware(handlers.ChangePassword))
     mux.HandleFunc("POST /api/users/tutorial", middleware.AuthMiddleware(handlers.MarkTutorialSeen))
+    // FIXME: le tutoriel devrait aussi vérifier que l'utilisateur est un particulier
 
     // annonces des particuliers
     mux.HandleFunc("GET /api/annonces/mes-annonces", middleware.AuthMiddleware(handlers.MesAnnonces))
     mux.HandleFunc("POST /api/annonces", middleware.AuthMiddleware(handlers.CreateAnnonce))
     mux.HandleFunc("PUT /api/annonces/{id}", middleware.AuthMiddleware(handlers.UpdateAnnonce))
     mux.HandleFunc("DELETE /api/annonces/{id}", middleware.AuthMiddleware(handlers.DeleteAnnonce))
+    mux.HandleFunc("POST /api/annonces/{id}/reserver", middleware.AuthMiddleware(handlers.ReserverAnnonce))
+    // messagerie annonce (style LeBonCoin)
+    mux.HandleFunc("GET /api/annonces/mes-conversations", middleware.AuthMiddleware(handlers.MesConversations))
+    mux.HandleFunc("GET /api/annonces/mes-conversations/count", middleware.AuthMiddleware(handlers.CountMessagesNonLus))
+    mux.HandleFunc("GET /api/annonces/{id}/messages", middleware.AuthMiddleware(handlers.GetMessagesAnnonce))
+    mux.HandleFunc("POST /api/annonces/{id}/messages", middleware.AuthMiddleware(handlers.SendMessageAnnonce))
+    // favoris
+    mux.HandleFunc("GET /api/annonces/favoris", middleware.AuthMiddleware(handlers.GetFavoris))
+    mux.HandleFunc("POST /api/annonces/{id}/favori", middleware.AuthMiddleware(handlers.ToggleFavori))
 
     // Dépôts en conteneur
     mux.HandleFunc("POST /api/depots", middleware.AuthMiddleware(handlers.CreateDepot))
@@ -71,6 +81,7 @@ func main() {
     // Projets upcycling
     mux.HandleFunc("POST /api/projets", middleware.AuthMiddleware(handlers.CreateProjet))
     mux.HandleFunc("GET /api/projets/mes-projets", middleware.AuthMiddleware(handlers.ListMesProjets))
+    mux.HandleFunc("PUT /api/projets/{id}", middleware.AuthMiddleware(handlers.UpdateProjet))
     mux.HandleFunc("POST /api/projets/{id}/etapes", middleware.AuthMiddleware(handlers.AddEtapeProjet))
 
     // evenements, inscriptions et planning
@@ -78,6 +89,7 @@ func main() {
     mux.HandleFunc("PUT /api/evenements/{id}", middleware.AuthMiddleware(middleware.RoleMiddleware("admin", "salarie")(handlers.UpdateEvenement)))
     mux.HandleFunc("DELETE /api/evenements/{id}", middleware.AuthMiddleware(middleware.RoleMiddleware("admin")(handlers.DeleteEvenement)))
     mux.HandleFunc("POST /api/evenements/inscription", middleware.AuthMiddleware(handlers.InscrireEvenement))
+    mux.HandleFunc("DELETE /api/evenements/{id}/inscription", middleware.AuthMiddleware(handlers.SeDesinscrire))
     mux.HandleFunc("GET /api/evenements/mes-inscriptions", middleware.AuthMiddleware(handlers.MesInscriptions))
 
     // Planning personnel (salariés + tous utilisateurs)
@@ -92,6 +104,7 @@ func main() {
     // Notifications push
     mux.HandleFunc("POST /api/notifications/send", middleware.AuthMiddleware(handlers.SendNotification))
     mux.HandleFunc("POST /api/admin/notifications", middleware.AuthMiddleware(middleware.RoleMiddleware("admin")(handlers.BroadcastNotification)))
+    mux.HandleFunc("GET /api/admin/notifications/history", middleware.AuthMiddleware(middleware.RoleMiddleware("admin")(handlers.GetNotificationHistory)))
     mux.HandleFunc("GET /api/notifications", middleware.AuthMiddleware(handlers.GetNotifications))
     mux.HandleFunc("PUT /api/notifications/read-all", middleware.AuthMiddleware(handlers.MarkAllNotificationsRead))
     mux.HandleFunc("PUT /api/notifications/{id}/read", middleware.AuthMiddleware(handlers.MarkNotificationRead))
@@ -104,6 +117,7 @@ func main() {
     mux.HandleFunc("GET /api/conseils/mes-articles", middleware.AuthMiddleware(handlers.MesConseils))
     mux.HandleFunc("POST /api/conseils", middleware.AuthMiddleware(handlers.CreateConseil))
     mux.HandleFunc("PUT /api/conseils/{id}", middleware.AuthMiddleware(handlers.UpdateConseil))
+    mux.HandleFunc("DELETE /api/conseils/{id}", middleware.AuthMiddleware(handlers.DeleteConseil))
     mux.HandleFunc("POST /api/admin/conseils/valider", middleware.AuthMiddleware(middleware.RoleMiddleware("admin")(handlers.ValiderConseil)))
 
     // forum et moderation
@@ -112,6 +126,11 @@ func main() {
     mux.HandleFunc("POST /api/forum/signalements", middleware.AuthMiddleware(handlers.SignalerMessage))
     mux.HandleFunc("GET /api/forum/signalements", middleware.AuthMiddleware(handlers.ListSignalements))
     mux.HandleFunc("PUT /api/forum/signalements/{id}", middleware.AuthMiddleware(handlers.TraiterSignalement))
+
+    // Alertes matériaux (professionnels)
+    mux.HandleFunc("GET /api/alertes", middleware.AuthMiddleware(handlers.GetAlertes))
+    mux.HandleFunc("POST /api/alertes", middleware.AuthMiddleware(handlers.CreateAlerte))
+    mux.HandleFunc("DELETE /api/alertes/{id}", middleware.AuthMiddleware(handlers.DeleteAlerte))
 
     // Abonnements professionnels
     mux.HandleFunc("GET /api/abonnements/me", middleware.AuthMiddleware(handlers.GetMonAbonnement))
@@ -139,6 +158,8 @@ func main() {
     mux.HandleFunc("GET /api/evenements/mes-creations", middleware.AuthMiddleware(handlers.MesCreations))
     mux.HandleFunc("GET /api/admin/depots/en-attente", middleware.AuthMiddleware(middleware.RoleMiddleware("admin")(handlers.ListDepotsEnAttente)))
     mux.HandleFunc("POST /api/admin/depots/validate", middleware.AuthMiddleware(middleware.RoleMiddleware("admin")(handlers.ValidateDepotAdmin)))
+    mux.HandleFunc("POST /api/admin/tournees", middleware.AuthMiddleware(middleware.RoleMiddleware("admin")(handlers.CreateTournee)))
+    mux.HandleFunc("GET /api/admin/tournees", middleware.AuthMiddleware(middleware.RoleMiddleware("admin")(handlers.ListTournees)))
     mux.HandleFunc("POST /api/admin/conteneurs", middleware.AuthMiddleware(middleware.RoleMiddleware("admin")(handlers.CreateConteneur)))
     mux.HandleFunc("PUT /api/admin/conteneurs/{id}/statut", middleware.AuthMiddleware(middleware.RoleMiddleware("admin")(handlers.UpdateConteneurStatut)))
     // categories en lecture publique, admin en ecriture

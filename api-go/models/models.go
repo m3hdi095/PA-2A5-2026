@@ -61,6 +61,10 @@ type Annonce struct {
     IDUtilisateur  uint      `json:"id_utilisateur"`
     IDObjet        uint      `json:"id_objet"`
     Categorie      string    `json:"categorie,omitempty"`
+    Auteur         string    `json:"auteur,omitempty"`
+    Localisation   string    `json:"localisation,omitempty"`
+    NbMessages     int       `json:"nb_messages,omitempty"`
+    EstFavori      bool      `json:"est_favori,omitempty"`
 }
 
 type Conteneur struct {

@@ -79,8 +79,8 @@ func CreateAnnonce(w http.ResponseWriter, r *http.Request) {
 }
 
 func ListAnnonces(w http.ResponseWriter, r *http.Request) {
-	// TODO: ajouter des filtres par catégorie et localisation GPS
 	filtre := r.URL.Query().Get("filter")
+	// TODO: ajouter des filtres par catégorie et localisation GPS
 	page, _ := strconv.Atoi(r.URL.Query().Get("page"))
 	if page < 1 {
 		page = 1
@@ -235,4 +235,42 @@ func ValidateAnnonce(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(map[string]string{"status": "ok"})
+}
+
+func ReserverAnnonce(w http.ResponseWriter, r *http.Request) {
+	acheteurID := r.Context().Value(middleware.ContextUserID).(uint)
+	id, err := strconv.ParseUint(r.PathValue("id"), 10, 32)
+	if err != nil {
+		http.Error(w, `{"error":"ID invalide"}`, http.StatusBadRequest)
+		return
+	}
+	annonce, err := annonceService.GetAnnonce(uint(id))
+	if err != nil || annonce == nil {
+		jsonError(w, "annonce introuvable", http.StatusNotFound)
+		return
+	}
+	if annonce.Statut != "validee" {
+		jsonError(w, "cette annonce n'est plus disponible", http.StatusBadRequest)
+		return
+	}
+	var montant float64
+	var commissionTaux float64
+	if annonce.TypeAnnonce == "vente" {
+		montant = annonce.Prix
+		commissionTaux = 10.0
+	}
+	_, dbErr := database.DB.Exec(
+		`INSERT INTO transaction_achat (montant, commission_taux, statut, id_annonce, id_acheteur, id_vendeur)
+		 VALUES (?, ?, 'payee', ?, ?, ?)`,
+		montant, commissionTaux, annonce.ID, acheteurID, annonce.IDUtilisateur,
+	)
+	if dbErr != nil {
+		log.Printf("ReserverAnnonce insert error: %v", dbErr)
+		jsonError(w, "erreur lors de la réservation", http.StatusInternalServerError)
+		return
+	}
+	database.DB.Exec(`UPDATE annonce SET statut = 'desactivee' WHERE id_annonce = ?`, annonce.ID)
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]string{"status": "reservee"})
 }

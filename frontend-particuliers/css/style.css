@@ -190,3 +190,11 @@ body.part-layout { display: flex; overflow-x: hidden; }
 .notif-item-date { font-size: 11px; color: var(--text-muted, #9ca3af); margin-top: 3px; }
 .notif-empty { text-align: center; padding: 20px; color: var(--text-muted, #9ca3af); font-size: 13px; margin: 0; }
 
+
+/* ─── Messagerie annonce style LeBonCoin ────────────────────────────── */
+.msg-bubble { max-width: 78%; padding: 10px 14px; border-radius: 14px; font-size: 13px; line-height: 1.55; }
+.msg-mine   { align-self: flex-end; background: var(--teal-600,#0d9488); color: #fff; border-bottom-right-radius: 4px; }
+.msg-other  { align-self: flex-start; background: #fff; color: var(--text,#111); border: 1px solid var(--border); border-bottom-left-radius: 4px; }
+.msg-author { font-size: 11px; font-weight: 700; color: var(--text-muted); margin-bottom: 3px; }
+.msg-date   { font-size: 10px; margin-top: 4px; opacity: .7; text-align: right; }
+.msg-mine .msg-date { color: rgba(255,255,255,.8); }

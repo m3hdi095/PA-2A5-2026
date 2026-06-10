@@ -163,12 +163,83 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('modal-detail-close')?.addEventListener('click', () => {
     document.getElementById('modal-detail').classList.remove('open');
   });
+  document.getElementById('modal-msg-close')?.addEventListener('click', () => {
+    document.getElementById('modal-msg')?.classList.remove('open');
+    _msgAnnonceID = null;
+  });
+  document.getElementById('modal-msg')?.addEventListener('click', e => {
+    if (e.target === document.getElementById('modal-msg')) {
+      document.getElementById('modal-msg').classList.remove('open');
+      _msgAnnonceID = null;
+    }
+  });
+  document.getElementById('form-message')?.addEventListener('submit', envoyerMessageParticulier);
 });
 
 window.contacterAuteur = (id) => {
   document.getElementById('modal-detail').classList.remove('open');
-  showToast('Messagerie non disponible pour le moment', 'info');
+  ouvrirConversation(id);
 };
+
+
+let _msgAnnonceID = null;
+
+window.ouvrirConversation = async (id) => {
+  _msgAnnonceID = id;
+  const annonce = annoncesData.find(a => a.id === id);
+  const modal = document.getElementById('modal-msg');
+  if (!modal) return;
+  document.getElementById('msg-annonce-titre').textContent = annonce ? annonce.titre : `Annonce #${id}`;
+  document.getElementById('msg-thread').innerHTML = `<p style="color:var(--text-muted);text-align:center;padding:20px">Chargement…</p>`;
+  modal.classList.add('open');
+  await chargerMessages(id);
+};
+
+async function chargerMessages(id) {
+  try {
+    const res = await apiFetch(`/annonces/${id}/messages`);
+    const msgs = res?.ok ? await res.json() : [];
+    renderThread(Array.isArray(msgs) ? msgs : []);
+  } catch {
+    document.getElementById('msg-thread').innerHTML = `<p style="color:var(--danger-text);text-align:center;padding:20px">Impossible de charger les messages.</p>`;
+  }
+}
+
+function renderThread(msgs) {
+  const thread = document.getElementById('msg-thread');
+  if (!msgs.length) {
+    thread.innerHTML = `<div style="text-align:center;padding:32px 16px;color:var(--text-muted)"><i class="fa-regular fa-comment-dots" style="font-size:32px;margin-bottom:12px;display:block"></i>Aucun message pour cette annonce.</div>`;
+    return;
+  }
+  const locale = _lang === 'en' ? 'en-GB' : 'fr-FR';
+  thread.innerHTML = msgs.map(m => {
+    const date = m.date_envoi ? new Date(m.date_envoi).toLocaleString(locale, { day:'2-digit', month:'short', hour:'2-digit', minute:'2-digit' }) : '';
+    return `
+      <div class="msg-bubble ${m.is_mine ? 'msg-mine' : 'msg-other'}">
+        ${!m.is_mine ? `<div class="msg-author">${esc(m.expediteur?.trim() || '—')}</div>` : ''}
+        <div class="msg-text">${esc(m.contenu)}</div>
+        <div class="msg-date">${date}</div>
+      </div>`;
+  }).join('');
+  thread.scrollTop = thread.scrollHeight;
+}
+
+async function envoyerMessageParticulier(e) {
+  e.preventDefault();
+  const input = document.getElementById('msg-input');
+  const contenu = input?.value.trim();
+  if (!contenu || !_msgAnnonceID) return;
+  const btn = e.target.querySelector('button[type="submit"]');
+  if (btn) btn.disabled = true;
+  try {
+    const res = await apiFetch(`/annonces/${_msgAnnonceID}/messages`, {
+      method: 'POST', body: JSON.stringify({ contenu }),
+    });
+    if (res?.ok) { input.value = ''; await chargerMessages(_msgAnnonceID); }
+    else { const d = res ? await res.json().catch(() => ({})) : {}; showToast(d.error || 'Erreur', 'error'); }
+  } catch { showToast('Service indisponible.', 'error'); }
+  if (btn) btn.disabled = false;
+}
 
 function fermerModal() { document.getElementById('modal-annonce').classList.remove('open'); }
 

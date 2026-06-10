@@ -2,6 +2,7 @@ package repositories
 
 import (
 	"database/sql"
+	"errors"
 	"strings"
 	"time"
 
@@ -75,6 +76,17 @@ func (r *UserRepository) UpdateActivation(id uint, actif bool) error {
 	return err
 }
 
+func (r *UserRepository) GetPasswordHash(id uint) (string, error) {
+	var hash string
+	err := database.DB.QueryRow("SELECT mot_de_passe FROM utilisateur WHERE id_utilisateur = ?", id).Scan(&hash)
+	return hash, err
+}
+
+func (r *UserRepository) UpdatePassword(id uint, hashedPwd string) error {
+	_, err := database.DB.Exec("UPDATE utilisateur SET mot_de_passe = ? WHERE id_utilisateur = ?", hashedPwd, id)
+	return err
+}
+
 func (r *UserRepository) ListAll(limit, offset int) ([]models.Utilisateur, error) {
 	query := `
 		SELECT u.id_utilisateur, u.email, u.nom, u.prenom, u.role,
@@ -144,14 +156,16 @@ func (r *AnnonceRepository) Create(annonce *models.Annonce) error {
 }
 
 func (r *AnnonceRepository) GetByID(id uint) (*models.Annonce, error) {
-	query := `SELECT a.id_annonce, a.titre, a.description, a.type_annonce, a.prix, a.date_publication, a.statut, a.id_utilisateur, a.id_objet, COALESCE(c.nom, '')
+	query := `SELECT a.id_annonce, a.titre, a.description, a.type_annonce, a.prix, a.date_publication, a.statut, a.id_utilisateur, a.id_objet,
+	          COALESCE(c.nom, ''), CONCAT(COALESCE(u.prenom,''), ' ', COALESCE(u.nom,'')), COALESCE(u.ville,'')
               FROM annonce a
               LEFT JOIN objet o ON a.id_objet = o.id_objet
               LEFT JOIN categorie c ON o.categorie_id = c.id_categorie
+              LEFT JOIN utilisateur u ON u.id_utilisateur = a.id_utilisateur
               WHERE a.id_annonce = ?`
 	row := database.DB.QueryRow(query, id)
 	var a models.Annonce
-	err := row.Scan(&a.ID, &a.Titre, &a.Description, &a.TypeAnnonce, &a.Prix, &a.DatePublication, &a.Statut, &a.IDUtilisateur, &a.IDObjet, &a.Categorie)
+	err := row.Scan(&a.ID, &a.Titre, &a.Description, &a.TypeAnnonce, &a.Prix, &a.DatePublication, &a.Statut, &a.IDUtilisateur, &a.IDObjet, &a.Categorie, &a.Auteur, &a.Localisation)
 	if err == sql.ErrNoRows {
 		return nil, nil
 	}
@@ -162,22 +176,20 @@ func (r *AnnonceRepository) List(filter string, limit, offset int, lang string) 
 	query := `SELECT a.id_annonce,
 		COALESCE(MAX(t_titre.valeur_traduite), a.titre),
 		COALESCE(MAX(t_desc.valeur_traduite), a.description),
-		a.type_annonce, a.prix, a.date_publication, a.statut, a.id_utilisateur, a.id_objet, COALESCE(MAX(c.nom), '')
+		a.type_annonce, a.prix, a.date_publication, a.statut, a.id_utilisateur, a.id_objet, COALESCE(MAX(c.nom), ''),
+		CONCAT(COALESCE(MAX(u.prenom),''), ' ', COALESCE(MAX(u.nom),'')), COALESCE(MAX(u.ville),''),
+		COUNT(DISTINCT ma.id)
 	FROM annonce a
 	LEFT JOIN objet o ON a.id_objet = o.id_objet
 	LEFT JOIN categorie c ON o.categorie_id = c.id_categorie
 	LEFT JOIN traduction t_titre ON t_titre.table_concernee = 'annonce' AND t_titre.id_enregistrement = a.id_annonce AND t_titre.champ = 'titre' AND t_titre.langue = ?
 	LEFT JOIN traduction t_desc  ON t_desc.table_concernee  = 'annonce' AND t_desc.id_enregistrement  = a.id_annonce AND t_desc.champ  = 'description' AND t_desc.langue  = ?
+	LEFT JOIN utilisateur u ON u.id_utilisateur = a.id_utilisateur
+	LEFT JOIN message_annonce ma ON ma.id_annonce = a.id_annonce
 	WHERE a.statut = 'validee'
-	GROUP BY a.id_annonce, a.titre, a.description, a.type_annonce, a.prix, a.date_publication, a.statut, a.id_utilisateur, a.id_objet`
-	args := []interface{}{lang, lang}
-	if filter != "" {
-		query += " AND (a.titre LIKE ? OR a.description LIKE ?)"
-		like := "%" + filter + "%"
-		args = append(args, like, like)
-	}
-	query += " ORDER BY a.date_publication DESC LIMIT ? OFFSET ?"
-	args = append(args, limit, offset)
+	GROUP BY a.id_annonce, a.titre, a.description, a.type_annonce, a.prix, a.date_publication, a.statut, a.id_utilisateur, a.id_objet
+	ORDER BY a.date_publication DESC LIMIT ? OFFSET ?`
+	args := []interface{}{lang, lang, limit, offset}
 	rows, err := database.DB.Query(query, args...)
 	if err != nil {
 		return nil, err
@@ -186,7 +198,7 @@ func (r *AnnonceRepository) List(filter string, limit, offset int, lang string) 
 	annonces := make([]models.Annonce, 0)
 	for rows.Next() {
 		var a models.Annonce
-		err := rows.Scan(&a.ID, &a.Titre, &a.Description, &a.TypeAnnonce, &a.Prix, &a.DatePublication, &a.Statut, &a.IDUtilisateur, &a.IDObjet, &a.Categorie)
+		err := rows.Scan(&a.ID, &a.Titre, &a.Description, &a.TypeAnnonce, &a.Prix, &a.DatePublication, &a.Statut, &a.IDUtilisateur, &a.IDObjet, &a.Categorie, &a.Auteur, &a.Localisation, &a.NbMessages)
 		if err != nil {
 			return nil, err
 		}
@@ -345,7 +357,7 @@ func (r *ProjetRepository) Create(projet *models.ProjetUpcycling) error {
 }
 
 func (r *ProjetRepository) GetByID(id uint) (*models.ProjetUpcycling, error) {
-	row := database.DB.QueryRow("SELECT id_projet, titre, description, date_debut, date_fin, statut, score_impact, kg_dechets_evites, partage_communaute, id_utilisateur FROM projet_upcycling WHERE id_projet = ?", id)
+	row := database.DB.QueryRow("SELECT id_projet, titre, COALESCE(description,''), COALESCE(date_debut, CURDATE()), COALESCE(date_fin, CURDATE()), statut, score_impact, COALESCE(kg_dechets_evites,0), partage_communaute, id_utilisateur FROM projet_upcycling WHERE id_projet = ?", id)
 	var p models.ProjetUpcycling
 	err := row.Scan(&p.ID, &p.Titre, &p.Description, &p.DateDebut, &p.DateFin, &p.Statut, &p.ScoreImpact, &p.KgDechetsEvites, &p.PartageCommunaute, &p.IDUtilisateur)
 	if err == sql.ErrNoRows {
@@ -355,7 +367,7 @@ func (r *ProjetRepository) GetByID(id uint) (*models.ProjetUpcycling, error) {
 }
 
 func (r *ProjetRepository) ListByUser(userID uint, limit, offset int) ([]models.ProjetUpcycling, error) {
-	rows, err := database.DB.Query("SELECT id_projet, titre, description, date_debut, date_fin, statut, score_impact, kg_dechets_evites, partage_communaute, id_utilisateur FROM projet_upcycling WHERE id_utilisateur = ? ORDER BY date_debut DESC LIMIT ? OFFSET ?", userID, limit, offset)
+	rows, err := database.DB.Query("SELECT id_projet, titre, COALESCE(description,''), COALESCE(date_debut, CURDATE()), COALESCE(date_fin, CURDATE()), statut, score_impact, COALESCE(kg_dechets_evites,0), partage_communaute, id_utilisateur FROM projet_upcycling WHERE id_utilisateur = ? ORDER BY date_debut DESC LIMIT ? OFFSET ?", userID, limit, offset)
 	if err != nil {
 		return nil, err
 	}
@@ -373,7 +385,7 @@ func (r *ProjetRepository) ListByUser(userID uint, limit, offset int) ([]models.
 }
 
 func (r *ProjetRepository) ListPublic(limit, offset int) ([]models.ProjetUpcycling, error) {
-	rows, err := database.DB.Query("SELECT id_projet, titre, description, date_debut, date_fin, statut, score_impact, kg_dechets_evites, partage_communaute, id_utilisateur FROM projet_upcycling WHERE partage_communaute = 1 ORDER BY date_debut DESC LIMIT ? OFFSET ?", limit, offset)
+	rows, err := database.DB.Query("SELECT id_projet, titre, COALESCE(description,''), COALESCE(date_debut, CURDATE()), COALESCE(date_fin, CURDATE()), statut, score_impact, COALESCE(kg_dechets_evites,0), partage_communaute, id_utilisateur FROM projet_upcycling WHERE partage_communaute = 1 ORDER BY date_debut DESC LIMIT ? OFFSET ?", limit, offset)
 	if err != nil {
 		return nil, err
 	}
@@ -388,6 +400,18 @@ func (r *ProjetRepository) ListPublic(limit, offset int) ([]models.ProjetUpcycli
 		projets = append(projets, p)
 	}
 	return projets, nil
+}
+
+func (r *ProjetRepository) UpdateStatut(id, userID uint, statut string) error {
+	res, err := database.DB.Exec(`UPDATE projet_upcycling SET statut = ? WHERE id_projet = ? AND id_utilisateur = ?`, statut, id, userID)
+	if err != nil {
+		return err
+	}
+	n, _ := res.RowsAffected()
+	if n == 0 {
+		return errors.New("projet introuvable ou accès interdit")
+	}
+	return nil
 }
 
 //  ÉTAPE PROJET
@@ -651,6 +675,37 @@ func (r *NotificationRepository) MarkAllAsRead(userID uint) error {
 	return err
 }
 
+type BroadcastRecord struct {
+	Titre     string
+	Contenu   string
+	DateEnvoi time.Time
+	NbEnvoyes int
+}
+
+func (r *NotificationRepository) GetBroadcastHistory(limit int) ([]BroadcastRecord, error) {
+	rows, err := database.DB.Query(
+		`SELECT COALESCE(titre,''), COALESCE(contenu,''), MIN(date_envoi), COUNT(*)
+		 FROM notification
+		 GROUP BY titre, contenu
+		 ORDER BY MIN(date_envoi) DESC
+		 LIMIT ?`,
+		limit,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	records := make([]BroadcastRecord, 0)
+	for rows.Next() {
+		var rec BroadcastRecord
+		if err := rows.Scan(&rec.Titre, &rec.Contenu, &rec.DateEnvoi, &rec.NbEnvoyes); err != nil {
+			return nil, err
+		}
+		records = append(records, rec)
+	}
+	return records, rows.Err()
+}
+
 //  TRADUCTION
 
 type TraductionRepository struct{}
@@ -762,6 +817,21 @@ func (r *InscriptionRepository) ListByUserFull(userID uint, limit, offset int) (
 		inscriptions = append(inscriptions, i)
 	}
 	return inscriptions, nil
+}
+
+func (r *InscriptionRepository) DeleteByUserAndEvent(userID, evenementID uint) error {
+	res, err := database.DB.Exec(
+		`DELETE FROM inscription WHERE id_utilisateur = ? AND id_evenement = ?`,
+		userID, evenementID,
+	)
+	if err != nil {
+		return err
+	}
+	n, _ := res.RowsAffected()
+	if n == 0 {
+		return errors.New("inscription introuvable")
+	}
+	return nil
 }
 
 //  OBJET
