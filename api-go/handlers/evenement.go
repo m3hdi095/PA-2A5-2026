@@ -109,6 +109,21 @@ func InscrireEvenement(w http.ResponseWriter, r *http.Request) {
     json.NewEncoder(w).Encode(map[string]string{"status": "inscrit"})
 }
 
+func SeDesinscrire(w http.ResponseWriter, r *http.Request) {
+    userID := r.Context().Value(middleware.ContextUserID).(uint)
+    id, err := strconv.ParseUint(r.PathValue("id"), 10, 32)
+    if err != nil {
+        http.Error(w, `{"error":"ID invalide"}`, http.StatusBadRequest)
+        return
+    }
+    if err := evenementService.SeDesinscrire(userID, uint(id)); err != nil {
+        jsonError(w, err.Error(), http.StatusBadRequest)
+        return
+    }
+    w.Header().Set("Content-Type", "application/json")
+    json.NewEncoder(w).Encode(map[string]string{"status": "désinscrit"})
+}
+
 func MesInscriptions(w http.ResponseWriter, r *http.Request) {
 	userID := r.Context().Value(middleware.ContextUserID).(uint)
 	page, _ := strconv.Atoi(r.URL.Query().Get("page"))

@@ -144,7 +144,13 @@ window.sInscrire = async (evenementId) => {
 };
 
 window.seDesinscrire = async (evenementId) => {
-  showToast('Désinscription non disponible pour l\'instant.', 'info');
+  if (!confirm('Se désinscrire de cet événement ?')) return;
+  try {
+    const res = await apiFetch(`/evenements/${evenementId}/inscription`, { method: 'DELETE' });
+    if (res?.ok) { showToast('Désinscription confirmée.', 'success'); await chargerPlanning(); return; }
+    const d = res ? await res.json().catch(() => ({})) : {};
+    showToast(d.error || 'Désinscription impossible', 'error');
+  } catch { showToast('Service indisponible.', 'error'); }
 };
 
 window.supprimerEntree = async (id) => {

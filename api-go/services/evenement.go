@@ -79,6 +79,10 @@ func (s *EvenementService) DeleteEvenement(id uint) error {
     return s.evenementRepo.Delete(id)
 }
 
+func (s *EvenementService) SeDesinscrire(userID, evenementID uint) error {
+	return s.inscriptionRepo.DeleteByUserAndEvent(userID, evenementID)
+}
+
 func (s *EvenementService) ValidateEvenement(id uint, adminID uint, decision string) error {
     if decision != "valide" && decision != "annule" {
         return errors.New("décision invalide")
