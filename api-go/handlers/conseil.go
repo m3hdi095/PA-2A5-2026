@@ -1,10 +1,11 @@
 package handlers
 
 import (
-	"upcycleconnect/api/middleware"
 	"encoding/json"
 	"net/http"
+	"strconv"
 
+	"upcycleconnect/api/middleware"
 	"upcycleconnect/api/models"
 	"upcycleconnect/api/services"
 )
@@ -80,6 +81,26 @@ func UpdateConseil(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if err := conseilService.Update(&input, userID); err != nil {
+		jsonError(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]string{"status": "ok"})
+}
+
+func DeleteConseil(w http.ResponseWriter, r *http.Request) {
+	role := r.Context().Value(middleware.ContextRole).(string)
+	if role != "salarie" {
+		http.Error(w, `{"error":"Réservé aux salariés"}`, http.StatusForbidden)
+		return
+	}
+	userID := r.Context().Value(middleware.ContextUserID).(uint)
+	id, err := strconv.ParseUint(r.PathValue("id"), 10, 32)
+	if err != nil {
+		http.Error(w, `{"error":"ID invalide"}`, http.StatusBadRequest)
+		return
+	}
+	if err := conseilService.Delete(uint(id), userID); err != nil {
 		jsonError(w, err.Error(), http.StatusBadRequest)
 		return
 	}

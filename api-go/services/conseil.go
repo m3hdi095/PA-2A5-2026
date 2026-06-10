@@ -113,3 +113,18 @@ func (s *ConseilService) Valider(articleID uint, decision string, adminID uint) 
 	)
 	return err
 }
+
+func (s *ConseilService) Delete(conseilID, salarieID uint) error {
+	var ownerID uint
+	err := database.DB.QueryRow(
+		`SELECT id_salarie_redacteur FROM conseil WHERE id_conseil = ?`, conseilID,
+	).Scan(&ownerID)
+	if err != nil {
+		return errors.New("article introuvable")
+	}
+	if ownerID != salarieID {
+		return errors.New("vous n'êtes pas l'auteur de cet article")
+	}
+	_, err = database.DB.Exec(`DELETE FROM conseil WHERE id_conseil = ?`, conseilID)
+	return err
+}
