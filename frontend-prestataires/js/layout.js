@@ -26,7 +26,6 @@ async function apiFetch(chemin, options = {}) {
     }
     return res;
   } catch {
-    // FIXME: meilleure gestion réseau hors ligne
     return null;
   }
 }

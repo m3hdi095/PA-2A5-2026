@@ -40,9 +40,9 @@ func AddTraduction(w http.ResponseWriter, r *http.Request) {
 }
 
 func SetTraduction(w http.ResponseWriter, r *http.Request) {
-    // TODO: elargir aux prestataires aussi ? pour l'instant seulement admin et salarie
     role := r.Context().Value(middleware.ContextRole).(string)
     if role != "admin" && role != "salarie" {
+	// TODO: elargir aux prestataires aussi ? pour l'instant seulement admin et salarie
         http.Error(w, `{"error":"Accès interdit"}`, http.StatusForbidden)
         return
     }
