@@ -8,6 +8,8 @@ const STATUT_CONFIG = {
   brouillon: { label: 'Brouillon',          badge: 'badge-gray',   accent: '#BCB3A6' },
 };
 
+const STATUT_AVANCEMENT = { brouillon: 0, en_cours: 33, attente: 50, termine: 100, publie: 100 };
+
 const CAT_PROJETS = ['Mobilier', 'Textile', 'Décoration', 'Luminaire', 'Jardin', 'Autre'];
 
 let projetsData = [];
@@ -74,10 +76,15 @@ function renderProjets() {
   }
 
   container.innerHTML = projets.map((p, i) => {
-    const cfg    = STATUT_CONFIG[p.statut] || STATUT_CONFIG.brouillon;
-    const etape  = p.etapes?.[p.etape_courante - 1] || '';
-    const locale  = _lang === 'en' ? 'en-GB' : 'fr-FR';
-    const dateAff = new Date(p.date_creation).toLocaleDateString(locale, { day:'2-digit', month:'short', year:'numeric' });
+    const cfg       = STATUT_CONFIG[p.statut] || STATUT_CONFIG.brouillon;
+    const avancement = STATUT_AVANCEMENT[p.statut] ?? 0;
+    const locale     = _lang === 'en' ? 'en-GB' : 'fr-FR';
+    const dateAff    = new Date(p.date_debut || p.date_fin).toLocaleDateString(locale, { day:'2-digit', month:'short', year:'numeric' });
+
+    const btnsStatut = Object.entries(STATUT_CONFIG)
+      .filter(([k]) => k !== p.statut && k !== 'brouillon')
+      .map(([k, v]) => `<button class="btn btn-ghost btn-sm" style="font-size:11px" onclick="changerStatut(${p.id},'${k}')">${v.label}</button>`)
+      .join('');
 
     return `
       <div class="projet-card animate-in" style="animation-delay:${i * 70}ms;--accent-projet:${cfg.accent}">
@@ -89,12 +96,11 @@ function renderProjets() {
         <div class="projet-progress">
           <div class="progress-label">
             <span>Avancement</span>
-            <span>${p.avancement}%</span>
+            <span>${avancement}%</span>
           </div>
           <div class="progress-bar-track">
-            <div class="progress-bar-fill" style="width:${p.avancement}%"></div>
+            <div class="progress-bar-fill" style="width:${avancement}%"></div>
           </div>
-          ${etape ? `<div style="font-size:11.5px;color:var(--text-muted);margin-top:2px">Étape actuelle : <strong>${escPro(etape)}</strong></div>` : ''}
         </div>
         <div class="projet-materiaux">
           ${(p.materiaux || []).map(m => `<span class="badge badge-teal">${escPro(m)}</span>`).join('')}
@@ -104,16 +110,12 @@ function renderProjets() {
             <i class="fa-regular fa-calendar" aria-hidden="true"></i>
             ${dateAff}
           </span>
-          <div style="display:flex;gap:6px">
+          <div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end">
             <button class="btn btn-ghost btn-sm" onclick="ouvrirDetailProjet(${p.id})">
               <i class="fa-solid fa-eye" aria-hidden="true"></i>
               Voir
             </button>
-            ${p.statut !== 'publie' ? `
-            <button class="btn btn-outline btn-sm" onclick="avancerEtape(${p.id})">
-              <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
-              Avancer
-            </button>` : ''}
+            ${btnsStatut}
           </div>
         </div>
       </div>`;
@@ -190,21 +192,24 @@ window.ouvrirDetailProjet = (id) => {
   modal.addEventListener('click', e => { if (e.target === modal) modal.classList.remove('open'); }, { once: true });
 };
 
-window.avancerEtape = (id) => {
-  const p = projetsData.find(x => x.id === id);
-  if (!p || !p.etapes) return;
-
-  const max = p.etapes.length;
-  if (p.etape_courante >= max) {
-    p.statut    = 'termine';
-    p.avancement = 100;
-    showToast(`Projet "${p.titre}" marqué comme terminé !`, 'success');
-  } else {
-    p.etape_courante++;
-    p.avancement = Math.round((p.etape_courante / max) * 100);
-    showToast(`Étape avancée : ${p.etapes[p.etape_courante - 1]}`, 'info');
+window.changerStatut = async (id, statut) => {
+  try {
+    const res = await apiFetch(`/projets/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify({ statut }),
+    });
+    if (res?.ok) {
+      const p = projetsData.find(x => x.id === id);
+      if (p) p.statut = statut;
+      renderProjets();
+      showToast('Statut mis à jour', 'success');
+    } else {
+      const d = res ? await res.json().catch(() => ({})) : {};
+      showToast(d.error || 'Erreur lors de la mise à jour', 'error');
+    }
+  } catch {
+    showToast('Service indisponible.', 'error');
   }
-  renderProjets();
 };
 
 async function soumettreProjet(e) {
@@ -213,6 +218,9 @@ async function soumettreProjet(e) {
   const description = document.getElementById('proj-desc').value.trim();
   const categorie   = document.getElementById('proj-categorie').value;
   const materiaux   = document.getElementById('proj-materiaux').value.trim().split(',').map(m => m.trim()).filter(Boolean);
+  const dateFinVal  = document.getElementById('proj-fin')?.value;
+  const dateDebut   = new Date().toISOString();
+  const dateFin     = dateFinVal ? new Date(dateFinVal).toISOString() : dateDebut;
 
   if (!titre) { showToast('Le titre est obligatoire', 'error'); return; }
 
@@ -223,7 +231,7 @@ async function soumettreProjet(e) {
   try {
     const res = await apiFetch('/projets', {
       method: 'POST',
-      body: JSON.stringify({ titre, description, categorie, materiaux, statut: 'en_cours' }),
+      body: JSON.stringify({ titre, description, categorie, materiaux, statut: 'en_cours', date_debut: dateDebut, date_fin: dateFin }),
     });
 
     if (res?.ok) {

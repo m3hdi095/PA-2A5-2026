@@ -50,3 +50,11 @@ func (s *ProjetService) AddEtape(etape *models.EtapeProjet) error {
     }
     return s.etapeRepo.Create(etape)
 }
+
+func (s *ProjetService) UpdateStatut(id, userID uint, statut string) error {
+    allowed := map[string]bool{"en_cours": true, "attente": true, "termine": true, "publie": true, "brouillon": true}
+    if !allowed[statut] {
+        return errors.New("statut invalide")
+    }
+    return s.projetRepo.UpdateStatut(id, userID, statut)
+}

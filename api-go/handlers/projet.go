@@ -11,6 +11,7 @@ import (
     "strconv"
     "time"
 
+    "upcycleconnect/api/database"
     "upcycleconnect/api/models"
     "upcycleconnect/api/services"
 )
@@ -41,6 +42,7 @@ func CreateProjet(w http.ResponseWriter, r *http.Request) {
         jsonError(w, err.Error(), http.StatusBadRequest)
         return
     }
+    database.AddUpcyclingScore(userID, 15, "creation_projet")
     w.WriteHeader(http.StatusCreated)
     json.NewEncoder(w).Encode(projet)
 }
@@ -79,6 +81,28 @@ func ListUserProjets(w http.ResponseWriter, r *http.Request) {
         return
     }
     json.NewEncoder(w).Encode(projets)
+}
+
+func UpdateProjet(w http.ResponseWriter, r *http.Request) {
+    userID := r.Context().Value(middleware.ContextUserID).(uint)
+    id, err := strconv.ParseUint(r.PathValue("id"), 10, 32)
+    if err != nil {
+        http.Error(w, `{"error":"ID invalide"}`, http.StatusBadRequest)
+        return
+    }
+    var req struct {
+        Statut string `json:"statut"`
+    }
+    if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+        http.Error(w, `{"error":"Données invalides"}`, http.StatusBadRequest)
+        return
+    }
+    if err := projetService.UpdateStatut(uint(id), userID, req.Statut); err != nil {
+        jsonError(w, err.Error(), http.StatusBadRequest)
+        return
+    }
+    w.Header().Set("Content-Type", "application/json")
+    json.NewEncoder(w).Encode(map[string]string{"status": "ok"})
 }
 
 func AddEtape(w http.ResponseWriter, r *http.Request) {
