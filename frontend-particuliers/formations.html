@@ -53,6 +53,60 @@
 
 <div id="formations-container" class="formations-grid"></div>
 
+<!-- Événements passés auxquels l'utilisateur a participé -->
+<div id="section-passes" style="display:none;margin-top:32px">
+  <div class="card animate-in">
+    <div class="card-header">
+      <h2><i class="fa-solid fa-clock-rotate-left"></i> Mes événements passés</h2>
+    </div>
+    <div id="passes-container" style="padding:16px;display:flex;flex-direction:column;gap:10px"></div>
+  </div>
+</div>
+
+<!-- Modal paiement formation -->
+<div class="modal-overlay" id="modal-paiement-formation">
+  <div class="modal-box" style="max-width:460px">
+    <div class="modal-header">
+      <div class="modal-title"><i class="fa-brands fa-stripe-s"></i> Paiement sécurisé</div>
+      <button class="modal-close" onclick="document.getElementById('modal-paiement-formation').classList.remove('open')">&times;</button>
+    </div>
+    <div class="modal-body" style="display:flex;flex-direction:column;gap:16px">
+      <p id="paiement-event-titre" style="font-size:13px;font-weight:600;color:var(--teal-700)"></p>
+      <p id="paiement-montant" style="font-size:22px;font-weight:800;font-family:Poppins,sans-serif;color:var(--text);margin:0"></p>
+      <div id="card-element" style="padding:12px;border:1.5px solid var(--border);border-radius:var(--radius);background:#fff"></div>
+      <p id="paiement-error" style="color:var(--danger-text);font-size:12.5px;min-height:18px"></p>
+      <div class="form-actions">
+        <button type="button" class="btn btn-outline" onclick="document.getElementById('modal-paiement-formation').classList.remove('open')">Annuler</button>
+        <button type="button" class="btn btn-primary" id="btn-payer" onclick="confirmerPaiementFormation()">
+          <i class="fa-brands fa-stripe-s"></i> Payer
+        </button>
+      </div>
+      <p style="font-size:11px;color:var(--text-muted);text-align:center">Paiement sécurisé par Stripe · Annulable jusqu'à 48h avant l'événement</p>
+    </div>
+  </div>
+</div>
+
+<!-- Modal questionnaire satisfaction -->
+<div class="modal-overlay" id="modal-questionnaire-part">
+  <div class="modal-box" style="max-width:520px">
+    <div class="modal-header">
+      <div class="modal-title"><i class="fa-solid fa-star"></i> Questionnaire de satisfaction</div>
+      <button class="modal-close" onclick="document.getElementById('modal-questionnaire-part').classList.remove('open')">&times;</button>
+    </div>
+    <div class="modal-body">
+      <p id="q-event-titre" style="font-size:13px;font-weight:600;color:var(--teal-700);margin-bottom:16px"></p>
+      <div id="q-questions-container" style="display:flex;flex-direction:column;gap:14px"></div>
+      <div class="form-actions" style="margin-top:20px">
+        <button type="button" class="btn btn-outline" onclick="document.getElementById('modal-questionnaire-part').classList.remove('open')">Annuler</button>
+        <button type="button" class="btn btn-primary" onclick="soumettreQuestionnairePart()">
+          <i class="fa-solid fa-paper-plane"></i> Envoyer mes réponses
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://js.stripe.com/v3/"></script>
 <script src="js/layout.js"></script>
 <script src="js/formations.js"></script>
 <script>
