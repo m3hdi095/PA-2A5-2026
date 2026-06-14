@@ -143,7 +143,7 @@ window.confirmerPaiementFormation = async () => {
   const montant   = parseFloat(montantEl?.textContent) || 0;
 
   try {
-    const piRes = await apiFetch('/payment-intent', {
+    const piRes = await apiFetch('/create-payment-intent', {
       method: 'POST',
       body: JSON.stringify({ amount: montant, currency: 'eur', type: 'evenement', reference_id: _paiementEventId }),
     });

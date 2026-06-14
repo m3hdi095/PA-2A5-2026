@@ -51,6 +51,7 @@
   "formation_complet":          "Full",
   "formation_gratuit":          "Free",
   "formation_btn_inscrire":     "Register",
+  "formation_btn_payer":        "Book and pay",
   "formation_no_events":        "No events available.",
   "formation_inscription_ok":   "Registration confirmed!",
 
