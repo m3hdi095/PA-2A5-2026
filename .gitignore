@@ -29,6 +29,8 @@ capture/
 
 captures/
 
+api-go/uploads/ 
+
 # À ne jamais commiter
 
 api-go/.env
