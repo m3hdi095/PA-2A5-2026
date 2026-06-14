@@ -24,13 +24,13 @@ async function chargerStats() {
     setStatValue('stat-factures',    stats.total_factures);
   } catch {
     ['stat-users','stat-prestations','stat-categories','stat-factures']
-      .forEach(id => setStatValue(id, '—'));
+      .forEach(id => setStatValue(id, '-'));
   }
 }
 
 function setStatValue(id, valeur) {
   const el = document.getElementById(id);
-  if (el) el.textContent = valeur ?? '—';
+  if (el) el.textContent = valeur ?? '-';
 }
 
 async function chargerUsers() {
@@ -169,7 +169,7 @@ function renderActivite(container, users) {
     const initials = (prenom.charAt(0) + nom.charAt(0)).toUpperCase() || 'UC';
     const date     = u.date_inscription
       ? new Date(u.date_inscription).toLocaleDateString(locale, { day:'2-digit', month:'short' })
-      : '—';
+      : '-';
     return `
       <div class="activity-item">
         <div class="activity-avatar">${initials}</div>

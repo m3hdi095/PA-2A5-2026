@@ -41,7 +41,7 @@
       </div>
       <div style="text-align:center;padding:20px;background:var(--green-50);border-radius:var(--radius-lg);min-width:140px">
         <div style="font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px">Renouvellement</div>
-        <div style="font-family:Poppins,sans-serif;font-size:16px;font-weight:800;color:var(--text)">— €/mois</div>
+        <div style="font-family:Poppins,sans-serif;font-size:16px;font-weight:800;color:var(--text)">- €/mois</div>
         <div id="plan-renewal-date" style="font-size:12px;color:var(--text-muted);margin-top:4px">Plan gratuit</div>
       </div>
       <div>
@@ -301,7 +301,7 @@ async function chargerFactures() {
   tbody.innerHTML = factures.map((f, i) => `
     <tr>
       <td style="font-family:Poppins,sans-serif;font-weight:600;font-size:13px">F-${String(f.id||i+1).padStart(4,'0')}</td>
-      <td>${f.date_paiement ? new Date(f.date_paiement).toLocaleDateString(locale,{day:'numeric',month:'long',year:'numeric'}) : '—'}</td>
+      <td>${f.date_paiement ? new Date(f.date_paiement).toLocaleDateString(locale,{day:'numeric',month:'long',year:'numeric'}) : '-'}</td>
       <td><span class="badge" style="background:var(--green-50);color:var(--green-700)">Premium</span></td>
       <td style="font-weight:700;color:var(--green-700)">${(+f.montant||15).toFixed(2).replace('.',',')} €</td>
       <td><span class="badge ${STAT[f.statut]||'badge-success'}">${f.statut||'payée'}</span></td>

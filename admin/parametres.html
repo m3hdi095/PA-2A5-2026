@@ -146,7 +146,7 @@
           <div style="display:flex;align-items:flex-start;gap:10px;background:var(--neutral-50);border:1.5px solid var(--neutral-200);border-radius:var(--radius);padding:14px;margin-bottom:16px">
             <i class="fa-solid fa-circle-info" style="color:var(--uc-teal);margin-top:2px" aria-hidden="true"></i>
             <div style="font-size:13px;color:var(--neutral-600);line-height:1.5">
-              Les clés Stripe sont des <strong>secrets serveur</strong> — elles ne transitent jamais par le navigateur.<br/>
+              Les clés Stripe sont des <strong>secrets serveur</strong> : elles ne transitent jamais par le navigateur.<br/>
               Configurez-les dans le fichier <code style="background:var(--neutral-200);padding:1px 5px;border-radius:3px">api-go/.env</code> :
               <code style="display:block;margin-top:8px;padding:8px;background:var(--neutral-200);border-radius:4px;font-size:12px">STRIPE_SECRET_KEY=sk_live_...</code>
             </div>
@@ -252,7 +252,7 @@
           <div style="display:flex;align-items:flex-start;gap:10px;background:#fff8e1;border:1.5px solid #ffe082;border-radius:var(--radius);padding:14px;margin-bottom:16px">
             <i class="fa-solid fa-triangle-exclamation" style="color:#f59e0b;margin-top:2px" aria-hidden="true"></i>
             <div style="font-size:13px;color:var(--neutral-600);line-height:1.5">
-              Le secret JWT est une <strong>clé serveur confidentielle</strong> — l'afficher ici serait une faille de sécurité.<br/>
+              Le secret JWT est une <strong>clé serveur confidentielle</strong> : l'afficher ici serait une faille de sécurité.<br/>
               Modifiez-la dans <code style="background:#fff3cd;padding:1px 5px;border-radius:3px">api-go/.env</code> :
               <code style="display:block;margin-top:8px;padding:8px;background:#fff3cd;border-radius:4px;font-size:12px">JWT_SECRET=votre_secret_fort_ici</code>
             </div>

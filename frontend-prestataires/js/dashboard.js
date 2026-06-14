@@ -45,7 +45,7 @@ async function chargerStats(utilisateur) {
 
 function setStatValue(id, valeur) {
   const el = document.getElementById(id);
-  if (el) el.textContent = valeur ?? '—';
+  if (el) el.textContent = valeur ?? '-';
 }
 
 function initGrapheActivite(depots) {

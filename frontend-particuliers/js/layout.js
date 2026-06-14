@@ -123,7 +123,7 @@ function buildSidebarHTML() {
     <div class="user-avatar" id="sidebar-user-avatar">P</div>
     <div class="user-meta">
       <div class="user-name" id="sidebar-user-name">Particulier</div>
-      <div class="user-score" id="sidebar-user-score">Score : —</div>
+      <div class="user-score" id="sidebar-user-score">Score : -</div>
     </div>
     <button class="btn-logout" id="logout" data-i18n-title="nav_logout" title="${t('nav_logout')}" aria-label="${t('nav_logout')}">
       <i class="fa-solid fa-right-from-bracket" aria-hidden="true"></i>
@@ -325,7 +325,7 @@ async function initOneSignal(userID) {
 }
 
 function lancerTutoriel() {
-  // charge GSAP à la demande — uniquement à la première connexion
+  // charge GSAP à la demande, uniquement à la première connexion
   if (!window.gsap) {
     const s = document.createElement('script');
     s.src = 'https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js';

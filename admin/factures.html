@@ -44,28 +44,28 @@
   <div class="stat-card" style="--accent:var(--uc-teal);--icon-bg:var(--uc-teal-pale)">
     <div class="stat-icon"><i class="fa-solid fa-money-bill-wave" aria-hidden="true"></i></div>
     <div class="stat-info">
-      <div class="stat-value" id="stat-total">—</div>
+      <div class="stat-value" id="stat-total">-</div>
       <div class="stat-label" data-i18n="factures_stat_revenus">Revenus total</div>
     </div>
   </div>
   <div class="stat-card" style="--accent:var(--uc-teal);--icon-bg:var(--orange-100)">
     <div class="stat-icon" style="background:var(--orange-100)"><i class="fa-solid fa-user-check" style="color:var(--uc-teal)" aria-hidden="true"></i></div>
     <div class="stat-info">
-      <div class="stat-value" id="stat-abo">—</div>
+      <div class="stat-value" id="stat-abo">-</div>
       <div class="stat-label" data-i18n="factures_stat_abo">Abonnements</div>
     </div>
   </div>
   <div class="stat-card" style="--accent:#0288d1;--icon-bg:var(--info-bg)">
     <div class="stat-icon" style="background:var(--info-bg)"><i class="fa-solid fa-graduation-cap" style="color:var(--info)" aria-hidden="true"></i></div>
     <div class="stat-info">
-      <div class="stat-value" id="stat-form">—</div>
+      <div class="stat-value" id="stat-form">-</div>
       <div class="stat-label" data-i18n="factures_stat_form">Formations</div>
     </div>
   </div>
   <div class="stat-card" style="--accent:#d32f2f;--icon-bg:#ffebee">
     <div class="stat-icon" style="background:#ffebee"><i class="fa-solid fa-circle-exclamation" style="color:#d32f2f" aria-hidden="true"></i></div>
     <div class="stat-info">
-      <div class="stat-value" id="stat-impayees">—</div>
+      <div class="stat-value" id="stat-impayees">-</div>
       <div class="stat-label" data-i18n="factures_stat_impayees">Impayées</div>
     </div>
     <span class="stat-trend trend-down" id="stat-nb-impayees"></span>
@@ -199,7 +199,7 @@ function renderTable() {
   } else {
     const rows = slice.map(f => {
       const tvaMontant = (Number(f.tva) * Number(f.ht) / 100).toFixed(2).replace('.', ',') + ' €';
-      const dateStr    = f.date ? new Date(f.date).toLocaleDateString(locale) : '—';
+      const dateStr    = f.date ? new Date(f.date).toLocaleDateString(locale) : '-';
       const pdfLink    = f.pdf
         ? '<a class="btn btn-ghost btn-icon" href="' + serverBase + '/' + esc(f.pdf) + '" target="_blank" title="Télécharger PDF"><i class="fa-solid fa-download"></i></a>'
         : '';
@@ -314,7 +314,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     doc.setTextColor(255, 255, 255);
     doc.setFontSize(14);
     doc.setFont('helvetica', 'bold');
-    doc.text('UpcycleConnect — Rapport financier', 14, 13);
+    doc.text('UpcycleConnect - Rapport financier', 14, 13);
     doc.setFontSize(9);
     doc.setFont('helvetica', 'normal');
     doc.text('Généré le ' + dateNow, 270, 13, { align: 'right' });
@@ -335,7 +335,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       Number(f.ht || 0).toFixed(2) + ' €',
       (Number(f.tva || 0) * Number(f.ht || 0) / 100).toFixed(2) + ' €',
       Number(f.ttc || 0).toFixed(2) + ' €',
-      f.date ? new Date(f.date).toLocaleDateString(locale) : '—',
+      f.date ? new Date(f.date).toLocaleDateString(locale) : '-',
       statutLabel(f.statut),
     ]);
 

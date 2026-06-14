@@ -33,28 +33,28 @@
   <div class="stat-card" style="--accent:var(--green-700);--icon-bg:var(--green-50)">
     <div class="stat-icon"><i class="fa-solid fa-hand-holding-box"></i></div>
     <div class="stat-info">
-      <div class="stat-value" id="stat-recup">—</div>
+      <div class="stat-value" id="stat-recup">-</div>
       <div class="stat-label" data-i18n="stat_recup_totales">Récupérations totales</div>
     </div>
   </div>
   <div class="stat-card" style="--accent:#3d7a60;--icon-bg:#e8f5ee">
     <div class="stat-icon" style="background:#e8f5ee;color:#3d7a60"><i class="fa-solid fa-leaf"></i></div>
     <div class="stat-info">
-      <div class="stat-value" id="stat-kg">—</div>
+      <div class="stat-value" id="stat-kg">-</div>
       <div class="stat-label" data-i18n="stat_materiaux_valorises">Kg recyclés</div>
     </div>
   </div>
   <div class="stat-card" style="--accent:#1e4535;--icon-bg:#d4eee3">
     <div class="stat-icon" style="background:#d4eee3;color:#1e4535"><i class="fa-solid fa-cloud"></i></div>
     <div class="stat-info">
-      <div class="stat-value" id="stat-co2">—</div>
+      <div class="stat-value" id="stat-co2">-</div>
       <div class="stat-label" data-i18n="stat_co2_economise">CO₂ économisé (est.)</div>
     </div>
   </div>
   <div class="stat-card" style="--accent:#6BA870;--icon-bg:var(--green-100)">
     <div class="stat-icon" style="background:var(--green-100);color:#6BA870"><i class="fa-solid fa-diagram-project"></i></div>
     <div class="stat-info">
-      <div class="stat-value" id="stat-projets">—</div>
+      <div class="stat-value" id="stat-projets">-</div>
       <div class="stat-label" data-i18n="stat_projets_termines">Projets terminés</div>
     </div>
   </div>
@@ -208,7 +208,7 @@ async function chargerStats() {
   tbody.innerHTML = depots.map(d => {
     const date = d.date_demande
       ? new Date(d.date_demande).toLocaleDateString(locale, { day:'numeric', month:'short', year:'numeric' })
-      : '—';
+      : '-';
     return `
       <tr>
         <td style="color:var(--text-muted);font-size:12px">${date}</td>

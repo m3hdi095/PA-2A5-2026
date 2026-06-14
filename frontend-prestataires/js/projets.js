@@ -276,7 +276,7 @@ async function chargerGalerie() {
         <div style="height:4px;background:var(--teal-500);border-radius:var(--radius-lg) var(--radius-lg) 0 0"></div>
         <div class="card-body" style="padding:16px">
           <h4 style="font-size:14px;font-weight:700;color:var(--text);margin-bottom:8px">${escPro(p.titre)}</h4>
-          <p style="font-size:12.5px;color:var(--text-soft);line-height:1.55;margin-bottom:12px">${escPro((p.description||'').slice(0,150))}${(p.description||'').length>150?'…':''}</p>
+          <p style="font-size:12.5px;color:var(--text-soft);line-height:1.55;margin-bottom:12px">${escPro((p.description||'').slice(0,150))}${(p.description||'').length>150?'...':''}</p>
           <div style="display:flex;justify-content:space-between;font-size:11.5px;color:var(--text-muted)">
             <span><i class="fa-solid fa-leaf"></i> ${p.score_impact||0} pts</span>
             <span><i class="fa-solid fa-recycle"></i> ${p.kg_dechets_evites||0} kg</span>

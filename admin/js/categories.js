@@ -7,9 +7,9 @@ let page       = 1;
 const perPage  = 8;
 
 function getParentName(parentId) {
-  if (!parentId) return '—';
+  if (!parentId) return '-';
   const p = categories.find(c => c.id === parentId);
-  return p ? p.nom : '—';
+  return p ? p.nom : '-';
 }
 
 function renderTable() {

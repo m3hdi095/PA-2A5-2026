@@ -436,7 +436,7 @@ async function chargerHistorique() {
         const locale = _lang === 'en' ? 'en-GB' : 'fr-FR';
         historiqueData = data.map(n => ({
           ...n,
-          date: n.date ? new Date(n.date).toLocaleDateString(locale, { day: '2-digit', month: 'short', year: 'numeric' }) : '—',
+          date: n.date ? new Date(n.date).toLocaleDateString(locale, { day: '2-digit', month: 'short', year: 'numeric' }) : '-',
         }));
       }
     }

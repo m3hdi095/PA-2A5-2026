@@ -139,7 +139,7 @@ function renderGrid() {
       : `<span class="badge badge-vente">${t('annonce_type_vente')}</span>`;
     const prixAff   = a.prix === 0 ? t('annonce_gratuit') : `${a.prix} €`;
     const locale    = _lang === 'en' ? 'en-GB' : 'fr-FR';
-    const dateAff   = a.date_publication ? new Date(a.date_publication).toLocaleDateString(locale, { day:'2-digit', month:'short' }) : '—';
+    const dateAff   = a.date_publication ? new Date(a.date_publication).toLocaleDateString(locale, { day:'2-digit', month:'short' }) : '-';
     const isFavori  = favorisIDs.has(a.id);
     const msgBadge  = a.nb_messages > 0 ? `<span style="font-size:11px;color:var(--text-muted)"><i class="fa-regular fa-comment" aria-hidden="true"></i> ${a.nb_messages}</span>` : '';
 
@@ -216,7 +216,7 @@ window.ouvrirDetail = (id) => {
     ? `<span class="badge badge-green">${t('annonce_gratuit')}</span>`
     : `<strong style="color:var(--green-700);font-family:Poppins,sans-serif;font-size:20px;font-weight:800">${annonce.prix} €</strong>`;
   const locale  = _lang === 'en' ? 'en-GB' : 'fr-FR';
-  const dateAff = annonce.date_publication ? new Date(annonce.date_publication).toLocaleDateString(locale, { day:'2-digit', month:'short', year:'numeric' }) : '—';
+  const dateAff = annonce.date_publication ? new Date(annonce.date_publication).toLocaleDateString(locale, { day:'2-digit', month:'short', year:'numeric' }) : '-';
   const isFav   = favorisIDs.has(annonce.id);
 
   document.getElementById('detail-title').innerHTML = `
@@ -233,11 +233,11 @@ window.ouvrirDetail = (id) => {
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px">
       <div style="background:var(--green-25,#f0fdf4);border-radius:8px;padding:14px">
         <div style="font-size:10px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px">Proposé par</div>
-        <div style="font-weight:600;font-size:13px"><i class="fa-regular fa-user" style="color:var(--green-600)"></i> ${escPro(annonce.auteur?.trim() || '—')}</div>
+        <div style="font-weight:600;font-size:13px"><i class="fa-regular fa-user" style="color:var(--green-600)"></i> ${escPro(annonce.auteur?.trim() || '-')}</div>
       </div>
       <div style="background:var(--green-25,#f0fdf4);border-radius:8px;padding:14px">
         <div style="font-size:10px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px">Localisation</div>
-        <div style="font-weight:600;font-size:13px"><i class="fa-solid fa-location-dot" style="color:var(--green-600)"></i> ${escPro(annonce.localisation || '—')}</div>
+        <div style="font-weight:600;font-size:13px"><i class="fa-solid fa-location-dot" style="color:var(--green-600)"></i> ${escPro(annonce.localisation || '-')}</div>
       </div>
       <div style="background:var(--green-25,#f0fdf4);border-radius:8px;padding:14px">
         <div style="font-size:10px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px">Publiée le</div>
@@ -313,7 +313,7 @@ window.ouvrirConversation = async (id) => {
   if (!modal) return;
 
   document.getElementById('msg-annonce-titre').textContent = annonce ? annonce.titre : `Annonce #${id}`;
-  document.getElementById('msg-thread').innerHTML = `<p style="color:var(--text-muted);text-align:center;padding:20px">Chargement…</p>`;
+  document.getElementById('msg-thread').innerHTML = `<p style="color:var(--text-muted);text-align:center;padding:20px">Chargement...</p>`;
   modal.classList.add('open');
 
   await chargerMessages(id);
@@ -340,7 +340,7 @@ function renderThread(msgs) {
     const date = m.date_envoi ? new Date(m.date_envoi).toLocaleString(locale, { day:'2-digit', month:'short', hour:'2-digit', minute:'2-digit' }) : '';
     return `
       <div class="msg-bubble ${m.is_mine ? 'msg-mine' : 'msg-other'}">
-        ${!m.is_mine ? `<div class="msg-author">${escPro(m.expediteur?.trim() || '—')}</div>` : ''}
+        ${!m.is_mine ? `<div class="msg-author">${escPro(m.expediteur?.trim() || '-')}</div>` : ''}
         <div class="msg-text">${escPro(m.contenu)}</div>
         <div class="msg-date">${date}</div>
       </div>`;

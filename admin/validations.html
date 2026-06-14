@@ -250,7 +250,7 @@ async function loadDepotsFromAPI() {
         type:   'conteneur',
         auteur,
         date:   d.date_demande || new Date().toISOString(),
-        desc:   `Objet #${d.id_objet} · Code ouverture : ${d.code_ouverture || '—'} · Code retrait : ${d.code_barre_retrait || '—'}`,
+        desc:   `Objet #${d.id_objet} · Code ouverture : ${d.code_ouverture || '-'} · Code retrait : ${d.code_barre_retrait || '-'}`,
       };
     });
   } catch {}
@@ -272,7 +272,7 @@ async function loadFormationsFromAPI() {
         type:   'formation',
         auteur,
         date:   e.date_debut || new Date().toISOString(),
-        desc:   `${e.description || ''} · ${e.nb_places || 0} places · Lieu : ${e.lieu || '—'} · Tarif : ${e.tarif || 0} €`,
+        desc:   `${e.description || ''} · ${e.nb_places || 0} places · Lieu : ${e.lieu || '-'} · Tarif : ${e.tarif || 0} €`,
       };
     });
   } catch {}

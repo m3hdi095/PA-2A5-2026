@@ -39,7 +39,7 @@
           <i class="fa-regular fa-heart"></i> <span id="mc-nb-likes">0</span> j'aime
         </button>
         <span style="font-size:12px;color:var(--text-muted)">
-          <i class="fa-solid fa-eye"></i> <span id="mc-nb-vues">—</span> vues
+          <i class="fa-solid fa-eye"></i> <span id="mc-nb-vues">-</span> vues
         </span>
       </div>
 
@@ -51,7 +51,7 @@
 
       <!-- Formulaire nouveau commentaire -->
       <form id="form-commentaire" style="display:flex;flex-direction:column;gap:8px">
-        <textarea id="comment-input" class="form-control" rows="3" placeholder="Laisser un commentaire… (soumis à modération)" style="resize:vertical"></textarea>
+        <textarea id="comment-input" class="form-control" rows="3" placeholder="Laisser un commentaire... (soumis à modération)" style="resize:vertical"></textarea>
         <button type="submit" class="btn btn-primary btn-sm" style="align-self:flex-end">
           <i class="fa-solid fa-paper-plane"></i> Envoyer
         </button>
@@ -75,9 +75,9 @@ function rendreCarte(c, i) {
       <div style="height:4px;background:var(--teal-500);border-radius:var(--radius-lg) var(--radius-lg) 0 0"></div>
       <div class="card-body" style="padding:20px">
         <h3 style="font-family:var(--font-heading);font-size:14.5px;font-weight:700;color:var(--text);line-height:1.3;margin-bottom:10px">${esc(c.titre)}</h3>
-        <p style="font-size:12.5px;color:var(--text-soft);line-height:1.55;margin-bottom:16px">${esc((c.contenu||'').slice(0,200))}${(c.contenu||'').length>200?'…':''}</p>
+        <p style="font-size:12.5px;color:var(--text-soft);line-height:1.55;margin-bottom:16px">${esc((c.contenu||'').slice(0,200))}${(c.contenu||'').length>200?'...':''}</p>
         <div style="display:flex;align-items:center;justify-content:space-between;padding-top:12px;border-top:1px solid var(--border)">
-          <div style="font-size:11px;color:var(--text-muted)">${c.date_publication ? new Date(c.date_publication).toLocaleDateString('fr-FR',{day:'numeric',month:'short',year:'numeric'}) : '—'}</div>
+          <div style="font-size:11px;color:var(--text-muted)">${c.date_publication ? new Date(c.date_publication).toLocaleDateString('fr-FR',{day:'numeric',month:'short',year:'numeric'}) : '-'}</div>
           <div style="display:flex;gap:12px;font-size:12px;color:var(--text-muted)">
             <span><i class="fa-regular fa-heart"></i> ${c.nb_likes||0}</span>
             <span><i class="fa-solid fa-eye"></i> ${c.nb_vues||0}</span>
@@ -112,7 +112,7 @@ window.ouvrirConseil = async (id) => {
   document.getElementById('mc-contenu').innerHTML = esc(c.contenu || '').replace(/\n/g, '<br>');
   document.getElementById('mc-nb-likes').textContent = c.nb_likes || 0;
   document.getElementById('mc-nb-vues').textContent = c.nb_vues || 0;
-  document.getElementById('mc-commentaires').innerHTML = '<p style="color:var(--text-muted);font-size:13px">Chargement…</p>';
+  document.getElementById('mc-commentaires').innerHTML = '<p style="color:var(--text-muted);font-size:13px">Chargement...</p>';
   document.getElementById('mc-like-btn').classList.remove('btn-primary');
   document.getElementById('mc-like-btn').classList.add('btn-outline');
   document.getElementById('modal-conseil').classList.add('open');

@@ -229,7 +229,7 @@ async function chargerNotifications() {
   tbody.innerHTML = notifs.map(n => {
     const date = n.date_envoi
       ? new Date(n.date_envoi).toLocaleDateString(locale, { day:'2-digit', month:'short', year:'numeric' })
-      : '—';
+      : '-';
     return `
       <tr style="${!n.lu ? 'background:var(--green-25);' : ''}">
         <td style="color:var(--text-muted);font-size:12px">${date}</td>
@@ -238,7 +238,7 @@ async function chargerNotifications() {
           ${esc(n.titre)}
         </td>
         <td style="font-size:12.5px;color:var(--text-soft)">${esc(n.contenu || '')}</td>
-        <td><span class="badge badge-gray">${esc(n.type || '—')}</span></td>
+        <td><span class="badge badge-gray">${esc(n.type || '-')}</span></td>
         <td>
           ${!n.lu
             ? `<button class="btn btn-ghost btn-sm" onclick="marquerLue(${n.id})">Marquer lu</button>`

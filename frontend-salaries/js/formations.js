@@ -33,7 +33,7 @@ function renderTable() {
     const pct       = places > 0 ? Math.round(inscrits / places * 100) : 0;
     const full      = inscrits >= places && places > 0;
     const dateRaw   = f.date_debut || f.date || '';
-    const dateAff   = dateRaw ? new Date(dateRaw).toLocaleDateString(_lang === 'en' ? 'en-GB' : 'fr-FR',{day:'numeric',month:'short',year:'numeric'}) : '—';
+    const dateAff   = dateRaw ? new Date(dateRaw).toLocaleDateString(_lang === 'en' ? 'en-GB' : 'fr-FR',{day:'numeric',month:'short',year:'numeric'}) : '-';
     const statBadge = f.statut === 'valide'
       ? `<span class="badge badge-success">${t('sal_badge_ouvert')}</span>`
       : f.statut === 'annule'

@@ -32,28 +32,28 @@
   <div class="stat-card" style="--accent:var(--green-700);--icon-bg:var(--green-50)">
     <div class="stat-icon-wrap"><i class="fa-solid fa-graduation-cap"></i></div>
     <div class="stat-info">
-      <div class="stat-value" id="stat-formations">—</div>
+      <div class="stat-value" id="stat-formations">-</div>
       <div class="stat-label" data-i18n="sal_stat_formations">Formations actives</div>
     </div>
   </div>
   <div class="stat-card" style="--accent:#e8a020;--icon-bg:#fef3e2">
     <div class="stat-icon-wrap" style="background:#fef3e2;color:#e8a020"><i class="fa-solid fa-shield-halved"></i></div>
     <div class="stat-info">
-      <div class="stat-value" id="stat-moderation">—</div>
+      <div class="stat-value" id="stat-moderation">-</div>
       <div class="stat-label" data-i18n="sal_stat_moderation">Messages à modérer</div>
     </div>
   </div>
   <div class="stat-card" style="--accent:#2e8b57;--icon-bg:#d4eee3">
     <div class="stat-icon-wrap" style="background:#d4eee3;color:#2e8b57"><i class="fa-solid fa-lightbulb"></i></div>
     <div class="stat-info">
-      <div class="stat-value" id="stat-conseils">—</div>
+      <div class="stat-value" id="stat-conseils">-</div>
       <div class="stat-label" data-i18n="sal_stat_conseils">Conseils publiés</div>
     </div>
   </div>
   <div class="stat-card" style="--accent:#5C7C6E;--icon-bg:var(--green-50)">
     <div class="stat-icon-wrap"><i class="fa-solid fa-users"></i></div>
     <div class="stat-info">
-      <div class="stat-value" id="stat-participants">—</div>
+      <div class="stat-value" id="stat-participants">-</div>
       <div class="stat-label" data-i18n="sal_stat_participants">Participants ce mois</div>
     </div>
   </div>
@@ -88,7 +88,7 @@
 <script>
 function setStat(id, val) {
   const el = document.getElementById(id);
-  if (el) el.textContent = val ?? '—';
+  if (el) el.textContent = val ?? '-';
 }
 
 document.addEventListener('DOMContentLoaded', async () => {
