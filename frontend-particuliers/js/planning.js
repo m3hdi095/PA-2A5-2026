@@ -11,6 +11,10 @@ const TYPE_CONF = {
   rappel:     { badge: 'badge-warning',   icone: 'fa-bell',                label: 'Rappel'    },
 };
 
+let _allItems = [];
+let _fcCalendar = null;
+let _vueActive = 'liste';
+
 document.addEventListener('DOMContentLoaded', async () => {
   await initLayout('planning');
   await chargerPlanning();
@@ -19,7 +23,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 async function chargerPlanning() {
   const container = document.getElementById('planning-container');
   if (!container) return;
-  container.innerHTML = `<p style="color:var(--text-muted);text-align:center">Chargement…</p>`;
+  container.innerHTML = `<p style="color:var(--text-muted);text-align:center">Chargement...</p>`;
 
   try {
     // on fusionne les inscriptions événements avec les entrées planning perso
@@ -68,6 +72,7 @@ async function chargerPlanning() {
     });
 
     const maintenant = new Date();
+    _allItems = items;
     const itemsFuturs = items.filter(i => i.dateHeure >= maintenant);
 
     if (!itemsFuturs.length) {
@@ -75,56 +80,127 @@ async function chargerPlanning() {
       return;
     }
 
-    // Trier par date et grouper par mois
-    itemsFuturs.sort((a, b) => a.dateHeure - b.dateHeure);
-    const grouped = {};
-    itemsFuturs.forEach(e => {
-      const d = e.dateHeure;
-      const key = `${d.getFullYear()}-${d.getMonth()}`;
-      if (!grouped[key]) grouped[key] = { label: `${MOIS[d.getMonth()]} ${d.getFullYear()}`, events: [] };
-      grouped[key].events.push(e);
-    });
-
-    container.innerHTML = Object.entries(grouped).map(([, group]) => `
-      <div style="margin-bottom:24px">
-        <div style="font-family:Poppins,sans-serif;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text-muted);padding:8px 0 10px">${group.label}</div>
-        <div style="display:flex;flex-direction:column;gap:10px">
-          ${group.events.map((e, i) => {
-            const d    = e.dateHeure;
-            const conf = TYPE_CONF[e.type] || TYPE_CONF.evenement;
-            const locale = _lang === 'en' ? 'en-GB' : 'fr-FR';
-            const heure = d.toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' });
-            return `
-              <div class="planning-item animate-in" style="animation-delay:${i * .06}s">
-                <div class="planning-date">
-                  <div class="day">${d.getDate()}</div>
-                  <div class="month">${MOIS[d.getMonth()]}</div>
-                </div>
-                <div class="planning-sep"></div>
-                <div class="planning-info" style="flex:1">
-                  <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
-                    <div class="planning-title">${esc(e.titre)}</div>
-                    ${e.inscrit ? '<span class="badge badge-green"><i class="fa-solid fa-circle-check"></i> Inscrit</span>' : ''}
-                  </div>
-                  ${e.lieu ? `<div class="planning-lieu"><i class="fa-solid fa-location-dot" aria-hidden="true"></i> ${esc(e.lieu)} &nbsp;·&nbsp; <i class="fa-solid fa-clock" aria-hidden="true"></i> ${heure}</div>` : `<div class="planning-lieu"><i class="fa-solid fa-clock" aria-hidden="true"></i> ${heure}</div>`}
-                </div>
-                <div style="display:flex;gap:8px;align-items:center">
-                  <span class="badge ${conf.badge}"><i class="fa-solid ${conf.icone}" aria-hidden="true"></i> ${conf.label}</span>
-                  ${e.personnel
-                    ? `<button class="btn btn-ghost btn-sm" onclick="supprimerEntree(${e.id})" style="color:var(--danger-text)"><i class="fa-solid fa-trash"></i></button>`
-                    : e.inscrit
-                      ? `<button class="btn btn-ghost btn-sm" onclick="seDesinscrire(${e.idEvenement})" style="color:var(--danger-text)">Se désinscrire</button>`
-                      : `<button class="btn btn-outline btn-sm" onclick="sInscrire(${e.idEvenement})">S'inscrire</button>`
-                  }
-                </div>
-              </div>`;
-          }).join('')}
-        </div>
-      </div>`).join('');
+    renderListeView(itemsFuturs);
   } catch (err) {
-    container.innerHTML = `<p style="color:var(--danger-text);text-align:center">Impossible de charger le planning. Vérifiez votre connexion.</p>`;
+    const container = document.getElementById('planning-container');
+    if (container) container.innerHTML = `<p style="color:var(--danger-text);text-align:center">Impossible de charger le planning. Vérifiez votre connexion.</p>`;
   }
 }
+
+function renderListeView(itemsFuturs) {
+  const container = document.getElementById('planning-container');
+  if (!container) return;
+
+  itemsFuturs.sort((a, b) => a.dateHeure - b.dateHeure);
+  const grouped = {};
+  itemsFuturs.forEach(e => {
+    const d = e.dateHeure;
+    const key = `${d.getFullYear()}-${d.getMonth()}`;
+    if (!grouped[key]) grouped[key] = { label: `${MOIS[d.getMonth()]} ${d.getFullYear()}`, events: [] };
+    grouped[key].events.push(e);
+  });
+
+  container.innerHTML = Object.entries(grouped).map(([, group]) => `
+    <div style="margin-bottom:24px">
+      <div style="font-family:Poppins,sans-serif;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text-muted);padding:8px 0 10px">${group.label}</div>
+      <div style="display:flex;flex-direction:column;gap:10px">
+        ${group.events.map((e, i) => {
+          const d    = e.dateHeure;
+          const conf = TYPE_CONF[e.type] || TYPE_CONF.evenement;
+          const locale = _lang === 'en' ? 'en-GB' : 'fr-FR';
+          const heure = d.toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' });
+          return `
+            <div class="planning-item animate-in" style="animation-delay:${i * .06}s">
+              <div class="planning-date">
+                <div class="day">${d.getDate()}</div>
+                <div class="month">${MOIS[d.getMonth()]}</div>
+              </div>
+              <div class="planning-sep"></div>
+              <div class="planning-info" style="flex:1">
+                <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+                  <div class="planning-title">${esc(e.titre)}</div>
+                  ${e.inscrit ? '<span class="badge badge-green"><i class="fa-solid fa-circle-check"></i> Inscrit</span>' : ''}
+                </div>
+                ${e.lieu ? `<div class="planning-lieu"><i class="fa-solid fa-location-dot" aria-hidden="true"></i> ${esc(e.lieu)} &nbsp;·&nbsp; <i class="fa-solid fa-clock" aria-hidden="true"></i> ${heure}</div>` : `<div class="planning-lieu"><i class="fa-solid fa-clock" aria-hidden="true"></i> ${heure}</div>`}
+              </div>
+              <div style="display:flex;gap:8px;align-items:center">
+                <span class="badge ${conf.badge}"><i class="fa-solid ${conf.icone}" aria-hidden="true"></i> ${conf.label}</span>
+                ${e.personnel
+                  ? `<button class="btn btn-ghost btn-sm" onclick="supprimerEntree(${e.id})" style="color:var(--danger-text)"><i class="fa-solid fa-trash"></i></button>`
+                  : e.inscrit
+                    ? `<button class="btn btn-ghost btn-sm" onclick="seDesinscrire(${e.idEvenement})" style="color:var(--danger-text)">Se désinscrire</button>`
+                    : `<button class="btn btn-outline btn-sm" onclick="sInscrire(${e.idEvenement})">S'inscrire</button>`
+                }
+              </div>
+            </div>`;
+        }).join('')}
+      </div>
+    </div>`).join('');
+}
+
+window.basculerVue = function(vue) {
+  _vueActive = vue;
+  const listeWrap = document.getElementById('planning-container');
+  const calWrap   = document.getElementById('fc-wrap');
+  const btnListe  = document.getElementById('btn-vue-liste');
+  const btnCal    = document.getElementById('btn-vue-cal');
+
+  if (vue === 'calendrier') {
+    listeWrap.style.display = 'none';
+    calWrap.style.display   = 'block';
+    btnListe.classList.remove('active');
+    btnCal.classList.add('active');
+    initFullCalendar();
+  } else {
+    listeWrap.style.display = 'block';
+    calWrap.style.display   = 'none';
+    btnListe.classList.add('active');
+    btnCal.classList.remove('active');
+  }
+};
+
+function initFullCalendar() {
+  if (_fcCalendar) {
+    _fcCalendar.render();
+    return;
+  }
+  const el = document.getElementById('fullcalendar');
+  if (!el || typeof FullCalendar === 'undefined') return;
+
+  const fcEvents = _allItems.map(item => ({
+    id:        String(item.id),
+    title:     item.titre,
+    start:     item.dateHeure.toISOString(),
+    className: item.inscrit ? 'fc-event-inscrit' : 'fc-event-autre',
+    extendedProps: { item },
+  }));
+
+  _fcCalendar = new FullCalendar.Calendar(el, {
+    locale:          _lang === 'en' ? 'en' : 'fr',
+    initialView:     'dayGridMonth',
+    headerToolbar:   { left: 'prev,next today', center: 'title', right: '' },
+    height:          'auto',
+    events:          fcEvents,
+    eventClick: function(info) {
+      const item = info.event.extendedProps.item;
+      if (!item) return;
+      const d    = item.dateHeure;
+      const locale = _lang === 'en' ? 'en-GB' : 'fr-FR';
+      const dateStr = d.toLocaleDateString(locale, { weekday:'long', day:'numeric', month:'long', year:'numeric', hour:'2-digit', minute:'2-digit' });
+      const conf = TYPE_CONF[item.type] || TYPE_CONF.evenement;
+      alert(`${item.titre}\n${dateStr}${item.lieu ? '\n📍 ' + item.lieu : ''}\n[${conf.label}]`);
+    },
+  });
+  _fcCalendar.render();
+}
+
+window.changerVueFC = function(view) {
+  if (!_fcCalendar) return;
+  _fcCalendar.changeView(view);
+  ['fc-month','fc-week','fc-day'].forEach(id => document.getElementById(id)?.classList.remove('active'));
+  const map = { dayGridMonth: 'fc-month', timeGridWeek: 'fc-week', timeGridDay: 'fc-day' };
+  document.getElementById(map[view])?.classList.add('active');
+};
 
 async function chargerEvenements() {
   try {
