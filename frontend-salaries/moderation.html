@@ -39,6 +39,19 @@
   <div class="card-body" style="display:flex;flex-direction:column;gap:0;padding:0" id="messages-list"></div>
 </div>
 
+<!-- Commentaires conseils en attente -->
+<div class="card animate-in" style="margin-top:16px">
+  <div class="card-header">
+    <h2><i class="fa-solid fa-comments"></i> Commentaires articles en attente</h2>
+    <span class="badge badge-warning" id="badge-commentaires" style="display:none"></span>
+  </div>
+  <div class="card-body" style="display:flex;flex-direction:column;gap:0;padding:0" id="commentaires-list">
+    <div style="text-align:center;padding:40px;color:var(--text-muted)">
+      <i class="fa-solid fa-spinner fa-spin" style="font-size:24px;color:var(--green-300)"></i>
+    </div>
+  </div>
+</div>
+
 <script src="js/layout.js"></script>
 <script src="js/moderation.js"></script>
 </body>

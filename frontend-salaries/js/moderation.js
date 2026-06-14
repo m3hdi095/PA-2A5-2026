@@ -109,6 +109,60 @@ window.supprimerSignalement = async (id) => {
 
 function esc(s) { return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 
+let commentairesEnAttente = [];
+
+function renderCommentaires() {
+  const container = document.getElementById('commentaires-list');
+  if (!container) return;
+  const badge = document.getElementById('badge-commentaires');
+
+  if (!commentairesEnAttente.length) {
+    container.innerHTML = `<div style="text-align:center;padding:30px;color:var(--text-muted)">Aucun commentaire en attente.</div>`;
+    if (badge) badge.style.display = 'none';
+    return;
+  }
+
+  if (badge) {
+    badge.style.display = '';
+    badge.textContent = commentairesEnAttente.length + ' en attente';
+  }
+
+  container.innerHTML = commentairesEnAttente.map((c, i) => `
+    <div class="activity-item" style="${i === commentairesEnAttente.length - 1 ? 'border-bottom:none' : ''}" id="cmt-${c.id}">
+      <div class="activity-icon" style="background:var(--teal-50);color:var(--teal-600)">
+        <i class="fa-solid fa-comment"></i>
+      </div>
+      <div class="activity-text" style="flex:1">
+        <strong>${esc(c.auteur)}</strong> sur l'article #${c.id_conseil}<br>
+        <span style="font-size:12.5px;color:var(--text-soft)">"${esc((c.contenu||'').slice(0,200))}"</span>
+      </div>
+      <div class="cell-actions">
+        <button class="btn btn-success btn-sm" onclick="modererCommentaire(${c.id},'approuve')">
+          <i class="fa-solid fa-check"></i> Approuver
+        </button>
+        <button class="btn btn-danger btn-sm" onclick="modererCommentaire(${c.id},'refuse')">
+          <i class="fa-solid fa-xmark"></i> Refuser
+        </button>
+      </div>
+    </div>`).join('');
+}
+
+window.modererCommentaire = async (id, decision) => {
+  try {
+    const res = await apiFetch(`/commentaires/${id}/moderer`, {
+      method: 'PUT',
+      body: JSON.stringify({ decision }),
+    });
+    if (res?.ok) {
+      commentairesEnAttente = commentairesEnAttente.filter(c => c.id !== id);
+      renderCommentaires();
+      showToast(decision === 'approuve' ? 'Commentaire approuvé' : 'Commentaire refusé', decision === 'approuve' ? 'success' : 'warning');
+      return;
+    }
+    showToast('Erreur', 'error');
+  } catch { showToast('Service indisponible', 'error'); }
+};
+
 document.addEventListener('DOMContentLoaded', async () => {
   await initLayout('moderation');
 
@@ -119,8 +173,12 @@ document.addEventListener('DOMContentLoaded', async () => {
     apiFetch('/forum?limit=4').then(async res => {
       if (res?.ok) { const d = await res.json(); if (Array.isArray(d)) messagesRecents = d; }
     }).catch(() => {}),
+    apiFetch('/commentaires/en-attente').then(async res => {
+      if (res?.ok) { const d = await res.json(); if (Array.isArray(d)) commentairesEnAttente = d; }
+    }).catch(() => {}),
   ]);
 
   renderSignalements();
   renderMessages();
+  renderCommentaires();
 });

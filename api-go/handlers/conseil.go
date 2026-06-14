@@ -108,6 +108,30 @@ func DeleteConseil(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(map[string]string{"status": "ok"})
 }
 
+// incrémenter les vues d'un article (appelé à chaque ouverture du détail)
+func VueConseil(w http.ResponseWriter, r *http.Request) {
+	id, err := strconv.ParseUint(r.PathValue("id"), 10, 32)
+	if err != nil {
+		http.Error(w, `{"error":"ID invalide"}`, http.StatusBadRequest)
+		return
+	}
+	conseilService.IncrVues(uint(id))
+	w.WriteHeader(http.StatusNoContent)
+}
+
+// toggle like sur un article (un utilisateur ne peut liker qu'une fois)
+func LikeConseil(w http.ResponseWriter, r *http.Request) {
+	userID := r.Context().Value(middleware.ContextUserID).(uint)
+	id, err := strconv.ParseUint(r.PathValue("id"), 10, 32)
+	if err != nil {
+		http.Error(w, `{"error":"ID invalide"}`, http.StatusBadRequest)
+		return
+	}
+	liked, nbLikes := conseilService.ToggleLike(uint(id), userID)
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]interface{}{"liked": liked, "nb_likes": nbLikes})
+}
+
 // admin valide ou refuse un article, decision = 'publie' ou 'refuse'
 func ValiderConseil(w http.ResponseWriter, r *http.Request) {
 	role := r.Context().Value(middleware.ContextRole).(string)

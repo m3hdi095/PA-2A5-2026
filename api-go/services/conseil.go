@@ -114,6 +114,30 @@ func (s *ConseilService) Valider(articleID uint, decision string, adminID uint) 
 	return err
 }
 
+func (s *ConseilService) IncrVues(conseilID uint) {
+	database.DB.Exec(`UPDATE conseil SET nb_vues = nb_vues + 1 WHERE id_conseil = ?`, conseilID)
+}
+
+func (s *ConseilService) ToggleLike(conseilID, userID uint) (liked bool, nbLikes int) {
+	var exists int
+	database.DB.QueryRow(
+		`SELECT COUNT(*) FROM like_conseil WHERE id_conseil = ? AND id_utilisateur = ?`,
+		conseilID, userID,
+	).Scan(&exists)
+
+	if exists > 0 {
+		database.DB.Exec(`DELETE FROM like_conseil WHERE id_conseil = ? AND id_utilisateur = ?`, conseilID, userID)
+		database.DB.Exec(`UPDATE conseil SET nb_likes = GREATEST(0, nb_likes - 1) WHERE id_conseil = ?`, conseilID)
+		liked = false
+	} else {
+		database.DB.Exec(`INSERT INTO like_conseil (id_conseil, id_utilisateur) VALUES (?, ?)`, conseilID, userID)
+		database.DB.Exec(`UPDATE conseil SET nb_likes = nb_likes + 1 WHERE id_conseil = ?`, conseilID)
+		liked = true
+	}
+	database.DB.QueryRow(`SELECT nb_likes FROM conseil WHERE id_conseil = ?`, conseilID).Scan(&nbLikes)
+	return
+}
+
 func (s *ConseilService) Delete(conseilID, salarieID uint) error {
 	var ownerID uint
 	err := database.DB.QueryRow(
