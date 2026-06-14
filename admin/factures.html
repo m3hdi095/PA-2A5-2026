@@ -168,143 +168,13 @@
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
 <script src="js/layout.js" data-page="factures"></script>
+<script src="js/factures.js"></script>
+<script src="js/factures-pdf.js"></script>
 <script>
-let allFactures = [];
-let filtered    = [];
-let page        = 1;
-const perPage   = 7;
-
-const STAT_COLORS = { payee:'badge-green', en_attente:'badge-orange', annulee:'badge-red' };
-
-function typeLabel(type) {
-  const keys = { abonnement:'factures_type_abo', transaction:'factures_type_comm', evenement:'factures_type_form', publicite:'factures_type_pub' };
-  return t(keys[type] || 'factures_type_comm');
-}
-function statutLabel(statut) {
-  const keys = { payee:'factures_statut_paye', en_attente:'factures_statut_attente', annulee:'factures_statut_impaye' };
-  return t(keys[statut] || 'factures_statut_attente');
-}
-
-function fmt(n) { return Number(n || 0).toFixed(2).replace('.', ',') + ' €'; }
-function esc(s) { return String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
-
-function renderTable() {
-  const tbody  = document.getElementById('facturesBody');
-  const start  = (page - 1) * perPage;
-  const slice  = filtered.slice(start, start + perPage);
-  const locale = typeof _lang !== 'undefined' && _lang === 'en' ? 'en-GB' : 'fr-FR';
-
-  if (!slice.length) {
-    tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;padding:40px;color:var(--neutral-400)">Aucune facture</td></tr>';
-  } else {
-    const rows = slice.map(f => {
-      const tvaMontant = (Number(f.tva) * Number(f.ht) / 100).toFixed(2).replace('.', ',') + ' €';
-      const dateStr    = f.date ? new Date(f.date).toLocaleDateString(locale) : '-';
-      const pdfLink    = f.pdf
-        ? '<a class="btn btn-ghost btn-icon" href="' + serverBase + '/' + esc(f.pdf) + '" target="_blank" title="Télécharger PDF"><i class="fa-solid fa-download"></i></a>'
-        : '';
-      return '<tr>'
-        + '<td><span style="font-family:Poppins,sans-serif;font-weight:600;font-size:13px;color:var(--neutral-900)">' + esc(f.num) + '</span></td>'
-        + '<td class="td-primary">' + esc(f.client) + '</td>'
-        + '<td><span class="badge badge-gray">' + typeLabel(f.type) + '</span></td>'
-        + '<td style="color:var(--neutral-600)">' + fmt(f.ht) + '</td>'
-        + '<td style="color:var(--neutral-400)">' + tvaMontant + '</td>'
-        + '<td style="font-weight:700;color:var(--uc-green)">' + fmt(f.ttc) + '</td>'
-        + '<td style="color:var(--neutral-500);font-size:12px">' + dateStr + '</td>'
-        + '<td><span class="badge ' + (STAT_COLORS[f.statut] || 'badge-gray') + '">' + statutLabel(f.statut) + '</span></td>'
-        + '<td><div class="cell-actions">' + pdfLink + '</div></td>'
-        + '</tr>';
-    });
-    tbody.innerHTML = rows.join('');
-  }
-
-  const total = Math.ceil(filtered.length / perPage);
-  const pag   = document.getElementById('pagination');
-  if (filtered.length) {
-    document.getElementById('pageInfo').textContent =
-      (page - 1) * perPage + 1 + '-' + Math.min(page * perPage, filtered.length) + ' ' + t('pagination_sur') + ' ' + filtered.length;
-  }
-  pag.querySelectorAll('.page-btn').forEach(b => b.remove());
-  for (let i = 1; i <= total; i++) {
-    const btn = document.createElement('button');
-    btn.className   = 'page-btn' + (i === page ? ' active' : '');
-    btn.textContent = i;
-    btn.addEventListener('click', () => { page = i; renderTable(); });
-    pag.appendChild(btn);
-  }
-}
-
-function afficherStats(stats) {
-  document.getElementById('stat-total').textContent    = fmt(stats.total_mois);
-  document.getElementById('stat-abo').textContent      = fmt(stats.abonnements);
-  document.getElementById('stat-form').textContent     = fmt(stats.formations);
-  document.getElementById('stat-impayees').textContent = fmt(stats.impayees);
-  const nbEl = document.getElementById('stat-nb-impayees');
-  if (nbEl && stats.nb_impayees > 0) nbEl.textContent = stats.nb_impayees + ' factures';
-}
-
-function applyFilters() {
-  const q    = document.getElementById('searchInput').value.toLowerCase();
-  const type = document.getElementById('typeFilter').value;
-  const stat = document.getElementById('statusFilter').value;
-  filtered = allFactures.filter(f =>
-    (esc(f.client).toLowerCase().includes(q) || esc(f.num).toLowerCase().includes(q)) &&
-    (type === '' || f.type === type) &&
-    (stat === '' || f.statut === stat)
-  );
-  page = 1;
-  renderTable();
-}
-
-document.addEventListener('DOMContentLoaded', async () => {
-  await initLayout('factures');
-
-  try {
-    const res = await apiFetch('/admin/factures');
-    if (res && res.ok) {
-      const data = await res.json();
-      if (Array.isArray(data.factures)) allFactures = data.factures;
-      if (data.stats) afficherStats(data.stats);
-    }
-  } catch (e) { /* API non disponible */ }
-
-  filtered = [...allFactures];
-  renderTable();
-
-  document.getElementById('searchInput').addEventListener('input', applyFilters);
-  document.getElementById('typeFilter').addEventListener('change', applyFilters);
-  document.getElementById('statusFilter').addEventListener('change', applyFilters);
-
-  document.getElementById('montantHt').addEventListener('input', () => {
-    const ht  = parseFloat(document.getElementById('montantHt').value) || 0;
-    document.getElementById('tvaCalc').value = (ht * 0.20).toFixed(2) + ' €';
-    document.getElementById('ttcCalc').value = (ht * 1.20).toFixed(2) + ' €';
-  });
-
-  const openModal  = () => document.getElementById('factureModal').classList.add('open');
-  const closeModal = () => document.getElementById('factureModal').classList.remove('open');
-  document.getElementById('btnAdd').addEventListener('click', openModal);
-  document.getElementById('modalClose').addEventListener('click', closeModal);
-  document.getElementById('cancelBtn').addEventListener('click', closeModal);
-  document.getElementById('factureModal').addEventListener('click', e => {
-    if (e.target === document.getElementById('factureModal')) closeModal();
-  });
-
-  document.getElementById('factureForm').addEventListener('submit', e => {
-    e.preventDefault();
-    closeModal();
-    showToast('Les factures sont générées automatiquement lors des paiements Stripe.', 'info');
-  });
-
-  document.getElementById('pdfBtn').addEventListener('click', async () => {
-    if (!window.jspdf) {
-      showToast('Chargement du générateur PDF...', 'info');
-      await Promise.all([
-        new Promise(res => { const s = document.createElement('script'); s.src='https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js'; s.onload=res; document.head.appendChild(s); }),
-        new Promise(res => { const s = document.createElement('script'); s.src='https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js'; s.onload=res; document.head.appendChild(s); }),
-      ]);
-    }
+document.addEventListener('DOMContentLoaded', () => {
+  document.getElementById('pdfBtn').addEventListener('click', () => {
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
     const locale = typeof _lang !== 'undefined' && _lang === 'en' ? 'en-GB' : 'fr-FR';
@@ -320,9 +190,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     doc.setFont('helvetica', 'normal');
     doc.text('Généré le ' + dateNow, 270, 13, { align: 'right' });
 
-    const totalTTC = allFactures.reduce((s, f) => s + Number(f.ttc || 0), 0);
+    const totalTTC    = allFactures.reduce((s, f) => s + Number(f.ttc || 0), 0);
     const totalPayees = allFactures.filter(f => f.statut === 'payee').reduce((s, f) => s + Number(f.ttc || 0), 0);
-    const nbImpayees = allFactures.filter(f => f.statut === 'en_attente').length;
+    const nbImpayees  = allFactures.filter(f => f.statut === 'en_attente').length;
 
     doc.setTextColor(60, 60, 60);
     doc.setFontSize(9);
@@ -333,11 +203,11 @@ document.addEventListener('DOMContentLoaded', async () => {
       f.num,
       f.client,
       typeLabel(f.type),
-      Number(f.ht || 0).toFixed(2) + ' €',
+      Number(f.ht  || 0).toFixed(2) + ' €',
       (Number(f.tva || 0) * Number(f.ht || 0) / 100).toFixed(2) + ' €',
       Number(f.ttc || 0).toFixed(2) + ' €',
       f.date ? new Date(f.date).toLocaleDateString(locale) : '-',
-      statutLabel(f.statut),
+      statusLabel(f.statut),
     ]);
 
     doc.autoTable({
@@ -352,23 +222,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     doc.save('rapport-financier-upcycleconnect.pdf');
   });
-
-  document.getElementById('exportBtn').addEventListener('click', () => {
-    const rows = [['N°', 'Client', 'Type', 'HT', 'TVA', 'TTC', 'Date', 'Statut']];
-    allFactures.forEach(f => rows.push([
-      f.num, f.client, f.type, f.ht,
-      (Number(f.tva) * Number(f.ht) / 100).toFixed(2),
-      f.ttc, f.date, f.statut
-    ]));
-    const csv = rows.map(r => r.join(',')).join('\n');
-    const a   = document.createElement('a');
-    a.href     = 'data:text/csv;charset=utf-8,﻿' + encodeURIComponent(csv);
-    a.download = 'factures.csv';
-    a.click();
-  });
 });
 </script>
-<script src="js/factures.js"></script>
-<script src="js/factures-pdf.js"></script>
 </body>
 </html>
