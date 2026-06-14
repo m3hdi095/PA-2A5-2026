@@ -1066,21 +1066,21 @@ func (r *CategorieRepository) List(lang string) ([]models.Categorie, error) {
 type StatsRepository struct{}
 
 type AdminStats struct {
-	TotalUtilisateurs  int     `json:"total_utilisateurs"`
-	TotalAnnonces      int     `json:"total_annonces"`
-	TotalEvenements    int     `json:"total_evenements"`
-	TotalConteneurs    int     `json:"total_conteneurs"`
-	TotalCategories    int     `json:"total_categories"`
-	TotalFactures      int     `json:"total_factures"`
+	TotalUtilisateurs   int     `json:"total_utilisateurs"`
+	TotalAnnonces       int     `json:"total_annonces"`
+	TotalEvenements     int     `json:"total_evenements"`
+	TotalConteneurs     int     `json:"total_conteneurs"`
+	TotalCategories     int     `json:"total_categories"`
+	TotalFactures       int     `json:"total_factures"`
 	AnnoncesEnAttente   int     `json:"annonces_en_attente"`
 	DepotsEnAttente     int     `json:"depots_en_attente"`
 	EvenementsEnAttente int     `json:"evenements_en_attente"`
 	CAMois              float64 `json:"ca_mois"`
-	CATotal            float64 `json:"ca_total"`
-	CommissionsMois    float64 `json:"commissions_mois"`
-	CommissionsTotal   float64 `json:"commissions_total"`
-	NbAbonnesPremium   int     `json:"nb_abonnes_premium"`
-	SignalementsAttente int    `json:"signalements_attente"`
+	CATotal             float64 `json:"ca_total"`
+	CommissionsMois     float64 `json:"commissions_mois"`
+	CommissionsTotal    float64 `json:"commissions_total"`
+	NbAbonnesPremium    int     `json:"nb_abonnes_premium"`
+	SignalementsAttente int     `json:"signalements_attente"`
 }
 
 func (r *StatsRepository) Get() (*AdminStats, error) {
