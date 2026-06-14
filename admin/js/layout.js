@@ -110,6 +110,10 @@ function buildSidebarHTML() {
         <i class="fa-solid fa-box-archive" aria-hidden="true"></i>
         ${t('nav_conteneurs')}
       </a>
+      <a href="publicite.html" class="nav-link" data-page="publicite">
+        <i class="fa-solid fa-rectangle-ad" aria-hidden="true"></i>
+        ${t('nav_publicite')}
+      </a>
       <a href="notifications.html" class="nav-link" data-page="notifications">
         <i class="fa-solid fa-bell" aria-hidden="true"></i>
         ${t('nav_notifications')}
