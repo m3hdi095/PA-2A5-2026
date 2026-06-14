@@ -31,6 +31,27 @@ func (s *AnnonceService) CreateAnnonce(annonce *models.Annonce) error {
 	if annonce.TypeAnnonce == "vente" && annonce.Prix <= 0 {
 		return errors.New("le prix doit être supérieur à 0 pour une vente")
 	}
+	// les pros sans abonnement actif sont limités à 3 annonces par mois
+	var role string
+	database.DB.QueryRow(`SELECT role FROM utilisateur WHERE id_utilisateur = ?`, annonce.IDUtilisateur).Scan(&role)
+	if role == "professionnel" {
+		var niveauAbonnement string
+		database.DB.QueryRow(`SELECT COALESCE(niveau_abonnement,'free') FROM professionnel WHERE id_professionnel = ?`, annonce.IDUtilisateur).Scan(&niveauAbonnement)
+		if niveauAbonnement == "free" || niveauAbonnement == "" {
+			var nbCeMois int
+			database.DB.QueryRow(`
+				SELECT COUNT(*) FROM annonce
+				WHERE id_utilisateur = ?
+				  AND MONTH(date_publication) = MONTH(NOW())
+				  AND YEAR(date_publication)  = YEAR(NOW())
+				  AND statut != 'desactivee'`,
+				annonce.IDUtilisateur,
+			).Scan(&nbCeMois)
+			if nbCeMois >= 3 {
+				return errors.New("offre gratuite : maximum 3 annonces par mois (passez à l'offre Premium pour publier sans limite)")
+			}
+		}
+	}
 	return s.repo.Create(annonce)
 }
 
