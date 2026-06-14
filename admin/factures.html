@@ -40,34 +40,31 @@
   <div class="stat-card" style="--accent:var(--uc-teal);--icon-bg:var(--uc-teal-pale)">
     <div class="stat-icon"><i class="fa-solid fa-money-bill-wave" aria-hidden="true"></i></div>
     <div class="stat-info">
-      <div class="stat-value">18 490 €</div>
-      <div class="stat-label" data-i18n="factures_stat_revenus">Revenus mars 2026</div>
+      <div class="stat-value" id="stat-total">—</div>
+      <div class="stat-label" data-i18n="factures_stat_revenus">Revenus total</div>
     </div>
-    <span class="stat-trend trend-up">+22%</span>
   </div>
   <div class="stat-card" style="--accent:var(--uc-teal);--icon-bg:var(--orange-100)">
     <div class="stat-icon" style="background:var(--orange-100)"><i class="fa-solid fa-user-check" style="color:var(--uc-teal)" aria-hidden="true"></i></div>
     <div class="stat-info">
-      <div class="stat-value">8 240 €</div>
+      <div class="stat-value" id="stat-abo">—</div>
       <div class="stat-label" data-i18n="factures_stat_abo">Abonnements</div>
     </div>
-    <span class="stat-trend trend-up">+5%</span>
   </div>
   <div class="stat-card" style="--accent:#0288d1;--icon-bg:var(--info-bg)">
     <div class="stat-icon" style="background:var(--info-bg)"><i class="fa-solid fa-graduation-cap" style="color:var(--info)" aria-hidden="true"></i></div>
     <div class="stat-info">
-      <div class="stat-value">4 600 €</div>
+      <div class="stat-value" id="stat-form">—</div>
       <div class="stat-label" data-i18n="factures_stat_form">Formations</div>
     </div>
-    <span class="stat-trend trend-up">+18%</span>
   </div>
   <div class="stat-card" style="--accent:#d32f2f;--icon-bg:#ffebee">
     <div class="stat-icon" style="background:#ffebee"><i class="fa-solid fa-circle-exclamation" style="color:#d32f2f" aria-hidden="true"></i></div>
     <div class="stat-info">
-      <div class="stat-value">1 240 €</div>
+      <div class="stat-value" id="stat-impayees">—</div>
       <div class="stat-label" data-i18n="factures_stat_impayees">Impayées</div>
     </div>
-    <span class="stat-trend trend-down">3 factures</span>
+    <span class="stat-trend trend-down" id="stat-nb-impayees"></span>
   </div>
 </div>
 
@@ -80,15 +77,15 @@
   <select class="filter-select" id="typeFilter">
     <option value="" data-i18n="factures_filter_all_types">Tous les types</option>
     <option value="abonnement" data-i18n="factures_type_abo">Abonnement</option>
-    <option value="commission" data-i18n="factures_type_comm">Commission</option>
-    <option value="formation" data-i18n="factures_type_form">Formation</option>
+    <option value="transaction" data-i18n="factures_type_comm">Commission</option>
+    <option value="evenement" data-i18n="factures_type_form">Formation</option>
     <option value="publicite" data-i18n="factures_type_pub">Publicité</option>
   </select>
   <select class="filter-select" id="statusFilter">
     <option value="" data-i18n="factures_filter_all_status">Tous les statuts</option>
-    <option value="payée" data-i18n="factures_statut_paye">Payée</option>
+    <option value="payee" data-i18n="factures_statut_paye">Payée</option>
     <option value="en_attente" data-i18n="factures_statut_attente">En attente</option>
-    <option value="impayée" data-i18n="factures_statut_impaye">Impayée</option>
+    <option value="annulee" data-i18n="factures_statut_impaye">Annulée</option>
   </select>
 </div>
 
@@ -131,38 +128,28 @@
       <form id="factureForm">
         <div class="form-row">
           <div class="form-group">
-            <label class="form-label"><span data-i18n="form_client">Client</span> <span class="form-required">*</span></label>
-            <select id="client" class="form-control">
-              <option value="">Choisir</option>
-              <option>Marie Dupont</option>
-              <option>Jean-Paul Lévy</option>
-              <option>Clara Noel</option>
-              <option>Henri Petit</option>
-            </select>
-          </div>
-          <div class="form-group">
             <label class="form-label"><span data-i18n="form_type">Type</span> <span class="form-required">*</span></label>
             <select id="type" class="form-control">
               <option value="abonnement" data-i18n="factures_type_abo">Abonnement</option>
-              <option value="commission" data-i18n="factures_type_comm">Commission</option>
-              <option value="formation" data-i18n="factures_type_form">Formation</option>
+              <option value="transaction" data-i18n="factures_type_comm">Commission</option>
+              <option value="evenement" data-i18n="factures_type_form">Formation</option>
               <option value="publicite" data-i18n="factures_type_pub">Publicité</option>
             </select>
           </div>
-        </div>
-        <div class="form-row">
           <div class="form-group">
             <label class="form-label"><span data-i18n="form_montant_ht">Montant HT (€)</span> <span class="form-required">*</span></label>
             <input type="number" step="0.01" min="0" id="montantHt" class="form-control" placeholder="25.00"/>
           </div>
+        </div>
+        <div class="form-row">
           <div class="form-group">
             <label class="form-label" data-i18n="form_tva_calc">TVA calculée</label>
             <input type="text" id="tvaCalc" class="form-control" readonly style="background:var(--neutral-50);color:var(--neutral-500)" placeholder="0.00 €"/>
           </div>
-        </div>
-        <div class="form-group">
-          <label class="form-label" data-i18n="form_montant_ttc">Montant TTC</label>
-          <input type="text" id="ttcCalc" class="form-control" readonly style="background:var(--uc-teal-pale);color:var(--uc-forest);font-weight:700" placeholder="0.00 €"/>
+          <div class="form-group">
+            <label class="form-label" data-i18n="form_montant_ttc">Montant TTC</label>
+            <input type="text" id="ttcCalc" class="form-control" readonly style="background:var(--uc-teal-pale);color:var(--uc-forest);font-weight:700" placeholder="0.00 €"/>
+          </div>
         </div>
         <div class="form-actions">
           <button type="button" class="btn btn-outline" id="cancelBtn" data-i18n="btn_cancel">Annuler</button>
@@ -178,95 +165,91 @@
 
 <script src="js/layout.js" data-page="factures"></script>
 <script>
-let MOCK_FACTURES = [];
+let allFactures = [];
+let filtered    = [];
+let page        = 1;
+const perPage   = 7;
 
-const STAT_COLORS = { 'payée':'badge-green', 'en_attente':'badge-orange', 'impayée':'badge-red' };
+const STAT_COLORS = { payee:'badge-green', en_attente:'badge-orange', annulee:'badge-red' };
 
 function typeLabel(type) {
-  const keys = { abonnement:'factures_type_abo', commission:'factures_type_comm', formation:'factures_type_form', publicite:'factures_type_pub' };
+  const keys = { abonnement:'factures_type_abo', transaction:'factures_type_comm', evenement:'factures_type_form', publicite:'factures_type_pub' };
   return t(keys[type] || 'factures_type_comm');
 }
 function statutLabel(statut) {
-  const keys = { 'payée':'factures_statut_paye', 'en_attente':'factures_statut_attente', 'impayée':'factures_statut_impaye' };
+  const keys = { payee:'factures_statut_paye', en_attente:'factures_statut_attente', annulee:'factures_statut_impaye' };
   return t(keys[statut] || 'factures_statut_attente');
 }
 
-let filtered = [...MOCK_FACTURES];
-let page = 1;
-const perPage = 7;
-
-function fmt(n) { return n.toFixed(2).replace('.',',') + ' €'; }
+function fmt(n) { return Number(n || 0).toFixed(2).replace('.', ',') + ' €'; }
+function esc(s) { return String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
 
 function renderTable() {
-  const tbody = document.getElementById('facturesBody');
-  const start = (page-1)*perPage;
-  const slice = filtered.slice(start, start+perPage);
+  const tbody  = document.getElementById('facturesBody');
+  const start  = (page - 1) * perPage;
+  const slice  = filtered.slice(start, start + perPage);
+  const locale = typeof _lang !== 'undefined' && _lang === 'en' ? 'en-GB' : 'fr-FR';
 
-  const locale = _lang === 'en' ? 'en-GB' : 'fr-FR';
-  tbody.innerHTML = slice.map(f => `
-    <tr>
-      <td><span style="font-family:Poppins,sans-serif;font-weight:600;font-size:13px;color:var(--neutral-900)">${f.num}</span></td>
-      <td class="td-primary">${f.client}</td>
-      <td><span class="badge badge-gray">${typeLabel(f.type)}</span></td>
-      <td style="color:var(--neutral-600)">${fmt(f.ht)}</td>
-      <td style="color:var(--neutral-400)">${fmt(f.tva)}</td>
-      <td style="font-weight:700;color:var(--uc-green)">${fmt(f.ttc)}</td>
-      <td style="color:var(--neutral-500);font-size:12px">${new Date(f.date).toLocaleDateString(locale)}</td>
-      <td><span class="badge ${STAT_COLORS[f.statut]}">${statutLabel(f.statut)}</span></td>
-      <td>
-        <div class="cell-actions">
-          <button class="btn btn-ghost btn-icon" title="${t('factures_tooltip_download')}" onclick="downloadPdf('${f.num}')">
-            <i class="fa-solid fa-download" aria-hidden="true"></i>
-          </button>
-          ${f.statut==='en_attente'||f.statut==='impayée' ? `
-          <button class="btn btn-ghost btn-icon" title="${t('factures_tooltip_mark_paid')}" onclick="markPaid(${f.id})" style="color:var(--uc-green)">
-            <i class="fa-solid fa-check" aria-hidden="true"></i>
-          </button>` : ''}
-          <button class="btn btn-ghost btn-icon" title="${t('btn_supprimer')}" onclick="deleteFact(${f.id})" style="color:var(--danger)">
-            <i class="fa-solid fa-trash" aria-hidden="true"></i>
-          </button>
-        </div>
-      </td>
-    </tr>
-  `).join('');
+  if (!slice.length) {
+    tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;padding:40px;color:var(--neutral-400)">Aucune facture</td></tr>';
+  } else {
+    const rows = slice.map(f => {
+      const tvaMontant = (Number(f.tva) * Number(f.ht) / 100).toFixed(2).replace('.', ',') + ' €';
+      const dateStr    = f.date ? new Date(f.date).toLocaleDateString(locale) : '—';
+      const pdfLink    = f.pdf
+        ? '<a class="btn btn-ghost btn-icon" href="' + serverBase + '/' + esc(f.pdf) + '" target="_blank" title="Télécharger PDF"><i class="fa-solid fa-download"></i></a>'
+        : '';
+      return '<tr>'
+        + '<td><span style="font-family:Poppins,sans-serif;font-weight:600;font-size:13px;color:var(--neutral-900)">' + esc(f.num) + '</span></td>'
+        + '<td class="td-primary">' + esc(f.client) + '</td>'
+        + '<td><span class="badge badge-gray">' + typeLabel(f.type) + '</span></td>'
+        + '<td style="color:var(--neutral-600)">' + fmt(f.ht) + '</td>'
+        + '<td style="color:var(--neutral-400)">' + tvaMontant + '</td>'
+        + '<td style="font-weight:700;color:var(--uc-green)">' + fmt(f.ttc) + '</td>'
+        + '<td style="color:var(--neutral-500);font-size:12px">' + dateStr + '</td>'
+        + '<td><span class="badge ' + (STAT_COLORS[f.statut] || 'badge-gray') + '">' + statutLabel(f.statut) + '</span></td>'
+        + '<td><div class="cell-actions">' + pdfLink + '</div></td>'
+        + '</tr>';
+    });
+    tbody.innerHTML = rows.join('');
+  }
 
-  // Pagination
-  const total = Math.ceil(filtered.length/perPage);
+  const total = Math.ceil(filtered.length / perPage);
   const pag   = document.getElementById('pagination');
-  document.getElementById('pageInfo').textContent = `${(page-1)*perPage+1}-${Math.min(page*perPage,filtered.length)} ${t('pagination_sur')} ${filtered.length}`;
-  pag.querySelectorAll('.page-btn').forEach(b=>b.remove());
-  for (let i=1;i<=total;i++) {
+  if (filtered.length) {
+    document.getElementById('pageInfo').textContent =
+      (page - 1) * perPage + 1 + '-' + Math.min(page * perPage, filtered.length) + ' ' + t('pagination_sur') + ' ' + filtered.length;
+  }
+  pag.querySelectorAll('.page-btn').forEach(b => b.remove());
+  for (let i = 1; i <= total; i++) {
     const btn = document.createElement('button');
-    btn.className = 'page-btn'+(i===page?' active':'');
+    btn.className   = 'page-btn' + (i === page ? ' active' : '');
     btn.textContent = i;
-    btn.addEventListener('click',()=>{page=i;renderTable();});
+    btn.addEventListener('click', () => { page = i; renderTable(); });
     pag.appendChild(btn);
   }
 }
 
-window.downloadPdf = num => showToast(`PDF ${num} : ${t('factures_toast_pdf')}`, 'success');
-window.markPaid = id => {
-  const f = MOCK_FACTURES.find(f=>f.id===id);
-  if (f) { f.statut='payée'; filtered=[...MOCK_FACTURES]; renderTable(); showToast(t('factures_toast_mark_paid'), 'success'); }
-};
-window.deleteFact = id => {
-  if (!confirm(t('confirm_action'))) return;
-  const i = MOCK_FACTURES.findIndex(f=>f.id===id);
-  MOCK_FACTURES.splice(i,1);
-  filtered = filtered.filter(f=>f.id!==id);
-  renderTable();
-  showToast(t('factures_toast_deleted'), 'error');
-};
+function afficherStats(stats) {
+  document.getElementById('stat-total').textContent    = fmt(stats.total_mois);
+  document.getElementById('stat-abo').textContent      = fmt(stats.abonnements);
+  document.getElementById('stat-form').textContent     = fmt(stats.formations);
+  document.getElementById('stat-impayees').textContent = fmt(stats.impayees);
+  const nbEl = document.getElementById('stat-nb-impayees');
+  if (nbEl && stats.nb_impayees > 0) nbEl.textContent = stats.nb_impayees + ' factures';
+}
 
 function applyFilters() {
   const q    = document.getElementById('searchInput').value.toLowerCase();
   const type = document.getElementById('typeFilter').value;
   const stat = document.getElementById('statusFilter').value;
-  filtered = MOCK_FACTURES.filter(f =>
-    (f.client.toLowerCase().includes(q) || f.num.toLowerCase().includes(q)) &&
-    (type===''||f.type===type) && (stat===''||f.statut===stat)
+  filtered = allFactures.filter(f =>
+    (esc(f.client).toLowerCase().includes(q) || esc(f.num).toLowerCase().includes(q)) &&
+    (type === '' || f.type === type) &&
+    (stat === '' || f.statut === stat)
   );
-  page=1; renderTable();
+  page = 1;
+  renderTable();
 }
 
 document.addEventListener('DOMContentLoaded', async () => {
@@ -274,24 +257,24 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   try {
     const res = await apiFetch('/admin/factures');
-    if (res?.ok) {
+    if (res && res.ok) {
       const data = await res.json();
-      if (Array.isArray(data)) MOCK_FACTURES = data;
+      if (Array.isArray(data.factures)) allFactures = data.factures;
+      if (data.stats) afficherStats(data.stats);
     }
-  } catch {}
-  filtered = [...MOCK_FACTURES];
+  } catch (e) { /* API non disponible */ }
+
+  filtered = [...allFactures];
   renderTable();
 
   document.getElementById('searchInput').addEventListener('input', applyFilters);
   document.getElementById('typeFilter').addEventListener('change', applyFilters);
   document.getElementById('statusFilter').addEventListener('change', applyFilters);
 
-  // TVA auto-calc
   document.getElementById('montantHt').addEventListener('input', () => {
     const ht  = parseFloat(document.getElementById('montantHt').value) || 0;
-    const tva = ht * 0.20;
-    document.getElementById('tvaCalc').value = tva.toFixed(2) + ' €';
-    document.getElementById('ttcCalc').value = (ht + tva).toFixed(2) + ' €';
+    document.getElementById('tvaCalc').value = (ht * 0.20).toFixed(2) + ' €';
+    document.getElementById('ttcCalc').value = (ht * 1.20).toFixed(2) + ' €';
   });
 
   const openModal  = () => document.getElementById('factureModal').classList.add('open');
@@ -300,24 +283,27 @@ document.addEventListener('DOMContentLoaded', async () => {
   document.getElementById('modalClose').addEventListener('click', closeModal);
   document.getElementById('cancelBtn').addEventListener('click', closeModal);
   document.getElementById('factureModal').addEventListener('click', e => {
-    if (e.target===document.getElementById('factureModal')) closeModal();
+    if (e.target === document.getElementById('factureModal')) closeModal();
   });
 
   document.getElementById('factureForm').addEventListener('submit', e => {
     e.preventDefault();
-    const ht  = parseFloat(document.getElementById('montantHt').value)||0;
-    const tva = +(ht*0.20).toFixed(2);
-    const num = 'F-2026-' + String(MOCK_FACTURES.length+1).padStart(4,'0');
-    MOCK_FACTURES.unshift({ id:Date.now(), num, client:document.getElementById('client').value, type:document.getElementById('type').value, ht, tva, ttc:+(ht+tva).toFixed(2), date:new Date().toISOString().slice(0,10), statut:'en_attente' });
-    filtered=[...MOCK_FACTURES]; renderTable();
-    closeModal(); showToast(`${t('factures_toast_created')} ${num}`, 'success');
+    closeModal();
+    showToast('Les factures sont générées automatiquement lors des paiements Stripe.', 'info');
   });
 
   document.getElementById('exportBtn').addEventListener('click', () => {
-    const rows = [['N°','Client','Type','HT','TVA','TTC','Date','Statut']];
-    MOCK_FACTURES.forEach(f=>rows.push([f.num,f.client,f.type,f.ht,f.tva,f.ttc,f.date,f.statut]));
-    const csv = rows.map(r=>r.join(',')).join('\n');
-    const a = document.createElement('a'); a.href='data:text/csv;charset=utf-8,\uFEFF'+encodeURIComponent(csv); a.download='factures.csv'; a.click();
+    const rows = [['N°', 'Client', 'Type', 'HT', 'TVA', 'TTC', 'Date', 'Statut']];
+    allFactures.forEach(f => rows.push([
+      f.num, f.client, f.type, f.ht,
+      (Number(f.tva) * Number(f.ht) / 100).toFixed(2),
+      f.ttc, f.date, f.statut
+    ]));
+    const csv = rows.map(r => r.join(',')).join('\n');
+    const a   = document.createElement('a');
+    a.href     = 'data:text/csv;charset=utf-8,﻿' + encodeURIComponent(csv);
+    a.download = 'factures.csv';
+    a.click();
   });
 });
 </script>

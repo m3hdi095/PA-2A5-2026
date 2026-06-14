@@ -15,7 +15,8 @@ type Config struct {
     DBPassword string
     DBName     string
     JWTSecret  string
-    StripeKey  string
+    StripeKey       string
+    StripePublicKey string
     StripeWebhookSecret string
     OneSignalAppID string
     OneSignalKey   string
@@ -23,6 +24,7 @@ type Config struct {
     SMTPPort   int
     SMTPUser   string
     SMTPPass   string
+    BaseURL    string
 }
 
 var AppConfig *Config
@@ -44,6 +46,7 @@ func LoadConfig() {
         DBName:     getEnv("DB_NAME", "upcycleconnect"),
         JWTSecret:  getEnv("JWT_SECRET", "defaultsecret"),
         StripeKey:           getEnv("STRIPE_SECRET_KEY", ""),
+        StripePublicKey:     getEnv("STRIPE_PUBLIC_KEY", ""),
         StripeWebhookSecret: getEnv("STRIPE_WEBHOOK_SECRET", ""),
         OneSignalAppID: getEnv("ONESIGNAL_APP_ID", ""),
         OneSignalKey:   getEnv("ONESIGNAL_REST_API_KEY", ""),
@@ -51,6 +54,7 @@ func LoadConfig() {
         SMTPPort:   smtpPort,
         SMTPUser:   getEnv("SMTP_USER", ""),
         SMTPPass:   getEnv("SMTP_PASSWORD", ""),
+        BaseURL:    getEnv("BASE_URL", "http://localhost:8080"),
     }
 }
 
