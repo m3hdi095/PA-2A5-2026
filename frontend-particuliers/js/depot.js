@@ -100,7 +100,7 @@ async function chargerHistorique() {
           <td style="font-size:13px;color:var(--text-soft)">Conteneur #${d.id_conteneur}</td>
           <td>
             <code style="font-family:monospace;font-size:11px;background:var(--teal-25);padding:2px 6px;border-radius:4px">${esc(d.code_barre_retrait)}</code>
-            ${d.code_barre_retrait ? `<br><img src="/api-go/uploads/barcodes/depot_${d.id}.png" alt="QR code" style="height:40px;margin-top:4px" onerror="this.style.display='none'">` : ''}
+            ${d.code_barre_retrait ? `<br><img src="${serverBase}/uploads/barcodes/depot_${d.id}.png" alt="QR code" style="height:40px;margin-top:4px" onerror="this.style.display='none'">` : ''}
           </td>
           <td>${badgeStatut}</td>
         </tr>`;

@@ -1,4 +1,5 @@
-const apiBase = 'http://localhost:8080/api';
+const apiBase    = 'http://localhost:8080/api';
+const serverBase = new URL(apiBase).origin;
 
 function getToken()    { return localStorage.getItem('uc_sal_token'); }
 function setToken(t)   { localStorage.setItem('uc_sal_token', t); }
