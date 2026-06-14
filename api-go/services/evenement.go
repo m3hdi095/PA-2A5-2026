@@ -6,6 +6,7 @@ package services
 
 import (
     "errors"
+    "time"
 
     "upcycleconnect/api/database"
     "upcycleconnect/api/models"
@@ -71,6 +72,11 @@ func (s *EvenementService) ListMesInscriptions(userID uint, page, pageSize int) 
 func (s *EvenementService) UpdateEvenement(evenement *models.Evenement) error {
     if evenement.Titre == "" || evenement.DateDebut.IsZero() {
         return errors.New("titre et date début requis")
+    }
+    var dateDebut time.Time
+    database.DB.QueryRow(`SELECT date_debut FROM evenement WHERE id_evenement = ?`, evenement.ID).Scan(&dateDebut)
+    if !dateDebut.IsZero() && time.Until(dateDebut) < 7*24*time.Hour {
+        return errors.New("impossible de modifier un événement moins de 7 jours avant sa date")
     }
     return s.evenementRepo.Update(evenement)
 }
