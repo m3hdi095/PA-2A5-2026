@@ -112,7 +112,7 @@ func VerifyEmail(w http.ResponseWriter, r *http.Request) {
 	}
 
 	result, err := database.DB.Exec(
-		`UPDATE utilisateur SET email_verifie = 1, email_token = NULL WHERE email_token = ?`, token,
+		`UPDATE utilisateur SET actif = 1, email_verifie = 1, email_token = NULL WHERE email_token = ?`, token,
 	)
 	if err != nil {
 		http.Error(w, `{"error":"Erreur interne"}`, http.StatusInternalServerError)

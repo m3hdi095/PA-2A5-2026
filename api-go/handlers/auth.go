@@ -51,17 +51,16 @@ func Register(w http.ResponseWriter, r *http.Request) {
 	}
 	user := &models.Utilisateur{
 		Email:      input.Email,
-		MotDePasse: input.Password, // le service s'occupe du hashage
+		MotDePasse: input.Password,
 		Nom:        input.Nom,
 		Prenom:     input.Prenom,
 		Role:       input.Role,
-		Actif:      true,
+		Actif:      false,
 	}
 	if err := authService.Register(user); err != nil {
 		jsonError(w, err.Error(), http.StatusConflict)
 		return
 	}
-	// envoi de l'email de vérification en arrière-plan pour ne pas bloquer la réponse
 	go SendVerificationEmail(user.ID, user.Email, user.Prenom)
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusCreated)

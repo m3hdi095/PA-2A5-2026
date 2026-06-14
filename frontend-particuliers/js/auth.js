@@ -8,7 +8,10 @@ async function loginApi(email, password) {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ email, password }),
   });
-  if (!res.ok) throw new Error('Identifiants incorrects');
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.error || 'Identifiants incorrects');
+  }
   const data = await res.json();
   if (!data.access_token && !data.token) throw new Error('Token manquant');
   return data;
@@ -47,11 +50,32 @@ document.addEventListener('DOMContentLoaded', () => {
   function showRegError(msg) {
     if (!errorRegEl) return;
     errorRegEl.textContent = msg;
+    errorRegEl.style.background = 'var(--error-bg, #fdecea)';
+    errorRegEl.style.color = 'var(--error-text, #c0392b)';
+    errorRegEl.classList.add('visible');
+  }
+  function showRegSuccess(msg) {
+    if (!errorRegEl) return;
+    errorRegEl.textContent = msg;
+    errorRegEl.style.background = '#e6f4ea';
+    errorRegEl.style.color = '#2d4a3e';
     errorRegEl.classList.add('visible');
   }
   function clearError() {
     errorEl?.classList.remove('visible');
     errorRegEl?.classList.remove('visible');
+  }
+
+  // message après activation par lien email
+  const params = new URLSearchParams(window.location.search);
+  if (params.get('verified') === '1') {
+    const banner = document.getElementById('auth-error');
+    if (banner) {
+      banner.textContent = 'Compte activé avec succès. Vous pouvez vous connecter.';
+      banner.style.background = '#e6f4ea';
+      banner.style.color = '#2d4a3e';
+      banner.classList.add('visible');
+    }
   }
 
   toRegister?.addEventListener('click', () => {
@@ -111,10 +135,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     try {
       await registerApi({ prenom, nom, email, password });
-      const data = await loginApi(email, password);
-      localStorage.setItem('uc_part_token', data.access_token || data.token);
-      if (data.user) localStorage.setItem('uc_part_user', JSON.stringify(data.user));
-      window.location.href = 'dashboard.html';
+      formRegister.reset();
+      showRegSuccess('Compte créé ! Un email de vérification a été envoyé à ' + email + '. Cliquez sur le lien pour activer votre compte.');
     } catch(err) {
       showRegError(err.message || 'Erreur lors de l\'inscription. Vérifiez votre connexion et réessayez.');
     } finally {

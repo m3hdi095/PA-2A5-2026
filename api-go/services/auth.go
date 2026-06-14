@@ -40,7 +40,7 @@ func (s *AuthService) Login(email, password string) (uint, string, error) {
         return 0, "", errors.New("identifiants incorrects")
     }
     if !user.Actif {
-        return 0, "", errors.New("compte désactivé")
+        return 0, "", errors.New("Compte non activé. Vérifiez votre boîte mail et cliquez sur le lien d'activation.")
     }
     if !utils.CheckPasswordHash(password, user.MotDePasse) {
         return 0, "", errors.New("identifiants incorrects")
