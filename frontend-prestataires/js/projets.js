@@ -19,7 +19,7 @@ let filtreActif = 'tous';
 
 document.addEventListener('DOMContentLoaded', async () => {
   await initLayout('projets');
-  await chargerProjets();
+  await Promise.all([chargerProjets(), chargerGalerie()]);
   bindActions();
 });
 
@@ -257,4 +257,34 @@ async function soumettreProjet(e) {
 
 function escPro(str) {
   return String(str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+async function chargerGalerie() {
+  const grid = document.getElementById('galerie-grid');
+  if (!grid) return;
+  try {
+    const res = await apiFetch('/projets?partage=1');
+    if (!res?.ok) { grid.innerHTML = '<p style="color:var(--text-muted);padding:20px;grid-column:1/-1">Impossible de charger la galerie.</p>'; return; }
+    const data = await res.json();
+    const projets = Array.isArray(data) ? data.filter(p => p.partage_communaute) : [];
+    if (!projets.length) {
+      grid.innerHTML = '<p style="color:var(--text-muted);padding:20px;grid-column:1/-1;text-align:center">Aucun projet partagé pour le moment.</p>';
+      return;
+    }
+    grid.innerHTML = projets.map((p, i) => `
+      <div class="card animate-in" style="animation-delay:${i*.05}s">
+        <div style="height:4px;background:var(--teal-500);border-radius:var(--radius-lg) var(--radius-lg) 0 0"></div>
+        <div class="card-body" style="padding:16px">
+          <h4 style="font-size:14px;font-weight:700;color:var(--text);margin-bottom:8px">${escPro(p.titre)}</h4>
+          <p style="font-size:12.5px;color:var(--text-soft);line-height:1.55;margin-bottom:12px">${escPro((p.description||'').slice(0,150))}${(p.description||'').length>150?'…':''}</p>
+          <div style="display:flex;justify-content:space-between;font-size:11.5px;color:var(--text-muted)">
+            <span><i class="fa-solid fa-leaf"></i> ${p.score_impact||0} pts</span>
+            <span><i class="fa-solid fa-recycle"></i> ${p.kg_dechets_evites||0} kg</span>
+            <span class="badge ${p.statut==='termine'?'badge-green':'badge-teal'}">${p.statut||''}</span>
+          </div>
+        </div>
+      </div>`).join('');
+  } catch {
+    grid.innerHTML = '<p style="color:var(--text-muted);padding:20px;grid-column:1/-1">Galerie indisponible.</p>';
+  }
 }
