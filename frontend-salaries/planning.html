@@ -16,6 +16,7 @@
     <p class="page-title-sub" data-i18n="planning_subtitle">Vos interventions et formations à venir</p>
   </div>
   <div class="page-title-actions">
+    <button class="btn btn-outline btn-sm" onclick="exporterIcal()"><i class="fa-solid fa-calendar-arrow-down"></i> Exporter (.ics)</button>
     <button class="btn btn-primary"><i class="fa-solid fa-plus"></i> <span data-i18n="planning_btn_add">Ajouter un créneau</span></button>
   </div>
 </div>
@@ -79,6 +80,14 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
   renderPlanning(items);
 });
+
+function exporterIcal() {
+  const token = localStorage.getItem('uc_sal_token');
+  const a = document.createElement('a');
+  a.href = `${apiBase}/planning/export.ics${token ? '?token='+encodeURIComponent(token) : ''}`;
+  a.download = 'planning-upcycleconnect.ics';
+  a.click();
+}
 </script>
 </body>
 </html>
