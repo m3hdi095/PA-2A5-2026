@@ -15,21 +15,30 @@ import (
 type UserRepository struct{}
 
 func (r *UserRepository) GetByID(id uint) (*models.Utilisateur, error) {
-	// LEFT JOIN professionnel pour avoir le niveau abonnement si c'est un pro
+	// LEFT JOIN professionnel pour avoir le niveau abonnement et les champs entreprise si c'est un pro
 	query := `SELECT u.id_utilisateur, u.email, u.nom, u.prenom, u.role,
 	          COALESCE(u.adresse,''), COALESCE(u.ville,''), COALESCE(u.code_postal,''), COALESCE(u.telephone,''),
 	          u.date_inscription, u.actif, u.tutoriel_vu, COALESCE(u.langue_preferee,'fr'),
-	          COALESCE(p.niveau_abonnement,'')
+	          COALESCE(p.niveau_abonnement,''),
+	          COALESCE(p.nom_entreprise,''), COALESCE(p.siret,''), COALESCE(p.type_metier,'')
               FROM utilisateur u
               LEFT JOIN professionnel p ON p.id_professionnel = u.id_utilisateur
               WHERE u.id_utilisateur = ?`
 	row := database.DB.QueryRow(query, id)
 	var u models.Utilisateur
-	err := row.Scan(&u.ID, &u.Email, &u.Nom, &u.Prenom, &u.Role, &u.Adresse, &u.Ville, &u.CodePostal, &u.Telephone, &u.DateInscription, &u.Actif, &u.TutorielVu, &u.LanguePreferee, &u.Plan)
+	err := row.Scan(&u.ID, &u.Email, &u.Nom, &u.Prenom, &u.Role, &u.Adresse, &u.Ville, &u.CodePostal, &u.Telephone, &u.DateInscription, &u.Actif, &u.TutorielVu, &u.LanguePreferee, &u.Plan, &u.Entreprise, &u.Siret, &u.TypeMetier)
 	if err == sql.ErrNoRows {
 		return nil, nil
 	}
 	return &u, err
+}
+
+func (r *UserRepository) UpdateProfessionnel(id uint, nomEntreprise, siret, typeMetier string) error {
+	_, err := database.DB.Exec(
+		`UPDATE professionnel SET nom_entreprise=?, siret=?, type_metier=? WHERE id_professionnel=?`,
+		nomEntreprise, siret, typeMetier, id,
+	)
+	return err
 }
 
 func (r *UserRepository) GetByEmail(email string) (*models.Utilisateur, error) {
@@ -187,7 +196,8 @@ func (r *AnnonceRepository) List(filter string, limit, offset int, lang string) 
 	LEFT JOIN utilisateur u ON u.id_utilisateur = a.id_utilisateur
 	LEFT JOIN message_annonce ma ON ma.id_annonce = a.id_annonce
 	WHERE a.statut = 'validee'
-	GROUP BY a.id_annonce, a.titre, a.description, a.type_annonce, a.prix, a.date_publication, a.statut, a.id_utilisateur, a.id_objet
+	AND (a.date_expiration IS NULL OR a.date_expiration > NOW())
+	GROUP BY a.id_annonce, a.titre, a.description, a.type_annonce, a.prix, a.date_publication, a.date_expiration, a.statut, a.id_utilisateur, a.id_objet
 	ORDER BY a.date_publication DESC LIMIT ? OFFSET ?`
 	args := []interface{}{lang, lang, limit, offset}
 	rows, err := database.DB.Query(query, args...)
@@ -208,7 +218,7 @@ func (r *AnnonceRepository) List(filter string, limit, offset int, lang string) 
 }
 
 func (r *AnnonceRepository) ListByUser(userID uint, limit, offset int) ([]models.Annonce, error) {
-	query := `SELECT a.id_annonce, a.titre, a.description, a.type_annonce, a.prix, a.date_publication, a.statut, a.id_utilisateur, a.id_objet, COALESCE(c.nom, '')
+	query := `SELECT a.id_annonce, a.titre, a.description, a.type_annonce, a.prix, a.date_publication, a.date_expiration, a.statut, a.id_utilisateur, a.id_objet, COALESCE(c.nom, '')
               FROM annonce a
               LEFT JOIN objet o ON a.id_objet = o.id_objet
               LEFT JOIN categorie c ON o.categorie_id = c.id_categorie
@@ -221,7 +231,7 @@ func (r *AnnonceRepository) ListByUser(userID uint, limit, offset int) ([]models
 	annonces := make([]models.Annonce, 0)
 	for rows.Next() {
 		var a models.Annonce
-		err := rows.Scan(&a.ID, &a.Titre, &a.Description, &a.TypeAnnonce, &a.Prix, &a.DatePublication, &a.Statut, &a.IDUtilisateur, &a.IDObjet, &a.Categorie)
+		err := rows.Scan(&a.ID, &a.Titre, &a.Description, &a.TypeAnnonce, &a.Prix, &a.DatePublication, &a.DateExpiration, &a.Statut, &a.IDUtilisateur, &a.IDObjet, &a.Categorie)
 		if err != nil {
 			return nil, err
 		}

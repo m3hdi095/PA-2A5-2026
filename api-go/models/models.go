@@ -24,6 +24,9 @@ type Utilisateur struct {
     LanguePreferee string    `json:"langue_preferee"`
     Plan           string    `json:"plan,omitempty"`
     UpcyclingScore int       `json:"upcycling_score"`
+    Entreprise     string    `json:"entreprise,omitempty"`
+    Siret          string    `json:"siret,omitempty"`
+    TypeMetier     string    `json:"description,omitempty"`
 }
 
 type Particulier struct {
@@ -56,8 +59,9 @@ type Annonce struct {
     Description    string    `json:"description"`
     TypeAnnonce    string    `json:"type_annonce"` // don, vente
     Prix           float64   `json:"prix"`
-    DatePublication time.Time `json:"date_publication"`
-    Statut         string    `json:"statut"` // en_attente, validee, refusee
+    DatePublication  time.Time  `json:"date_publication"`
+    DateExpiration  *time.Time `json:"date_expiration,omitempty"`
+    Statut          string     `json:"statut"` // en_attente, validee, refusee
     IDUtilisateur  uint      `json:"id_utilisateur"`
     IDObjet        uint      `json:"id_objet"`
     Categorie      string    `json:"categorie,omitempty"`

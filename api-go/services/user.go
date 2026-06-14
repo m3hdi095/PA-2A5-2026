@@ -21,7 +21,13 @@ func (s *UserService) GetUser(id uint) (*models.Utilisateur, error) {
 }
 
 func (s *UserService) UpdateUser(user *models.Utilisateur) error {
-    return s.repo.Update(user)
+    if err := s.repo.Update(user); err != nil {
+        return err
+    }
+    if user.Entreprise != "" || user.Siret != "" || user.TypeMetier != "" {
+        _ = s.repo.UpdateProfessionnel(user.ID, user.Entreprise, user.Siret, user.TypeMetier)
+    }
+    return nil
 }
 
 func (s *UserService) ChangePassword(userID uint, ancienPwd, nouveauPwd string) error {
