@@ -142,37 +142,44 @@ async function chargerEvenementsVenir() {
 
 function afficherHistoriqueScore(total, historique) {
   const label = document.getElementById('score-total-label');
-  if (label) label.textContent = `Total : ${total} pts`;
+  if (label) label.textContent = `${total} pts`;
 
   const list = document.getElementById('score-historique-list');
   if (!list) return;
 
   if (!historique.length) {
-    list.innerHTML = '<p style="text-align:center;padding:24px;color:var(--text-muted)">Aucune action enregistrée pour le moment.</p>';
+    list.innerHTML = '<p style="text-align:center;padding:28px;color:var(--text-muted);font-size:13px">Aucune action enregistrée pour le moment.</p>';
     return;
   }
 
-  const motifLabel = {
-    depot_conteneur:        'Dépôt en conteneur',
-    creation_projet:        'Projet upcycling créé',
-    annonce_validee:        'Annonce validée',
-    inscription_evenement:  'Inscription à un événement',
-    questionnaire_complete: 'Questionnaire de satisfaction rempli',
-    projet_partage:         'Projet partagé avec la communauté',
+  const motifs = {
+    depot_conteneur:        { label: 'Dépôt en conteneur',                     icon: 'fa-box',              color: '#0d9488' },
+    creation_projet:        { label: 'Projet upcycling créé',                  icon: 'fa-screwdriver-wrench',color: '#7c3aed' },
+    annonce_validee:        { label: 'Annonce validée',                         icon: 'fa-circle-check',     color: '#16a34a' },
+    inscription_evenement:  { label: 'Inscription à un événement',              icon: 'fa-calendar-check',   color: '#0284c7' },
+    questionnaire_complete: { label: 'Questionnaire de satisfaction rempli',    icon: 'fa-clipboard-check',  color: '#d97706' },
+    projet_partage:         { label: 'Projet partagé avec la communauté',       icon: 'fa-share-nodes',      color: '#db2777' },
   };
   const locale = typeof _lang !== 'undefined' && _lang === 'en' ? 'en-GB' : 'fr-FR';
 
-  list.innerHTML = historique.map((h, i) => `
-    <div class="activity-item" style="${i === historique.length - 1 ? 'border-bottom:none' : ''}">
-      <div class="activity-icon" style="background:var(--teal-50);color:var(--teal-600)">
-        <i class="fa-solid fa-leaf"></i>
-      </div>
-      <div class="activity-text" style="flex:1">
-        <strong>${motifLabel[h.motif] || h.motif}</strong>
-        <div style="font-size:11.5px;color:var(--text-muted)">${h.date_action ? new Date(h.date_action).toLocaleString(locale,{day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'}) : '—'}</div>
-      </div>
-      <span style="font-size:13px;font-weight:700;color:var(--teal-700)">+${h.points} pts</span>
-    </div>`).join('');
+  list.innerHTML = historique.map((h, i) => {
+    const m = motifs[h.motif] || { label: h.motif, icon: 'fa-leaf', color: '#0d9488' };
+    const date = h.date_action
+      ? new Date(h.date_action).toLocaleString(locale, { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })
+      : '';
+    const isLast = i === historique.length - 1;
+    return `
+      <div style="display:flex;align-items:center;gap:14px;padding:13px 20px;${isLast ? '' : 'border-bottom:1px solid var(--border-color)'}">
+        <div style="width:36px;height:36px;border-radius:10px;background:${m.color}18;display:flex;align-items:center;justify-content:center;flex-shrink:0">
+          <i class="fa-solid ${m.icon}" style="color:${m.color};font-size:14px"></i>
+        </div>
+        <div style="flex:1;min-width:0">
+          <div style="font-size:13.5px;font-weight:600;color:var(--text-primary)">${m.label}</div>
+          ${date ? `<div style="font-size:11.5px;color:var(--text-muted);margin-top:2px">${date}</div>` : ''}
+        </div>
+        <span style="background:var(--teal-50);color:var(--teal-700);font-size:12px;font-weight:700;padding:3px 10px;border-radius:20px;white-space:nowrap">+${h.points} pts</span>
+      </div>`;
+  }).join('');
 }
 
 function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }

@@ -96,11 +96,16 @@
 
 <!-- Historique score upcycling -->
 <div class="card animate-in" id="score-card">
-  <div class="card-header">
-    <h2><i class="fa-solid fa-leaf" style="color:var(--teal-500)"></i> Upcycling Score — Historique</h2>
-    <span id="score-total-label" style="font-weight:700;font-size:13px;color:var(--teal-700)"></span>
+  <div class="card-header" style="border-bottom:1px solid var(--border-color);padding-bottom:14px">
+    <div style="display:flex;align-items:center;gap:10px">
+      <div style="width:34px;height:34px;border-radius:50%;background:var(--teal-50);display:flex;align-items:center;justify-content:center">
+        <i class="fa-solid fa-seedling" style="color:var(--teal-600);font-size:15px"></i>
+      </div>
+      <h2 style="margin:0;font-size:16px;font-weight:600">Historique des points</h2>
+    </div>
+    <span id="score-total-label" style="background:var(--teal-600);color:#fff;font-size:12px;font-weight:700;padding:4px 12px;border-radius:20px"></span>
   </div>
-  <div class="card-body" style="padding:0" id="score-historique-list">
+  <div style="padding:0" id="score-historique-list">
     <div style="text-align:center;padding:30px;color:var(--text-muted)"><i class="fa-solid fa-spinner fa-spin"></i></div>
   </div>
 </div>
