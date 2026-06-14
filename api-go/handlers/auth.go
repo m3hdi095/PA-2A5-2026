@@ -7,10 +7,25 @@ import (
 	"encoding/json"
 	"net/mail"
 	"net/http"
+	"unicode"
 
 	"upcycleconnect/api/models"
 	"upcycleconnect/api/services"
 )
+
+func validatePassword(pwd string) string {
+	if len(pwd) < 8 {
+		return "Le mot de passe doit contenir au moins 8 caractères"
+	}
+	var hasUpper, hasDigit bool
+	for _, c := range pwd {
+		if unicode.IsUpper(c) { hasUpper = true }
+		if unicode.IsDigit(c) { hasDigit = true }
+	}
+	if !hasUpper { return "Le mot de passe doit contenir au moins une majuscule" }
+	if !hasDigit { return "Le mot de passe doit contenir au moins un chiffre" }
+	return ""
+}
 
 var authService = services.NewAuthService()
 
@@ -30,6 +45,10 @@ func Register(w http.ResponseWriter, r *http.Request) {
 		jsonError(w, "Format d'email invalide", http.StatusBadRequest)
 		return
 	}
+	if msg := validatePassword(input.Password); msg != "" {
+		jsonError(w, msg, http.StatusBadRequest)
+		return
+	}
 	user := &models.Utilisateur{
 		Email:      input.Email,
 		MotDePasse: input.Password, // le service s'occupe du hashage
@@ -42,6 +61,8 @@ func Register(w http.ResponseWriter, r *http.Request) {
 		jsonError(w, err.Error(), http.StatusConflict)
 		return
 	}
+	// envoi de l'email de vérification en arrière-plan pour ne pas bloquer la réponse
+	go SendVerificationEmail(user.ID, user.Email, user.Prenom)
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusCreated)
 	json.NewEncoder(w).Encode(map[string]uint{"id": user.ID})

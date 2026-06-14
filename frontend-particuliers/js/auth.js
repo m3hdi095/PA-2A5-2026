@@ -37,12 +37,22 @@ document.addEventListener('DOMContentLoaded', () => {
   const toLogin      = document.getElementById('to-login');
   const errorEl      = document.getElementById('auth-error');
 
+  const errorRegEl = document.getElementById('auth-error-reg');
+
   function showError(msg) {
     if (!errorEl) return;
     errorEl.textContent = msg;
     errorEl.classList.add('visible');
   }
-  function clearError() { errorEl?.classList.remove('visible'); }
+  function showRegError(msg) {
+    if (!errorRegEl) return;
+    errorRegEl.textContent = msg;
+    errorRegEl.classList.add('visible');
+  }
+  function clearError() {
+    errorEl?.classList.remove('visible');
+    errorRegEl?.classList.remove('visible');
+  }
 
   toRegister?.addEventListener('click', () => {
     sectionLogin?.classList.remove('active');
@@ -91,8 +101,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const nom      = document.getElementById('reg-nom')?.value.trim();
     const email    = document.getElementById('reg-email')?.value.trim();
     const password = document.getElementById('reg-password')?.value;
-    if (!prenom || !nom || !email || !password) { showError('Veuillez remplir tous les champs.'); return; }
-    if (password.length < 8) { showError('Le mot de passe doit contenir au moins 8 caractères.'); return; }
+    if (!prenom || !nom || !email || !password) { showRegError('Veuillez remplir tous les champs.'); return; }
+    if (password.length < 8) { showRegError('Le mot de passe doit contenir au moins 8 caractères.'); return; }
+    if (!/[A-Z]/.test(password)) { showRegError('Le mot de passe doit contenir au moins une majuscule.'); return; }
+    if (!/[0-9]/.test(password)) { showRegError('Le mot de passe doit contenir au moins un chiffre.'); return; }
 
     const btn = formRegister.querySelector('button[type="submit"]');
     if (btn) { btn.disabled = true; btn.textContent = 'Inscription...'; }
@@ -103,8 +115,8 @@ document.addEventListener('DOMContentLoaded', () => {
       localStorage.setItem('uc_part_token', data.access_token || data.token);
       if (data.user) localStorage.setItem('uc_part_user', JSON.stringify(data.user));
       window.location.href = 'dashboard.html';
-    } catch {
-      showError('Erreur lors de l\'inscription. Vérifiez votre connexion et réessayez.');
+    } catch(err) {
+      showRegError(err.message || 'Erreur lors de l\'inscription. Vérifiez votre connexion et réessayez.');
     } finally {
       if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fa-solid fa-user-plus" aria-hidden="true"></i> Créer mon compte'; }
     }
