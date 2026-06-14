@@ -162,9 +162,9 @@ func (r *UserRepository) ListIDsByRole(role string) ([]uint, error) {
 type AnnonceRepository struct{}
 
 func (r *AnnonceRepository) Create(annonce *models.Annonce) error {
-	query := `INSERT INTO annonce (titre, description, type_annonce, prix, date_publication, statut, id_utilisateur, id_objet)
-              VALUES (?, ?, ?, ?, NOW(), 'en_attente', ?, ?)`
-	result, err := database.DB.Exec(query, annonce.Titre, annonce.Description, annonce.TypeAnnonce, annonce.Prix, annonce.IDUtilisateur, annonce.IDObjet)
+	query := `INSERT INTO annonce (titre, description, type_annonce, prix, localisation, date_publication, statut, id_utilisateur, id_objet)
+              VALUES (?, ?, ?, ?, ?, NOW(), 'en_attente', ?, ?)`
+	result, err := database.DB.Exec(query, annonce.Titre, annonce.Description, annonce.TypeAnnonce, annonce.Prix, annonce.Localisation, annonce.IDUtilisateur, annonce.IDObjet)
 	if err != nil {
 		return err
 	}
@@ -175,7 +175,8 @@ func (r *AnnonceRepository) Create(annonce *models.Annonce) error {
 
 func (r *AnnonceRepository) GetByID(id uint) (*models.Annonce, error) {
 	query := `SELECT a.id_annonce, a.titre, a.description, a.type_annonce, a.prix, a.date_publication, a.statut, a.id_utilisateur, a.id_objet,
-	          COALESCE(c.nom, ''), CONCAT(COALESCE(u.prenom,''), ' ', COALESCE(u.nom,'')), COALESCE(u.ville,'')
+	          COALESCE(c.nom, ''), CONCAT(COALESCE(u.prenom,''), ' ', COALESCE(u.nom,'')),
+	          COALESCE(a.localisation, u.ville, '')
               FROM annonce a
               LEFT JOIN objet o ON a.id_objet = o.id_objet
               LEFT JOIN categorie c ON o.categorie_id = c.id_categorie
@@ -195,7 +196,8 @@ func (r *AnnonceRepository) List(filter string, limit, offset int, lang string) 
 		COALESCE(MAX(t_titre.valeur_traduite), a.titre),
 		COALESCE(MAX(t_desc.valeur_traduite), a.description),
 		a.type_annonce, a.prix, a.date_publication, a.statut, a.id_utilisateur, a.id_objet, COALESCE(MAX(c.nom), ''),
-		CONCAT(COALESCE(MAX(u.prenom),''), ' ', COALESCE(MAX(u.nom),'')), COALESCE(MAX(u.ville),''),
+		CONCAT(COALESCE(MAX(u.prenom),''), ' ', COALESCE(MAX(u.nom),'')),
+		COALESCE(a.localisation, MAX(u.ville), ''),
 		COUNT(DISTINCT ma.id)
 	FROM annonce a
 	LEFT JOIN objet o ON a.id_objet = o.id_objet
@@ -206,7 +208,7 @@ func (r *AnnonceRepository) List(filter string, limit, offset int, lang string) 
 	LEFT JOIN message_annonce ma ON ma.id_annonce = a.id_annonce
 	WHERE a.statut = 'validee'
 	AND (a.date_expiration IS NULL OR a.date_expiration > NOW())
-	GROUP BY a.id_annonce, a.titre, a.description, a.type_annonce, a.prix, a.date_publication, a.date_expiration, a.statut, a.id_utilisateur, a.id_objet
+	GROUP BY a.id_annonce, a.titre, a.description, a.type_annonce, a.prix, a.date_publication, a.date_expiration, a.statut, a.id_utilisateur, a.id_objet, a.localisation
 	ORDER BY a.date_publication DESC LIMIT ? OFFSET ?`
 	args := []interface{}{lang, lang, limit, offset}
 	rows, err := database.DB.Query(query, args...)
@@ -250,8 +252,8 @@ func (r *AnnonceRepository) ListByUser(userID uint, limit, offset int) ([]models
 }
 
 func (r *AnnonceRepository) Update(annonce *models.Annonce) error {
-	query := `UPDATE annonce SET titre=?, description=?, type_annonce=?, prix=? WHERE id_annonce=?`
-	_, err := database.DB.Exec(query, annonce.Titre, annonce.Description, annonce.TypeAnnonce, annonce.Prix, annonce.ID)
+	query := `UPDATE annonce SET titre=?, description=?, type_annonce=?, prix=?, localisation=? WHERE id_annonce=?`
+	_, err := database.DB.Exec(query, annonce.Titre, annonce.Description, annonce.TypeAnnonce, annonce.Prix, annonce.Localisation, annonce.ID)
 	return err
 }
 

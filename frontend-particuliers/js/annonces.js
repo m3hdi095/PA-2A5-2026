@@ -53,7 +53,7 @@ async function basculerMesAnnonces() {
 async function chargerMesAnnonces() {
   const container = document.getElementById('annonces-container');
   const totalEl = document.getElementById('total-annonces');
-  if (container) container.innerHTML = `<p style="color:var(--text-muted);text-align:center;padding:32px;grid-column:1/-1">Chargement…</p>`;
+  if (container) container.innerHTML = `<p style="color:var(--text-muted);text-align:center;padding:32px;grid-column:1/-1">Chargement...</p>`;
   document.getElementById('pagination-wrap').innerHTML = '';
 
   let mes = [];
@@ -260,7 +260,7 @@ window.ouvrirDetail = async (id) => {
         <span style="font-size:13.5px"><i class="fa-solid fa-location-dot" style="color:var(--teal-500)"></i> ${esc(a.localisation)}</span>
       </div>
       <div><span style="font-size:11px;font-weight:700;text-transform:uppercase;color:var(--text-muted)">Proposé par</span><br>
-        <span style="font-size:13.5px"><i class="fa-solid fa-user" style="color:var(--teal-500)"></i> ${esc(a.auteur || '—')}</span>
+        <span style="font-size:13.5px"><i class="fa-solid fa-user" style="color:var(--teal-500)"></i> ${esc(a.auteur || '-')}</span>
       </div>
     </div>
     <p style="font-size:13.5px;line-height:1.7;color:var(--text-soft);margin-bottom:16px">${esc(a.description || '')}</p>
@@ -296,7 +296,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 window.contacterAuteur = async (id) => {
   document.getElementById('modal-detail').classList.remove('open');
-  // envoyer un premier message vide ne fait rien — on ouvre juste la section messages sur cette annonce
+  // envoyer un premier message vide ne fait rien, on ouvre juste la section messages sur cette annonce
   await basculerMessages(id);
 };
 
@@ -360,7 +360,7 @@ function setViewMode(mode) {
 async function chargerConversations() {
   const convItems = document.getElementById('conv-items');
   if (!convItems) return;
-  convItems.innerHTML = `<p style="padding:20px;color:var(--text-muted);text-align:center;font-size:12px">Chargement…</p>`;
+  convItems.innerHTML = `<p style="padding:20px;color:var(--text-muted);text-align:center;font-size:12px">Chargement...</p>`;
 
   let convs = [];
   try {
@@ -387,7 +387,7 @@ async function chargerConversations() {
           <span style="font-weight:600;font-size:12.5px;color:var(--text);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(c.annonce_titre)}</span>
           ${nonLuBadge}
         </div>
-        <div style="font-size:11.5px;color:var(--teal-600);margin-bottom:2px;font-weight:500">${esc(c.interloc_nom?.trim() || '—')}</div>
+        <div style="font-size:11.5px;color:var(--teal-600);margin-bottom:2px;font-weight:500">${esc(c.interloc_nom?.trim() || '-')}</div>
         <div style="display:flex;align-items:center;justify-content:space-between">
           <span style="font-size:11px;color:var(--text-muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:180px">${esc(c.dernier_msg || '')}</span>
           <span style="font-size:10px;color:var(--text-muted);flex-shrink:0;margin-left:6px">${date}</span>
@@ -411,7 +411,7 @@ window.ouvrirThreadConv = async (annonceId) => {
   const thread = document.getElementById('conv-thread');
   const inputWrap = document.getElementById('conv-input-wrap');
 
-  if (thread) thread.innerHTML = `<p style="color:var(--text-muted);text-align:center;padding:40px;font-size:12px">Chargement…</p>`;
+  if (thread) thread.innerHTML = `<p style="color:var(--text-muted);text-align:center;padding:40px;font-size:12px">Chargement...</p>`;
 
   let annonceTitre = `Annonce #${annonceId}`;
   let interlocNom = '';
@@ -466,7 +466,7 @@ function renderThreadConv(msgs) {
     }
     return `
       <div style="display:flex;flex-direction:column;align-items:flex-start;gap:2px">
-        <span style="font-size:10.5px;font-weight:600;color:var(--teal-600);margin-left:4px">${esc(m.expediteur?.trim() || '—')}</span>
+        <span style="font-size:10.5px;font-weight:600;color:var(--teal-600);margin-left:4px">${esc(m.expediteur?.trim() || '-')}</span>
         <div style="background:white;border:1px solid var(--border);border-radius:18px 18px 18px 4px;padding:9px 14px;max-width:72%;font-size:13px;line-height:1.5;word-break:break-word">${esc(m.contenu)}</div>
         <span style="font-size:10px;color:var(--text-muted);margin-left:4px">${date}</span>
       </div>`;
@@ -507,8 +507,12 @@ async function soumettreAnnonce(e) {
     type_annonce: document.getElementById('a-type').value,
     prix:         parseFloat(document.getElementById('a-prix').value) || 0,
     categorie:    document.getElementById('a-categorie').value,
+    localisation: document.getElementById('a-localisation')?.value.trim() || '',
   };
   if (!payload.titre) { showToast('Le titre est obligatoire', 'warning'); return; }
+  if (!payload.localisation) { showToast('La localisation est obligatoire', 'warning'); return; }
+  const photosInput = document.getElementById('a-photos');
+  if (!photosInput?.files?.length) { showToast('Au moins une photo est requise', 'warning'); return; }
   try {
     const res = await apiFetch('/annonces', { method: 'POST', body: JSON.stringify(payload) });
     if (res?.ok) {

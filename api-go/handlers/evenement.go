@@ -264,5 +264,5 @@ func envoyerEmailInscriptionEvenement(userID, eventID uint) {
     }
     dateStr := dateDebut.Format("02/01/2006 à 15h04")
     body := utils.EmailInscriptionEvenementBody(prenom, titreEvent, dateStr)
-    utils.SendEmail(email, "Confirmation d'inscription — "+titreEvent, body)
+    utils.SendEmail(email, "Confirmation d'inscription : "+titreEvent, body)
 }

@@ -21,13 +21,14 @@ var annonceService = services.NewAnnonceService()
 func CreateAnnonce(w http.ResponseWriter, r *http.Request) {
 	// On récupère les champs du body : on ne prend que ce dont on a besoin
 	var input struct {
-		Titre       string  `json:"titre"`
-		Description string  `json:"description"`
-		TypeAnnonce string  `json:"type_annonce"`
-		Prix        float64 `json:"prix"`
-		IDObjet     uint    `json:"id_objet"`
-		CategorieID *uint   `json:"categorie_id"`
-		Etat        string  `json:"etat"`
+		Titre        string  `json:"titre"`
+		Description  string  `json:"description"`
+		TypeAnnonce  string  `json:"type_annonce"`
+		Prix         float64 `json:"prix"`
+		IDObjet      uint    `json:"id_objet"`
+		CategorieID  *uint   `json:"categorie_id"`
+		Etat         string  `json:"etat"`
+		Localisation string  `json:"localisation"`
 	}
 	if err := json.NewDecoder(r.Body).Decode(&input); err != nil {
 		http.Error(w, `{"error":"Données invalides"}`, http.StatusBadRequest)
@@ -64,6 +65,7 @@ func CreateAnnonce(w http.ResponseWriter, r *http.Request) {
 		Description:   input.Description,
 		TypeAnnonce:   input.TypeAnnonce,
 		Prix:          input.Prix,
+		Localisation:  input.Localisation,
 		IDUtilisateur: userID,
 		IDObjet:       objetID,
 	}
@@ -116,12 +118,22 @@ func UpdateAnnonce(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// On s'assure que l'annonce appartient bien à cet utilisateur
 	input.ID = uint(parsed)
 	input.IDUtilisateur = userID
 
+	// vérifier l'appartenance avant d'appeler le service
+	var ownerID uint
+	database.DB.QueryRow(`SELECT id_utilisateur FROM annonce WHERE id_annonce = ?`, input.ID).Scan(&ownerID)
+	if ownerID == 0 {
+		jsonError(w, "annonce introuvable", http.StatusNotFound)
+		return
+	}
+	if ownerID != userID {
+		jsonError(w, "accès interdit", http.StatusForbidden)
+		return
+	}
+
 	if err := annonceService.UpdateAnnonce(&input); err != nil {
-		// FIXME: distinguer les erreurs 403 (pas le droit) des erreurs 400 (données invalides)
 		jsonError(w, err.Error(), http.StatusBadRequest)
 		return
 	}

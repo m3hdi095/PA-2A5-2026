@@ -110,8 +110,14 @@ func (s *AnnonceService) ValidateAnnonce(id uint, adminID uint, decision, commen
 		return err
 	}
 	if decision == "validee" {
-		if ownerID := propriétaireAnnonce(id); ownerID != 0 {
+		ownerID := propriétaireAnnonce(id)
+		if ownerID != 0 {
 			database.AddUpcyclingScore(ownerID, 5, "annonce_validee")
+			notifSvc := NewNotificationService()
+			_ = notifSvc.SendNotification(ownerID,
+				"Annonce validée !",
+				"Votre annonce a été validée et est maintenant visible par tous les membres.",
+				"info", "push")
 		}
 		database.DB.Exec(`UPDATE annonce SET date_expiration = DATE_ADD(NOW(), INTERVAL 30 DAY) WHERE id_annonce = ?`, id)
 	}

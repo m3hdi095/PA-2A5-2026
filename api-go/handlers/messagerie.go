@@ -123,7 +123,7 @@ func SendMessageAnnonce(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(map[string]interface{}{"id": newID, "status": "envoyé"})
 }
 
-// GET /api/annonces/mes-conversations  — inbox (propriétaire + acheteur)
+// GET /api/annonces/mes-conversations - inbox (propriétaire + acheteur)
 func MesConversations(w http.ResponseWriter, r *http.Request) {
 	userID := r.Context().Value(middleware.ContextUserID).(uint)
 
@@ -168,7 +168,7 @@ func MesConversations(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(convs)
 }
 
-// GET /api/annonces/mes-conversations/count  — nb total de messages non-lus
+// GET /api/annonces/mes-conversations/count - nb total de messages non-lus
 func CountMessagesNonLus(w http.ResponseWriter, r *http.Request) {
 	userID := r.Context().Value(middleware.ContextUserID).(uint)
 	var count int
@@ -180,7 +180,7 @@ func CountMessagesNonLus(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(map[string]int{"count": count})
 }
 
-// POST /api/annonces/{id}/favori  — toggle favori, retourne l'état
+// POST /api/annonces/{id}/favori - toggle favori, retourne l'état
 func ToggleFavori(w http.ResponseWriter, r *http.Request) {
 	userID := r.Context().Value(middleware.ContextUserID).(uint)
 	id, err := strconv.ParseUint(r.PathValue("id"), 10, 32)
@@ -204,7 +204,7 @@ func ToggleFavori(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// GET /api/annonces/favoris  — liste des annonces favorites de l'utilisateur
+// GET /api/annonces/favoris - liste des annonces favorites de l'utilisateur
 func GetFavoris(w http.ResponseWriter, r *http.Request) {
 	userID := r.Context().Value(middleware.ContextUserID).(uint)
 

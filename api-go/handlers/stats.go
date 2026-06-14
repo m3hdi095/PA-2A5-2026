@@ -123,7 +123,7 @@ func GetAdminAlertes(w http.ResponseWriter, r *http.Request) {
 			pct := nb * 100 / cap
 			alertes = append(alertes, Alerte{
 				Type:    "conteneur",
-				Message: adresse + ", " + ville + " — " + fmt.Sprintf("%d%%", pct) + " de remplissage",
+				Message: adresse + ", " + ville + " - " + fmt.Sprintf("%d%%", pct) + " de remplissage",
 				Lien:    "conteneurs.html",
 			})
 		}
@@ -147,7 +147,7 @@ func GetAdminAlertes(w http.ResponseWriter, r *http.Request) {
 			rows2.Scan(&id, &prenom, &nom, &montant, &date)
 			alertes = append(alertes, Alerte{
 				Type:    "paiement",
-				Message: fmt.Sprintf("Paiement échoué — %s %s — %.2f €", prenom, nom, montant),
+				Message: fmt.Sprintf("Paiement échoué : %s %s - %.2f €", prenom, nom, montant),
 				Lien:    "factures.html",
 			})
 		}

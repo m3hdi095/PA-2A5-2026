@@ -139,7 +139,7 @@ func (s *ForumService) ListSignalements() ([]SignalementResult, error) {
 		}
 		detail := contenu
 		if len(detail) > 100 {
-			detail = detail[:100] + "…"
+			detail = detail[:100] + "..."
 		}
 		severite := "warning"
 		if nb > 2 {
