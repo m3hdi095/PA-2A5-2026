@@ -41,18 +41,27 @@ func GetMessagesAnnonce(w http.ResponseWriter, r *http.Request) {
 	}
 	annonceID := uint(id)
 
-	// vérifier que l'utilisateur est soit propriétaire soit a envoyé un message
 	var ownerID uint
 	database.DB.QueryRow(`SELECT id_utilisateur FROM annonce WHERE id_annonce = ?`, annonceID).Scan(&ownerID)
 
+	// vérifier que l'utilisateur a accès : propriétaire ou a participé à la conversation
+	if userID != ownerID {
+		var nb int
+		database.DB.QueryRow(`SELECT COUNT(*) FROM message_annonce WHERE id_annonce = ? AND id_expediteur = ?`, annonceID, userID).Scan(&nb)
+		if nb == 0 {
+			http.Error(w, `{"error":"Accès interdit"}`, http.StatusForbidden)
+			return
+		}
+	}
+
+	// charger tout le fil de discussion (acheteur + réponses vendeur)
 	rows, err := database.DB.Query(`
 		SELECT m.id, m.id_annonce, m.id_expediteur, m.contenu, m.lu, m.date_envoi,
 		       CONCAT(COALESCE(u.prenom,''), ' ', COALESCE(u.nom,''))
 		FROM message_annonce m
 		LEFT JOIN utilisateur u ON u.id_utilisateur = m.id_expediteur
 		WHERE m.id_annonce = ?
-		  AND (? = ? OR m.id_expediteur = ?)
-		ORDER BY m.date_envoi ASC`, annonceID, userID, ownerID, userID)
+		ORDER BY m.date_envoi ASC`, annonceID)
 	if err != nil {
 		http.Error(w, `{"error":"Erreur interne"}`, http.StatusInternalServerError)
 		return
@@ -67,10 +76,7 @@ func GetMessagesAnnonce(w http.ResponseWriter, r *http.Request) {
 		msgs = append(msgs, m)
 	}
 
-	// marquer les messages non-lus comme lus pour l'utilisateur courant
-	if userID == ownerID {
-		database.DB.Exec(`UPDATE message_annonce SET lu = 1 WHERE id_annonce = ? AND id_expediteur != ?`, annonceID, userID)
-	}
+	database.DB.Exec(`UPDATE message_annonce SET lu = 1 WHERE id_annonce = ? AND id_expediteur != ?`, annonceID, userID)
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(msgs)
@@ -117,23 +123,34 @@ func SendMessageAnnonce(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(map[string]interface{}{"id": newID, "status": "envoyé"})
 }
 
-// GET /api/annonces/mes-conversations  — inbox pour les propriétaires d'annonces
+// GET /api/annonces/mes-conversations  — inbox (propriétaire + acheteur)
 func MesConversations(w http.ResponseWriter, r *http.Request) {
 	userID := r.Context().Value(middleware.ContextUserID).(uint)
 
+	// toutes les annonces où l'utilisateur est soit propriétaire, soit a envoyé un message
 	rows, err := database.DB.Query(`
-		SELECT a.id_annonce, a.titre,
-		       m.id_expediteur,
-		       CONCAT(COALESCE(u.prenom,''), ' ', COALESCE(u.nom,'')),
-		       m.contenu, m.date_envoi,
-		       SUM(CASE WHEN m.lu = 0 AND m.id_expediteur != ? THEN 1 ELSE 0 END)
+		SELECT
+		    a.id_annonce,
+		    a.titre,
+		    CASE WHEN a.id_utilisateur = ?
+		        THEN (SELECT MIN(m2.id_expediteur) FROM message_annonce m2 WHERE m2.id_annonce = a.id_annonce AND m2.id_expediteur != ?)
+		        ELSE a.id_utilisateur
+		    END AS interloc_id,
+		    CASE WHEN a.id_utilisateur = ?
+		        THEN (SELECT CONCAT(COALESCE(u2.prenom,''),' ',COALESCE(u2.nom,''))
+		              FROM message_annonce m2 JOIN utilisateur u2 ON u2.id_utilisateur = m2.id_expediteur
+		              WHERE m2.id_annonce = a.id_annonce AND m2.id_expediteur != ? ORDER BY m2.date_envoi LIMIT 1)
+		        ELSE (SELECT CONCAT(COALESCE(u3.prenom,''),' ',COALESCE(u3.nom,'')) FROM utilisateur u3 WHERE u3.id_utilisateur = a.id_utilisateur)
+		    END AS interloc_nom,
+		    (SELECT m2.contenu FROM message_annonce m2 WHERE m2.id_annonce = a.id_annonce ORDER BY m2.date_envoi DESC LIMIT 1) AS dernier_msg,
+		    (SELECT m2.date_envoi FROM message_annonce m2 WHERE m2.id_annonce = a.id_annonce ORDER BY m2.date_envoi DESC LIMIT 1) AS date_dernier,
+		    COALESCE((SELECT COUNT(*) FROM message_annonce m2 WHERE m2.id_annonce = a.id_annonce AND m2.lu = 0 AND m2.id_expediteur != ? AND a.id_utilisateur = ?), 0) AS nb_non_lus
 		FROM message_annonce m
-		JOIN annonce a ON a.id_annonce = m.id_annonce AND a.id_utilisateur = ?
-		JOIN utilisateur u ON u.id_utilisateur = m.id_expediteur
-		WHERE m.id_expediteur != ?
-		GROUP BY a.id_annonce, a.titre, m.id_expediteur, u.prenom, u.nom,
-		         m.contenu, m.date_envoi
-		ORDER BY m.date_envoi DESC`, userID, userID, userID)
+		JOIN annonce a ON a.id_annonce = m.id_annonce
+		WHERE a.id_utilisateur = ? OR m.id_expediteur = ?
+		GROUP BY a.id_annonce, a.titre, a.id_utilisateur
+		ORDER BY date_dernier DESC`,
+		userID, userID, userID, userID, userID, userID, userID, userID)
 	if err != nil {
 		http.Error(w, `{"error":"Erreur interne"}`, http.StatusInternalServerError)
 		return
