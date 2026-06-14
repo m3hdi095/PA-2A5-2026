@@ -17,7 +17,8 @@ import (
 func GetPublicConfig(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(map[string]string{
-		"stripe_pk": config.AppConfig.StripePublicKey,
+		"stripe_pk":      config.AppConfig.StripePublicKey,
+		"onesignal_app_id": config.AppConfig.OneSignalAppID,
 	})
 }
 
