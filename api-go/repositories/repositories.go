@@ -623,9 +623,9 @@ func (r *InscriptionRepository) ListByUser(userID uint, limit, offset int) ([]mo
 type PaiementRepository struct{}
 
 func (r *PaiementRepository) Create(paiement *models.Paiement) error {
-	query := `INSERT INTO paiement (montant, moyen, date_paiement, ref_stripe, statut, type_paiement, id_abonnement)
-              VALUES (?, ?, NOW(), ?, 'en_attente', ?, ?)`
-	result, err := database.DB.Exec(query, paiement.Montant, paiement.Moyen, paiement.RefStripe, paiement.TypePaiement, paiement.IDAbonnement)
+	query := `INSERT INTO paiement (montant, moyen, date_paiement, ref_stripe, statut, type_paiement, id_abonnement, id_utilisateur)
+              VALUES (?, ?, NOW(), ?, 'en_attente', ?, ?, ?)`
+	result, err := database.DB.Exec(query, paiement.Montant, paiement.Moyen, paiement.RefStripe, paiement.TypePaiement, paiement.IDAbonnement, paiement.IDUtilisateur)
 	if err != nil {
 		return err
 	}

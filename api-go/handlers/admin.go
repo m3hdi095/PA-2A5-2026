@@ -173,7 +173,7 @@ func AdminFactures(w http.ResponseWriter, r *http.Request) {
 		       f.montant_ht, f.tva, f.montant_ttc,
 		       f.date_emission, f.statut, COALESCE(f.fichier_pdf,'')
 		FROM facture f
-		JOIN utilisateur u ON u.id_utilisateur = f.id_utilisateur
+		LEFT JOIN utilisateur u ON u.id_utilisateur = f.id_utilisateur
 		LEFT JOIN paiement py ON py.id_paiement = f.id_paiement
 		ORDER BY f.date_emission DESC
 		LIMIT 20 OFFSET ?`, offset)
