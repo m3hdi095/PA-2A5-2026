@@ -121,7 +121,82 @@
   </div>
 </div>
 
+<!-- Modal questionnaire satisfaction -->
+<div class="modal-overlay" id="modal-questionnaire">
+  <div class="modal-box" style="max-width:540px">
+    <div class="modal-header">
+      <div class="modal-title"><i class="fa-solid fa-star"></i> Questionnaire satisfaction</div>
+      <button class="modal-close" id="modal-q-close">&times;</button>
+    </div>
+    <div class="modal-body">
+      <p style="font-size:13px;color:var(--text-soft);margin-bottom:16px">
+        Créez un questionnaire pour recueillir les retours des participants après l'événement.
+      </p>
+      <div id="questions-list" style="display:flex;flex-direction:column;gap:8px;margin-bottom:12px"></div>
+      <button type="button" class="btn btn-outline btn-sm" onclick="ajouterQuestion()">
+        <i class="fa-solid fa-plus"></i> Ajouter une question
+      </button>
+      <div class="form-actions" style="margin-top:20px">
+        <button type="button" class="btn btn-outline" onclick="document.getElementById('modal-questionnaire').classList.remove('open')">Annuler</button>
+        <button type="button" class="btn btn-primary" onclick="sauvegarderQuestionnaire()">
+          <i class="fa-solid fa-paper-plane"></i> Envoyer aux participants
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <script src="js/layout.js"></script>
 <script src="js/formations.js"></script>
+<script>
+let _evenementQID = null;
+
+window.ouvrirQuestionnaire = (eventID) => {
+  _evenementQID = eventID;
+  document.getElementById('questions-list').innerHTML = '';
+  ajouterQuestion();
+  document.getElementById('modal-questionnaire').classList.add('open');
+};
+
+window.ajouterQuestion = () => {
+  const list = document.getElementById('questions-list');
+  const idx = list.children.length + 1;
+  list.insertAdjacentHTML('beforeend', `
+    <div style="display:flex;gap:8px;align-items:center" id="q-row-${idx}">
+      <input type="text" class="form-control question-text" placeholder="Question ${idx}" style="flex:1;font-size:13px"/>
+      <select class="form-control question-type" style="width:110px;font-size:12px">
+        <option value="texte">Texte libre</option>
+        <option value="note">Note /5</option>
+        <option value="oui_non">Oui / Non</option>
+      </select>
+      <button type="button" style="background:none;border:none;cursor:pointer;color:var(--danger-text)" onclick="document.getElementById('q-row-${idx}').remove()">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+    </div>`);
+};
+
+window.sauvegarderQuestionnaire = async () => {
+  if (!_evenementQID) return;
+  const texts = Array.from(document.querySelectorAll('.question-text')).map(i => i.value.trim()).filter(Boolean);
+  const types  = Array.from(document.querySelectorAll('.question-type')).map(s => s.value);
+  if (!texts.length) { showToast('Ajoutez au moins une question', 'warning'); return; }
+  const questions = texts.map((q, i) => ({ question: q, type: types[i] || 'texte' }));
+  try {
+    const res = await apiFetch(`/evenements/${_evenementQID}/questionnaire`, {
+      method: 'POST', body: JSON.stringify({ questions: JSON.stringify(questions) }),
+    });
+    if (!res?.ok) { showToast('Erreur lors de la création', 'error'); return; }
+    const d = await res.json();
+    // envoyer immédiatement
+    await apiFetch(`/questionnaires/${d.id}/envoyer`, { method: 'POST', body: '{}' });
+    showToast('Questionnaire envoyé aux participants', 'success');
+    document.getElementById('modal-questionnaire').classList.remove('open');
+  } catch { showToast('Service indisponible', 'error'); }
+};
+
+document.getElementById('modal-q-close')?.addEventListener('click', () => {
+  document.getElementById('modal-questionnaire').classList.remove('open');
+});
+</script>
 </body>
 </html>

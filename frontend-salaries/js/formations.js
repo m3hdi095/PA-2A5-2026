@@ -60,6 +60,9 @@ function renderTable() {
           <button class="btn btn-outline btn-sm" onclick="ouvrirModal(${f.id})" title="Modifier">
             <i class="fa-solid fa-pen"></i>
           </button>
+          <button class="btn btn-outline btn-sm" onclick="ouvrirQuestionnaire(${f.id})" title="Questionnaire satisfaction" style="color:var(--teal-600)">
+            <i class="fa-solid fa-star"></i>
+          </button>
           <button class="btn btn-ghost btn-sm" onclick="supprimerFormation(${f.id})" title="Supprimer" style="color:var(--danger)">
             <i class="fa-solid fa-trash"></i>
           </button>
