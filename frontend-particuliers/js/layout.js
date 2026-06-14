@@ -1,5 +1,6 @@
 // API Go, changer si déployé ailleurs
-const apiBase = 'http://localhost:8080/api';
+const apiBase    = 'http://localhost:8080/api';
+const serverBase = new URL(apiBase).origin;
 
 // jwt
 function getToken()      { return localStorage.getItem('uc_part_token'); }

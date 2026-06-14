@@ -30,6 +30,7 @@ async function chargerStats(user) {
       score  = data.score_total      ?? 0;
       kg     = Math.round(data.kg_recycles ?? 0);
       events = data.evenements_venir ?? 0;
+      afficherHistoriqueScore(data.score_total ?? 0, data.historique || []);
     }
   } catch {}
 
@@ -137,6 +138,38 @@ async function chargerEvenementsVenir() {
         </span>
       </div>`;
   }).join('');
+}
+
+function afficherHistoriqueScore(total, historique) {
+  const label = document.getElementById('score-total-label');
+  if (label) label.textContent = `Total : ${total} pts`;
+
+  const list = document.getElementById('score-historique-list');
+  if (!list) return;
+
+  if (!historique.length) {
+    list.innerHTML = '<p style="text-align:center;padding:24px;color:var(--text-muted)">Aucune action enregistrée pour le moment.</p>';
+    return;
+  }
+
+  const motifLabel = {
+    depot_conteneur:  'Dépôt en conteneur',
+    creation_projet:  'Projet upcycling créé',
+    annonce_validee:  'Annonce validée',
+  };
+  const locale = typeof _lang !== 'undefined' && _lang === 'en' ? 'en-GB' : 'fr-FR';
+
+  list.innerHTML = historique.map((h, i) => `
+    <div class="activity-item" style="${i === historique.length - 1 ? 'border-bottom:none' : ''}">
+      <div class="activity-icon" style="background:var(--teal-50);color:var(--teal-600)">
+        <i class="fa-solid fa-leaf"></i>
+      </div>
+      <div class="activity-text" style="flex:1">
+        <strong>${motifLabel[h.motif] || h.motif}</strong>
+        <div style="font-size:11.5px;color:var(--text-muted)">${h.date_action ? new Date(h.date_action).toLocaleString(locale,{day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'}) : '—'}</div>
+      </div>
+      <span style="font-size:13px;font-weight:700;color:var(--teal-700)">+${h.points} pts</span>
+    </div>`).join('');
 }
 
 function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
