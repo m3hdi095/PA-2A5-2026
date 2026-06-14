@@ -6,6 +6,7 @@
   <title>Mon abonnement | Espace Professionnel</title>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=Montserrat:wght@400;500;600&display=swap" rel="stylesheet"/>
   <link rel="stylesheet" href="css/style.css"/>
+  <script src="https://js.stripe.com/v3/"></script>
 </head>
 <body>
 
@@ -200,7 +201,12 @@
           Stats avancées + export CSV
         </div>
       </div>
-      <button class="btn btn-premium" style="width:100%;padding:14px;font-size:14px" onclick="confirmerStripe()">
+      <div style="margin-bottom:16px">
+        <label style="font-size:12px;font-weight:600;color:var(--text-muted);display:block;margin-bottom:6px">Carte bancaire</label>
+        <div id="card-element-abo" style="border:1px solid var(--border-color);border-radius:8px;padding:12px;background:#fafafa"></div>
+        <div id="card-error-abo" style="color:#c0392b;font-size:12px;margin-top:6px;display:none"></div>
+      </div>
+      <button id="btn-payer-abo" class="btn btn-premium" style="width:100%;padding:14px;font-size:14px" onclick="confirmerStripe()">
         <i class="fa-brands fa-stripe-s" aria-hidden="true"></i>
         Payer avec Stripe : 15 €/mois
       </button>
@@ -307,23 +313,82 @@ async function chargerFactures() {
     </tr>`).join('');
 }
 
-window.lancerUpgrade = () => document.getElementById('modal-upgrade').classList.add('open');
-window.fermerUpgrade = () => document.getElementById('modal-upgrade').classList.remove('open');
+let _stripe = null;
+let _cardElement = null;
+
+async function getStripePK() {
+  try {
+    const res = await fetch(`${apiBase}/config`);
+    if (res.ok) { const d = await res.json(); return d.stripe_pk || ''; }
+  } catch {}
+  return '';
+}
+
+window.lancerUpgrade = async () => {
+  document.getElementById('modal-upgrade').classList.add('open');
+  if (_stripe && _cardElement) return;
+  const pk = await getStripePK();
+  if (!pk || !window.Stripe) return;
+  _stripe = Stripe(pk);
+  const elements = _stripe.elements();
+  _cardElement = elements.create('card', {
+    style: { base: { fontFamily: 'Poppins, sans-serif', fontSize: '14px', color: '#302e2c' } },
+  });
+  _cardElement.mount('#card-element-abo');
+  _cardElement.on('change', e => {
+    const errEl = document.getElementById('card-error-abo');
+    if (e.error) { errEl.textContent = e.error.message; errEl.style.display = 'block'; }
+    else { errEl.style.display = 'none'; }
+  });
+};
+
+window.fermerUpgrade = () => {
+  document.getElementById('modal-upgrade').classList.remove('open');
+};
 
 window.confirmerStripe = async () => {
-  const btn = document.querySelector('#modal-upgrade .btn-premium');
-  if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Activation...'; }
+  const btn = document.getElementById('btn-payer-abo');
+  const errEl = document.getElementById('card-error-abo');
+  errEl.style.display = 'none';
+
+  if (!_stripe || !_cardElement) {
+    showToast('Configuration Stripe manquante.', 'error');
+    return;
+  }
+
+  if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Traitement...'; }
+
   try {
-    const res = await apiFetch('/abonnements/upgrade', { method: 'POST' });
-    if (res?.ok) {
-      fermerUpgrade();
-      showToast('Abonnement Premium activé !', 'success');
-      await chargerPlan();
-      await chargerFactures();
+    // 1. créer le PaymentIntent côté serveur (15 € = 1500 centimes)
+    const piRes = await apiFetch('/create-payment-intent', {
+      method: 'POST',
+      body: JSON.stringify({ amount: 15, currency: 'eur', type: 'abonnement', reference_id: 0 }),
+    });
+    if (!piRes?.ok) { showToast('Impossible de créer le paiement.', 'error'); return; }
+    const { client_secret } = await piRes.json();
+
+    // 2. confirmer avec la carte saisie
+    const { error, paymentIntent } = await _stripe.confirmCardPayment(client_secret, {
+      payment_method: { card: _cardElement },
+    });
+    if (error) {
+      errEl.textContent = error.message;
+      errEl.style.display = 'block';
       return;
     }
-    const err = res ? await res.json().catch(() => ({})) : {};
-    showToast(err.error || 'Erreur lors de l\'activation', 'error');
+
+    // 3. activer le premium côté serveur
+    if (paymentIntent.status === 'succeeded') {
+      const res = await apiFetch('/abonnements/upgrade', { method: 'POST' });
+      if (res?.ok) {
+        fermerUpgrade();
+        showToast('Abonnement Premium activé !', 'success');
+        await chargerPlan();
+        await chargerFactures();
+      } else {
+        showToast('Paiement reçu mais activation échouée. Contactez le support.', 'error');
+      }
+    }
   } catch {
     showToast('Service indisponible. Réessayez.', 'error');
   } finally {
