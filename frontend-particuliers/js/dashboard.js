@@ -153,9 +153,12 @@ function afficherHistoriqueScore(total, historique) {
   }
 
   const motifLabel = {
-    depot_conteneur:  'Dépôt en conteneur',
-    creation_projet:  'Projet upcycling créé',
-    annonce_validee:  'Annonce validée',
+    depot_conteneur:        'Dépôt en conteneur',
+    creation_projet:        'Projet upcycling créé',
+    annonce_validee:        'Annonce validée',
+    inscription_evenement:  'Inscription à un événement',
+    questionnaire_complete: 'Questionnaire de satisfaction rempli',
+    projet_partage:         'Projet partagé avec la communauté',
   };
   const locale = typeof _lang !== 'undefined' && _lang === 'en' ? 'en-GB' : 'fr-FR';
 

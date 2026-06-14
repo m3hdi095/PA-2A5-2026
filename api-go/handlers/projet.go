@@ -21,28 +21,33 @@ var projetService = services.NewProjetService()
 func CreateProjet(w http.ResponseWriter, r *http.Request) {
     userID := r.Context().Value(middleware.ContextUserID).(uint)
     var input struct {
-        Titre       string    `json:"titre"`
-        Description string    `json:"description"`
-        DateDebut   time.Time `json:"date_debut"`
-        DateFin     time.Time `json:"date_fin"`
+        Titre             string    `json:"titre"`
+        Description       string    `json:"description"`
+        DateDebut         time.Time `json:"date_debut"`
+        DateFin           time.Time `json:"date_fin"`
+        PartageCommunaute bool      `json:"partage_communaute"`
     }
     if err := json.NewDecoder(r.Body).Decode(&input); err != nil {
         http.Error(w, `{"error":"Données invalides"}`, http.StatusBadRequest)
         return
     }
     projet := &models.ProjetUpcycling{
-        Titre:        input.Titre,
-        Description:  input.Description,
-        DateDebut:    input.DateDebut,
-        DateFin:      input.DateFin,
-        Statut:       "en_cours",
-        IDUtilisateur: userID,
+        Titre:             input.Titre,
+        Description:       input.Description,
+        DateDebut:         input.DateDebut,
+        DateFin:           input.DateFin,
+        Statut:            "en_cours",
+        PartageCommunaute: input.PartageCommunaute,
+        IDUtilisateur:     userID,
     }
     if err := projetService.CreateProjet(projet); err != nil {
         jsonError(w, err.Error(), http.StatusBadRequest)
         return
     }
     database.AddUpcyclingScore(userID, 15, "creation_projet")
+    if input.PartageCommunaute {
+        database.AddUpcyclingScore(userID, 8, "projet_partage")
+    }
     w.WriteHeader(http.StatusCreated)
     json.NewEncoder(w).Encode(projet)
 }

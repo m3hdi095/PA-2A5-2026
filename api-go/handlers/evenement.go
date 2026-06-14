@@ -107,7 +107,7 @@ func InscrireEvenement(w http.ResponseWriter, r *http.Request) {
         jsonError(w, err.Error(), http.StatusBadRequest)
         return
     }
-    // email de confirmation en arrière-plan
+    database.AddUpcyclingScore(userID, 3, "inscription_evenement")
     go envoyerEmailInscriptionEvenement(userID, req.EvenementID)
     w.WriteHeader(http.StatusCreated)
     json.NewEncoder(w).Encode(map[string]string{"status": "inscrit"})

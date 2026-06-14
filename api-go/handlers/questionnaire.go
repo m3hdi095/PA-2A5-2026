@@ -109,7 +109,7 @@ func RepondreQuestionnaire(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	_, err = database.DB.Exec(
+	res, err := database.DB.Exec(
 		`INSERT INTO reponse_satisfaction (id_questionnaire, id_utilisateur, reponses) VALUES (?, ?, ?)
 		 ON DUPLICATE KEY UPDATE reponses = VALUES(reponses)`,
 		qID, userID, input.Reponses,
@@ -117,6 +117,9 @@ func RepondreQuestionnaire(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		http.Error(w, `{"error":"Erreur interne"}`, http.StatusInternalServerError)
 		return
+	}
+	if rows, _ := res.RowsAffected(); rows == 1 {
+		database.AddUpcyclingScore(userID, 5, "questionnaire_complete")
 	}
 
 	w.Header().Set("Content-Type", "application/json")
