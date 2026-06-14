@@ -164,7 +164,9 @@ CREATE TABLE paiement (
     statut ENUM('en_attente', 'paye', 'rembourse') DEFAULT 'en_attente',
     type_paiement ENUM('abonnement', 'transaction', 'evenement', 'service') NOT NULL,
     id_abonnement INT UNSIGNED DEFAULT NULL,
-    FOREIGN KEY (id_abonnement) REFERENCES abonnement(id_abonnement)
+    id_utilisateur INT UNSIGNED DEFAULT NULL,
+    FOREIGN KEY (id_abonnement) REFERENCES abonnement(id_abonnement),
+    FOREIGN KEY (id_utilisateur) REFERENCES utilisateur(id_utilisateur) ON DELETE SET NULL
 );
 
 -- Factures (en PDF)

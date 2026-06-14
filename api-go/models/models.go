@@ -147,14 +147,15 @@ type Inscription struct {
 }
 
 type Paiement struct {
-	ID           uint      `json:"id"`
-	Montant      float64   `json:"montant"`
-	Moyen        string    `json:"moyen"`
-	DatePaiement time.Time `json:"date_paiement"`
-	RefStripe    string    `json:"ref_stripe"`
-	Statut       string    `json:"statut"`
-	TypePaiement string    `json:"type_paiement"`
-	IDAbonnement *uint     `json:"id_abonnement,omitempty"`
+	ID            uint      `json:"id"`
+	Montant       float64   `json:"montant"`
+	Moyen         string    `json:"moyen"`
+	DatePaiement  time.Time `json:"date_paiement"`
+	RefStripe     string    `json:"ref_stripe"`
+	Statut        string    `json:"statut"`
+	TypePaiement  string    `json:"type_paiement"`
+	IDAbonnement  *uint     `json:"id_abonnement,omitempty"`
+	IDUtilisateur uint      `json:"id_utilisateur,omitempty"`
 }
 
 type TransactionAchat struct {

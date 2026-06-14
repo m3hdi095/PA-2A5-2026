@@ -43,6 +43,9 @@ func (s *PaiementService) CreatePaymentIntent(amount float64, currency string, m
 		RefStripe:    pi.ID,
 		TypePaiement: metadata["type"],
 	}
+	if uid, err := strconv.ParseUint(metadata["user_id"], 10, 64); err == nil && uid > 0 {
+		paiement.IDUtilisateur = uint(uid)
+	}
 	// lier l'abonnement des la creation du paiement pour que le webhook puisse l'activer
 	if metadata["type"] == "abonnement" {
 		if refID, err := strconv.ParseUint(metadata["reference_id"], 10, 64); err == nil && refID > 0 {

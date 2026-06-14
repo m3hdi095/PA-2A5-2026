@@ -62,7 +62,9 @@ func StripeWebhook(w http.ResponseWriter, r *http.Request) {
 	}
 
 	sigHeader := r.Header.Get("Stripe-Signature")
-	event, err := webhook.ConstructEvent(payload, sigHeader, config.AppConfig.StripeWebhookSecret)
+	event, err := webhook.ConstructEventWithOptions(payload, sigHeader, config.AppConfig.StripeWebhookSecret,
+		webhook.ConstructEventOptions{IgnoreAPIVersionMismatch: true},
+	)
 	if err != nil {
 		log.Println("Stripe webhook signature invalide:", err)
 		http.Error(w, `{"error":"Signature invalide"}`, http.StatusBadRequest)
@@ -102,16 +104,23 @@ func handlePaymentSucceeded(pi stripe.PaymentIntent) {
 	var paiementID uint
 	var typePaiement string
 	var abonnementID *uint
+	var userIDDB *uint
 	row := database.DB.QueryRow(
-		`SELECT id_paiement, type_paiement, id_abonnement FROM paiement WHERE ref_stripe = ?`, pi.ID,
+		`SELECT id_paiement, type_paiement, id_abonnement, id_utilisateur FROM paiement WHERE ref_stripe = ?`, pi.ID,
 	)
-	if err := row.Scan(&paiementID, &typePaiement, &abonnementID); err != nil {
-		log.Println("Paiement introuvable pour stripe ref:", pi.ID)
+	if err := row.Scan(&paiementID, &typePaiement, &abonnementID, &userIDDB); err != nil {
+		log.Printf("Paiement introuvable pour stripe ref=%s : %v", pi.ID, err)
 		return
 	}
 	database.DB.Exec(`UPDATE paiement SET statut = 'paye' WHERE id_paiement = ?`, paiementID)
 
-	userID, _ := strconv.ParseUint(pi.Metadata["user_id"], 10, 64)
+	// on préfère l'id_utilisateur stocké en DB ; fallback sur les métadonnées Stripe
+	var userID uint64
+	if userIDDB != nil && *userIDDB > 0 {
+		userID = uint64(*userIDDB)
+	} else {
+		userID, _ = strconv.ParseUint(pi.Metadata["user_id"], 10, 64)
+	}
 	refID, _ := strconv.ParseUint(pi.Metadata["reference_id"], 10, 64)
 
 	switch typePaiement {
@@ -163,10 +172,17 @@ func handlePaymentSucceeded(pi stripe.PaymentIntent) {
 		pdfPath = filename
 	}
 
+	if userID == 0 {
+		log.Printf("Facture non créée : id_utilisateur inconnu pour stripe=%s paiement=%d", pi.ID, paiementID)
+		return
+	}
+
 	// montant_ttc est GENERATED ALWAYS donc on ne l'insere pas, la DB le calcule
-	database.DB.Exec(
+	if _, err := database.DB.Exec(
 		`INSERT INTO facture (numero_facture, montant_ht, tva, statut, fichier_pdf, id_utilisateur, id_paiement)
 		 VALUES (?, ?, 20, 'payee', ?, ?, ?)`,
 		factureNum, montantHT, pdfPath, userID, paiementID,
-	)
+	); err != nil {
+		log.Printf("Erreur INSERT facture (paiement=%d, user=%d, stripe=%s): %v", paiementID, userID, pi.ID, err)
+	}
 }
