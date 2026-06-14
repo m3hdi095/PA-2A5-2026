@@ -28,6 +28,10 @@
       <i class="fa-solid fa-download" aria-hidden="true"></i>
       <span data-i18n="btn_export_csv">Exporter CSV</span>
     </button>
+    <button class="btn btn-outline btn-sm" id="pdfBtn" style="color:#c0392b;border-color:#c0392b">
+      <i class="fa-solid fa-file-pdf" aria-hidden="true"></i>
+      <span data-i18n="btn_rapport_pdf">Rapport PDF</span>
+    </button>
     <button class="btn btn-primary" id="btnAdd">
       <i class="fa-solid fa-plus" aria-hidden="true"></i>
       <span data-i18n="btn_new_facture">Nouvelle facture</span>
@@ -290,6 +294,62 @@ document.addEventListener('DOMContentLoaded', async () => {
     e.preventDefault();
     closeModal();
     showToast('Les factures sont générées automatiquement lors des paiements Stripe.', 'info');
+  });
+
+  document.getElementById('pdfBtn').addEventListener('click', async () => {
+    if (!window.jspdf) {
+      showToast('Chargement du générateur PDF...', 'info');
+      await Promise.all([
+        new Promise(res => { const s = document.createElement('script'); s.src='https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js'; s.onload=res; document.head.appendChild(s); }),
+        new Promise(res => { const s = document.createElement('script'); s.src='https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js'; s.onload=res; document.head.appendChild(s); }),
+      ]);
+    }
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
+    const locale = typeof _lang !== 'undefined' && _lang === 'en' ? 'en-GB' : 'fr-FR';
+    const dateNow = new Date().toLocaleDateString(locale, { day:'numeric', month:'long', year:'numeric' });
+
+    doc.setFillColor(45, 74, 62);
+    doc.rect(0, 0, 297, 22, 'F');
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(14);
+    doc.setFont('helvetica', 'bold');
+    doc.text('UpcycleConnect — Rapport financier', 14, 13);
+    doc.setFontSize(9);
+    doc.setFont('helvetica', 'normal');
+    doc.text('Généré le ' + dateNow, 270, 13, { align: 'right' });
+
+    const totalTTC = allFactures.reduce((s, f) => s + Number(f.ttc || 0), 0);
+    const totalPayees = allFactures.filter(f => f.statut === 'payee').reduce((s, f) => s + Number(f.ttc || 0), 0);
+    const nbImpayees = allFactures.filter(f => f.statut === 'en_attente').length;
+
+    doc.setTextColor(60, 60, 60);
+    doc.setFontSize(9);
+    doc.setFont('helvetica', 'normal');
+    doc.text(`Total TTC : ${totalTTC.toFixed(2)} €   |   Payées : ${totalPayees.toFixed(2)} €   |   En attente : ${nbImpayees} facture(s)`, 14, 30);
+
+    const rows = allFactures.map(f => [
+      f.num,
+      f.client,
+      typeLabel(f.type),
+      Number(f.ht || 0).toFixed(2) + ' €',
+      (Number(f.tva || 0) * Number(f.ht || 0) / 100).toFixed(2) + ' €',
+      Number(f.ttc || 0).toFixed(2) + ' €',
+      f.date ? new Date(f.date).toLocaleDateString(locale) : '—',
+      statutLabel(f.statut),
+    ]);
+
+    doc.autoTable({
+      startY: 35,
+      head: [['N° Facture', 'Client', 'Type', 'HT', 'TVA 20%', 'TTC', 'Date', 'Statut']],
+      body: rows,
+      styles: { fontSize: 8, cellPadding: 3 },
+      headStyles: { fillColor: [45, 74, 62], textColor: 255, fontStyle: 'bold' },
+      alternateRowStyles: { fillColor: [245, 248, 246] },
+      columnStyles: { 5: { fontStyle: 'bold', textColor: [45, 74, 62] } },
+    });
+
+    doc.save('rapport-financier-upcycleconnect.pdf');
   });
 
   document.getElementById('exportBtn').addEventListener('click', () => {

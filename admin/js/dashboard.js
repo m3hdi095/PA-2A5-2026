@@ -3,7 +3,7 @@
 document.addEventListener('DOMContentLoaded', async () => {
   await initLayout('dashboard');
   afficherDate();
-  await Promise.all([chargerStats(), chargerUsers()]);
+  await Promise.all([chargerStats(), chargerUsers(), chargerAlertes()]);
 });
 
 function afficherDate() {
@@ -180,6 +180,34 @@ function renderActivite(container, users) {
         <div class="activity-time">${date}</div>
       </div>`;
   }).join('');
+}
+
+async function chargerAlertes() {
+  const card = document.getElementById('alertes-card');
+  const list = document.getElementById('alertes-list');
+  const count = document.getElementById('alertes-count');
+  if (!card || !list) return;
+  try {
+    const res = await apiFetch('/admin/alertes');
+    if (!res?.ok) return;
+    const alertes = await res.json();
+    if (!alertes.length) return;
+
+    card.style.display = '';
+    count.textContent = alertes.length + ' alerte' + (alertes.length > 1 ? 's' : '');
+
+    const icones = { conteneur: 'fa-box-archive', paiement: 'fa-credit-card' };
+    const couleurs = { conteneur: '#c67c28', paiement: '#c0392b' };
+
+    list.innerHTML = alertes.map((a, i) => `
+      <div style="display:flex;align-items:center;gap:12px;padding:12px 20px;${i < alertes.length - 1 ? 'border-bottom:1px solid var(--border-color)' : ''}">
+        <div style="width:32px;height:32px;border-radius:8px;background:${couleurs[a.type]}18;display:flex;align-items:center;justify-content:center;flex-shrink:0">
+          <i class="fa-solid ${icones[a.type] || 'fa-bell'}" style="color:${couleurs[a.type]};font-size:13px"></i>
+        </div>
+        <div style="flex:1;font-size:13px;color:var(--text-primary)">${escAdmin(a.message)}</div>
+        ${a.lien ? `<a href="${a.lien}" style="font-size:12px;color:var(--uc-green);font-weight:600;white-space:nowrap">Voir</a>` : ''}
+      </div>`).join('');
+  } catch {}
 }
 
 function escAdmin(str) {

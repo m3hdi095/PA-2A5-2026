@@ -135,6 +135,7 @@
   "factures_title":              "Billing",
   "factures_subtitle":           "Track revenue, invoices and subscriptions",
   "btn_export_csv":              "Export CSV",
+  "btn_rapport_pdf":             "PDF Report",
   "btn_new_facture":             "New invoice",
   "btn_create_facture":          "Create invoice",
   "factures_filter_all_types":   "All types",

@@ -7,11 +7,13 @@ package main
 import (
     "log"
     "net/http"
+    "time"
 
     "upcycleconnect/api/config"
     "upcycleconnect/api/database"
     "upcycleconnect/api/handlers"
     "upcycleconnect/api/middleware"
+    "upcycleconnect/api/services"
 )
 
 func main() {
@@ -20,6 +22,15 @@ func main() {
 
     // connexion MySQL, la fonction gere le panic si ca echoue
     database.Connect()
+
+    // expiration automatique des dépôts non récupérés après 7 jours
+    go func() {
+        svc := services.NewConteneurService()
+        for {
+            svc.ExpireOldDepots()
+            time.Sleep(1 * time.Hour)
+        }
+    }()
 
     mux := http.NewServeMux()
 
@@ -175,6 +186,7 @@ func main() {
     mux.HandleFunc("PUT /api/admin/publicites/{id}/statut", middleware.AuthMiddleware(middleware.RoleMiddleware("admin")(handlers.UpdatePubliciteStatut)))
     mux.HandleFunc("DELETE /api/admin/publicites/{id}", middleware.AuthMiddleware(middleware.RoleMiddleware("admin")(handlers.DeletePublicite)))
     mux.HandleFunc("GET /api/admin/stats", middleware.AuthMiddleware(middleware.RoleMiddleware("admin")(handlers.GetAdminStats)))
+    mux.HandleFunc("GET /api/admin/alertes", middleware.AuthMiddleware(middleware.RoleMiddleware("admin")(handlers.GetAdminAlertes)))
     mux.HandleFunc("GET /api/admin/users", middleware.AuthMiddleware(middleware.RoleMiddleware("admin")(handlers.ListUsers)))
     mux.HandleFunc("GET /api/admin/users/counts", middleware.AuthMiddleware(middleware.RoleMiddleware("admin")(handlers.CountUsersByRole)))
     mux.HandleFunc("POST /api/admin/users", middleware.AuthMiddleware(middleware.RoleMiddleware("admin")(handlers.AdminCreateUser)))

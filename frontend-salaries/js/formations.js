@@ -158,6 +158,13 @@ document.addEventListener('DOMContentLoaded', async () => {
         fetchFormations();
         return;
       }
+      let msg = 'Erreur lors de la sauvegarde';
+      try {
+        const err = await res.json();
+        if (err?.error) msg = err.error;
+      } catch {}
+      showToast(msg, 'error');
+      return;
     } catch {}
 
     showToast('Erreur lors de la sauvegarde', 'error');

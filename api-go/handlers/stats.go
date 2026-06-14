@@ -5,6 +5,7 @@ package handlers
 import (
 	"upcycleconnect/api/middleware"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"strconv"
 
@@ -95,6 +96,68 @@ func SoftDeleteUser(w http.ResponseWriter, r *http.Request) {
 	}
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(map[string]string{"status": "utilisateur archivé (RGPD)"})
+}
+
+// alertes dashboard : conteneurs saturés + paiements échoués
+func GetAdminAlertes(w http.ResponseWriter, r *http.Request) {
+	type Alerte struct {
+		Type    string `json:"type"`
+		Message string `json:"message"`
+		Lien    string `json:"lien,omitempty"`
+	}
+	var alertes []Alerte
+
+	// conteneurs dont le taux de remplissage dépasse 90%
+	rows, err := database.DB.Query(
+		`SELECT id_conteneur, adresse, ville, nb_objets, capacite
+		 FROM conteneur
+		 WHERE capacite > 0 AND nb_objets >= capacite * 0.9 AND statut = 'actif'
+		 ORDER BY (nb_objets / capacite) DESC LIMIT 10`,
+	)
+	if err == nil {
+		defer rows.Close()
+		for rows.Next() {
+			var id, nb, cap int
+			var adresse, ville string
+			rows.Scan(&id, &adresse, &ville, &nb, &cap)
+			pct := nb * 100 / cap
+			alertes = append(alertes, Alerte{
+				Type:    "conteneur",
+				Message: adresse + ", " + ville + " — " + fmt.Sprintf("%d%%", pct) + " de remplissage",
+				Lien:    "conteneurs.html",
+			})
+		}
+	}
+
+	// paiements échoués des 30 derniers jours
+	rows2, err2 := database.DB.Query(
+		`SELECT p.id_paiement, COALESCE(u.prenom,''), COALESCE(u.nom,''), p.montant, p.date_paiement
+		 FROM paiement p
+		 LEFT JOIN utilisateur u ON u.id_utilisateur = p.id_utilisateur
+		 WHERE p.statut = 'echoue' AND p.date_paiement >= DATE_SUB(NOW(), INTERVAL 30 DAY)
+		 ORDER BY p.date_paiement DESC LIMIT 10`,
+	)
+	if err2 == nil {
+		defer rows2.Close()
+		for rows2.Next() {
+			var id int
+			var prenom, nom string
+			var montant float64
+			var date string
+			rows2.Scan(&id, &prenom, &nom, &montant, &date)
+			alertes = append(alertes, Alerte{
+				Type:    "paiement",
+				Message: fmt.Sprintf("Paiement échoué — %s %s — %.2f €", prenom, nom, montant),
+				Lien:    "factures.html",
+			})
+		}
+	}
+
+	if alertes == nil {
+		alertes = []Alerte{}
+	}
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(alertes)
 }
 
 // depots en attente de confirmation, pour le panel admin

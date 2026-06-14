@@ -15,18 +15,19 @@ import (
 type UserRepository struct{}
 
 func (r *UserRepository) GetByID(id uint) (*models.Utilisateur, error) {
-	// LEFT JOIN professionnel pour avoir le niveau abonnement et les champs entreprise si c'est un pro
 	query := `SELECT u.id_utilisateur, u.email, u.nom, u.prenom, u.role,
 	          COALESCE(u.adresse,''), COALESCE(u.ville,''), COALESCE(u.code_postal,''), COALESCE(u.telephone,''),
 	          u.date_inscription, u.actif, u.tutoriel_vu, COALESCE(u.langue_preferee,'fr'),
-	          COALESCE(p.niveau_abonnement,''),
-	          COALESCE(p.nom_entreprise,''), COALESCE(p.siret,''), COALESCE(p.type_metier,'')
+	          COALESCE(pro.niveau_abonnement,''),
+	          COALESCE(pro.nom_entreprise,''), COALESCE(pro.siret,''), COALESCE(pro.type_metier,''),
+	          COALESCE(par.upcycling_score_total, 0)
               FROM utilisateur u
-              LEFT JOIN professionnel p ON p.id_professionnel = u.id_utilisateur
+              LEFT JOIN professionnel pro ON pro.id_professionnel = u.id_utilisateur
+              LEFT JOIN particulier par ON par.id_particulier = u.id_utilisateur
               WHERE u.id_utilisateur = ?`
 	row := database.DB.QueryRow(query, id)
 	var u models.Utilisateur
-	err := row.Scan(&u.ID, &u.Email, &u.Nom, &u.Prenom, &u.Role, &u.Adresse, &u.Ville, &u.CodePostal, &u.Telephone, &u.DateInscription, &u.Actif, &u.TutorielVu, &u.LanguePreferee, &u.Plan, &u.Entreprise, &u.Siret, &u.TypeMetier)
+	err := row.Scan(&u.ID, &u.Email, &u.Nom, &u.Prenom, &u.Role, &u.Adresse, &u.Ville, &u.CodePostal, &u.Telephone, &u.DateInscription, &u.Actif, &u.TutorielVu, &u.LanguePreferee, &u.Plan, &u.Entreprise, &u.Siret, &u.TypeMetier, &u.UpcyclingScore)
 	if err == sql.ErrNoRows {
 		return nil, nil
 	}
@@ -65,6 +66,14 @@ func (r *UserRepository) Create(user *models.Utilisateur) error {
 	}
 	id, _ := result.LastInsertId()
 	user.ID = uint(id)
+
+	// créer la ligne dans la table de rôle correspondante
+	switch user.Role {
+	case "particulier":
+		database.DB.Exec(`INSERT IGNORE INTO particulier (id_particulier, upcycling_score_total) VALUES (?, 0)`, user.ID)
+	case "professionnel":
+		database.DB.Exec(`INSERT IGNORE INTO professionnel (id_professionnel, nom_entreprise, siret, type_metier, niveau_abonnement) VALUES (?, '', '', '', 'free')`, user.ID)
+	}
 	return nil
 }
 
@@ -918,6 +927,34 @@ func (r *DepotRepository) UpdateRecuperationDate(id uint) error {
 		time.Now(), id,
 	)
 	return err
+}
+
+func (r *DepotRepository) ExpireDepot(id uint) error {
+	_, err := database.DB.Exec("UPDATE depot SET statut = 'expire' WHERE id_depot = ?", id)
+	return err
+}
+
+func (r *DepotRepository) ListExpiredValides() ([]models.Depot, error) {
+	rows, err := database.DB.Query(
+		`SELECT id_depot, statut, date_demande, date_validation, date_depot, date_recuperation,
+		        code_ouverture, code_barre_retrait, motif_refus, id_particulier, id_conteneur, id_objet
+		 FROM depot
+		 WHERE statut = 'valide'
+		   AND date_validation IS NOT NULL
+		   AND date_validation < DATE_SUB(NOW(), INTERVAL 7 DAY)`,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var depots []models.Depot
+	for rows.Next() {
+		var d models.Depot
+		rows.Scan(&d.ID, &d.Statut, &d.DateDemande, &d.DateValidation, &d.DateDepot, &d.DateRecuperation,
+			&d.CodeOuverture, &d.CodeBarreRetrait, &d.MotifRefus, &d.IDParticulier, &d.IDConteneur, &d.IDObjet)
+		depots = append(depots, d)
+	}
+	return depots, nil
 }
 
 func (r *DepotRepository) GetByCodeBarre(code string) (*models.Depot, error) {

@@ -143,6 +143,14 @@ func (s *ConteneurService) RecupererDepotParCode(code string) (*models.Depot, er
 	if depot.Statut != "valide" {
 		return nil, errors.New("dépôt non disponible pour récupération (statut: " + depot.Statut + ")")
 	}
+	if depot.DateValidation != nil && time.Now().After(depot.DateValidation.Add(7*24*time.Hour)) {
+		_ = s.depotRepo.ExpireDepot(depot.ID)
+		conteneur, _ := s.conteneurRepo.GetByID(depot.IDConteneur)
+		if conteneur != nil && conteneur.NbObjets > 0 {
+			_ = s.conteneurRepo.UpdateNbObjets(conteneur.ID, conteneur.NbObjets-1)
+		}
+		return nil, errors.New("délai de 7 jours dépassé : l'objet a été remis en stock")
+	}
 	if err := s.depotRepo.UpdateRecuperationDate(depot.ID); err != nil {
 		return nil, err
 	}
@@ -152,6 +160,20 @@ func (s *ConteneurService) RecupererDepotParCode(code string) (*models.Depot, er
 		_ = s.conteneurRepo.UpdateNbObjets(conteneur.ID, conteneur.NbObjets-1)
 	}
 	return depot, nil
+}
+
+func (s *ConteneurService) ExpireOldDepots() {
+	depots, err := s.depotRepo.ListExpiredValides()
+	if err != nil {
+		return
+	}
+	for _, d := range depots {
+		_ = s.depotRepo.ExpireDepot(d.ID)
+		conteneur, _ := s.conteneurRepo.GetByID(d.IDConteneur)
+		if conteneur != nil && conteneur.NbObjets > 0 {
+			_ = s.conteneurRepo.UpdateNbObjets(conteneur.ID, conteneur.NbObjets-1)
+		}
+	}
 }
 
 func (s *ConteneurService) UpdateStatutConteneur(id uint, statut string) error {
