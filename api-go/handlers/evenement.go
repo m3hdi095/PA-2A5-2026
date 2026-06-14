@@ -11,9 +11,11 @@ import (
     "strconv"
     "time"
 
+    "upcycleconnect/api/database"
     "upcycleconnect/api/models"
     "upcycleconnect/api/repositories"
     "upcycleconnect/api/services"
+    "upcycleconnect/api/utils"
 )
 
 var evenementService = services.NewEvenementService()
@@ -105,6 +107,8 @@ func InscrireEvenement(w http.ResponseWriter, r *http.Request) {
         jsonError(w, err.Error(), http.StatusBadRequest)
         return
     }
+    // email de confirmation en arrière-plan
+    go envoyerEmailInscriptionEvenement(userID, req.EvenementID)
     w.WriteHeader(http.StatusCreated)
     json.NewEncoder(w).Encode(map[string]string{"status": "inscrit"})
 }
@@ -244,4 +248,21 @@ func MesCreations(w http.ResponseWriter, r *http.Request) {
     }
     w.Header().Set("Content-Type", "application/json")
     json.NewEncoder(w).Encode(events)
+}
+
+func envoyerEmailInscriptionEvenement(userID, eventID uint) {
+    var email, prenom, titreEvent string
+    var dateDebut time.Time
+    database.DB.QueryRow(
+        `SELECT u.email, u.prenom, e.titre, e.date_debut
+         FROM utilisateur u, evenement e
+         WHERE u.id_utilisateur = ? AND e.id_evenement = ?`,
+        userID, eventID,
+    ).Scan(&email, &prenom, &titreEvent, &dateDebut)
+    if email == "" {
+        return
+    }
+    dateStr := dateDebut.Format("02/01/2006 à 15h04")
+    body := utils.EmailInscriptionEvenementBody(prenom, titreEvent, dateStr)
+    utils.SendEmail(email, "Confirmation d'inscription — "+titreEvent, body)
 }
