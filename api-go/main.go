@@ -32,6 +32,15 @@ func main() {
         }
     }()
 
+    // rappels 48h avant les événements (email + push)
+    go func() {
+        svc := services.NewEvenementService()
+        for {
+            svc.EnvoyerRappels()
+            time.Sleep(1 * time.Hour)
+        }
+    }()
+
     mux := http.NewServeMux()
 
     // route de sante pour verifier que l'API tourne
