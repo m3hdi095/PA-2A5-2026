@@ -333,7 +333,14 @@ func (r *DepotRepository) GetByID(id uint) (*models.Depot, error) {
 }
 
 func (r *DepotRepository) ListByParticulier(particulierID uint, limit, offset int) ([]models.Depot, error) {
-	rows, err := database.DB.Query("SELECT id_depot, statut, date_demande, date_validation, date_depot, date_recuperation, code_ouverture, code_barre_retrait, motif_refus, id_particulier, id_conteneur, id_objet FROM depot WHERE id_particulier = ? ORDER BY date_demande DESC LIMIT ? OFFSET ?", particulierID, limit, offset)
+	rows, err := database.DB.Query(`
+		SELECT d.id_depot, d.statut, d.date_demande, d.date_validation, d.date_depot, d.date_recuperation,
+		       d.code_ouverture, d.code_barre_retrait, d.motif_refus, d.id_particulier, d.id_conteneur, d.id_objet,
+		       COALESCE(c.adresse,''), COALESCE(c.ville,'')
+		FROM depot d
+		LEFT JOIN conteneur c ON c.id_conteneur = d.id_conteneur
+		WHERE d.id_particulier = ?
+		ORDER BY d.date_demande DESC LIMIT ? OFFSET ?`, particulierID, limit, offset)
 	if err != nil {
 		return nil, err
 	}
@@ -341,7 +348,9 @@ func (r *DepotRepository) ListByParticulier(particulierID uint, limit, offset in
 	depots := make([]models.Depot, 0)
 	for rows.Next() {
 		var d models.Depot
-		err := rows.Scan(&d.ID, &d.Statut, &d.DateDemande, &d.DateValidation, &d.DateDepot, &d.DateRecuperation, &d.CodeOuverture, &d.CodeBarreRetrait, &d.MotifRefus, &d.IDParticulier, &d.IDConteneur, &d.IDObjet)
+		err := rows.Scan(&d.ID, &d.Statut, &d.DateDemande, &d.DateValidation, &d.DateDepot, &d.DateRecuperation,
+			&d.CodeOuverture, &d.CodeBarreRetrait, &d.MotifRefus, &d.IDParticulier, &d.IDConteneur, &d.IDObjet,
+			&d.AdresseConteneur, &d.VilleConteneur)
 		if err != nil {
 			return nil, err
 		}

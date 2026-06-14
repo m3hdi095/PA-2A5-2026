@@ -97,7 +97,7 @@ async function chargerHistorique() {
         <tr>
           <td style="color:var(--text-muted);font-size:12px">${date}</td>
           <td class="td-primary">Objet #${d.id_objet}</td>
-          <td style="font-size:13px;color:var(--text-soft)">Conteneur #${d.id_conteneur}</td>
+          <td style="font-size:13px;color:var(--text-soft)">${d.adresse_conteneur ? `${esc(d.adresse_conteneur)}, ${esc(d.ville_conteneur)}` : `Conteneur #${d.id_conteneur}`}</td>
           <td>
             <code style="font-family:monospace;font-size:11px;background:var(--teal-25);padding:2px 6px;border-radius:4px">${esc(d.code_barre_retrait)}</code>
             ${d.code_barre_retrait ? `<br><img src="${serverBase}/uploads/barcodes/depot_${d.id}.png" alt="QR code" style="height:40px;margin-top:4px" onerror="this.style.display='none'">` : ''}

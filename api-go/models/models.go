@@ -95,6 +95,8 @@ type Depot struct {
     IDParticulier    uint       `json:"id_particulier"`
     IDConteneur      uint       `json:"id_conteneur"`
     IDObjet          uint       `json:"id_objet"`
+    AdresseConteneur string     `json:"adresse_conteneur,omitempty"`
+    VilleConteneur   string     `json:"ville_conteneur,omitempty"`
 }
 
 type ProjetUpcycling struct {
