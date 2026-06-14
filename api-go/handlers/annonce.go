@@ -237,6 +237,29 @@ func ValidateAnnonce(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(map[string]string{"status": "ok"})
 }
 
+func RenouvelerAnnonce(w http.ResponseWriter, r *http.Request) {
+	userID := r.Context().Value(middleware.ContextUserID).(uint)
+	id, err := strconv.ParseUint(r.PathValue("id"), 10, 32)
+	if err != nil {
+		http.Error(w, `{"error":"ID invalide"}`, http.StatusBadRequest)
+		return
+	}
+	var ownerID uint
+	var statut string
+	row := database.DB.QueryRow(`SELECT id_utilisateur, statut FROM annonce WHERE id_annonce = ?`, id)
+	if err := row.Scan(&ownerID, &statut); err != nil || ownerID != userID {
+		jsonError(w, "annonce introuvable ou accès interdit", http.StatusForbidden)
+		return
+	}
+	if statut != "validee" {
+		jsonError(w, "seules les annonces validées peuvent être renouvelées", http.StatusBadRequest)
+		return
+	}
+	database.DB.Exec(`UPDATE annonce SET date_expiration = DATE_ADD(NOW(), INTERVAL 30 DAY) WHERE id_annonce = ?`, id)
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]string{"status": "renouvelee"})
+}
+
 func ReserverAnnonce(w http.ResponseWriter, r *http.Request) {
 	acheteurID := r.Context().Value(middleware.ContextUserID).(uint)
 	id, err := strconv.ParseUint(r.PathValue("id"), 10, 32)
@@ -251,6 +274,10 @@ func ReserverAnnonce(w http.ResponseWriter, r *http.Request) {
 	}
 	if annonce.Statut != "validee" {
 		jsonError(w, "cette annonce n'est plus disponible", http.StatusBadRequest)
+		return
+	}
+	if acheteurID == annonce.IDUtilisateur {
+		jsonError(w, "vous ne pouvez pas réserver votre propre annonce", http.StatusBadRequest)
 		return
 	}
 	var montant float64

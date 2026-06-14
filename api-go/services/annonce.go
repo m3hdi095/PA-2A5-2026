@@ -92,6 +92,7 @@ func (s *AnnonceService) ValidateAnnonce(id uint, adminID uint, decision, commen
 		if ownerID := propriétaireAnnonce(id); ownerID != 0 {
 			database.AddUpcyclingScore(ownerID, 5, "annonce_validee")
 		}
+		database.DB.Exec(`UPDATE annonce SET date_expiration = DATE_ADD(NOW(), INTERVAL 30 DAY) WHERE id_annonce = ?`, id)
 	}
 	return s.repo.UpdateStatus(id, decision)
 }

@@ -33,9 +33,15 @@ func main() {
         w.Write([]byte(`{"status":"ok","service":"UpcycleConnect API"}`))
     })
 
+    // fichiers uploadés (photos annonces, etc.)
+    mux.Handle("/uploads/", http.StripPrefix("/uploads/", http.FileServer(http.Dir("./uploads/"))))
+
     // routes publiques
     mux.HandleFunc("POST /api/register", handlers.Register)
     mux.HandleFunc("POST /api/login", handlers.Login)
+    mux.HandleFunc("POST /api/forgot-password", handlers.ForgotPassword)
+    mux.HandleFunc("POST /api/reset-password", handlers.ResetPassword)
+    mux.HandleFunc("GET /api/verify-email", handlers.VerifyEmail)
     // les frontends prestataires et salaries utilisent /auth/login, on mappe sur le meme handler
     mux.HandleFunc("POST /api/auth/login", handlers.Login)
     mux.HandleFunc("POST /api/auth/register", handlers.Register)
@@ -46,6 +52,8 @@ func main() {
     mux.HandleFunc("GET /api/categories", handlers.ListCategories)
     // traductions en lecture publique, l'ecriture est admin-only plus bas
     mux.HandleFunc("GET /api/traductions/{table}/{id}/{langue}", handlers.GetTraduction)
+    // configuration publique (clé Stripe publishable, pas de secret)
+    mux.HandleFunc("GET /api/config", handlers.GetPublicConfig)
 
     // routes protegees (token JWT requis)
 
@@ -58,10 +66,15 @@ func main() {
 
     // annonces des particuliers
     mux.HandleFunc("GET /api/annonces/mes-annonces", middleware.AuthMiddleware(handlers.MesAnnonces))
+    mux.HandleFunc("POST /api/annonces/{id}/renouveler", middleware.AuthMiddleware(handlers.RenouvelerAnnonce))
     mux.HandleFunc("POST /api/annonces", middleware.AuthMiddleware(handlers.CreateAnnonce))
     mux.HandleFunc("PUT /api/annonces/{id}", middleware.AuthMiddleware(handlers.UpdateAnnonce))
     mux.HandleFunc("DELETE /api/annonces/{id}", middleware.AuthMiddleware(handlers.DeleteAnnonce))
     mux.HandleFunc("POST /api/annonces/{id}/reserver", middleware.AuthMiddleware(handlers.ReserverAnnonce))
+    // photos annonces
+    mux.HandleFunc("GET /api/annonces/{id}/photos", handlers.GetPhotosAnnonce)
+    mux.HandleFunc("POST /api/annonces/{id}/photos", middleware.AuthMiddleware(handlers.UploadPhotosAnnonce))
+    mux.HandleFunc("DELETE /api/annonces/{id}/photos/{photoId}", middleware.AuthMiddleware(handlers.DeletePhotoAnnonce))
     // messagerie annonce (style LeBonCoin)
     mux.HandleFunc("GET /api/annonces/mes-conversations", middleware.AuthMiddleware(handlers.MesConversations))
     mux.HandleFunc("GET /api/annonces/mes-conversations/count", middleware.AuthMiddleware(handlers.CountMessagesNonLus))
@@ -96,6 +109,7 @@ func main() {
     mux.HandleFunc("GET /api/planning/me", middleware.AuthMiddleware(handlers.GetMonPlanning))
     mux.HandleFunc("POST /api/planning", middleware.AuthMiddleware(handlers.CreatePlanningEntry))
     mux.HandleFunc("DELETE /api/planning/{id}", middleware.AuthMiddleware(handlers.DeletePlanningEntry))
+    mux.HandleFunc("GET /api/planning/export.ics", middleware.AuthMiddleware(handlers.ExportPlanningIcal))
 
     // paiements Stripe (sandbox pendant le dev)
     mux.HandleFunc("POST /api/create-payment-intent", middleware.AuthMiddleware(handlers.CreatePaymentIntent))
@@ -119,6 +133,13 @@ func main() {
     mux.HandleFunc("PUT /api/conseils/{id}", middleware.AuthMiddleware(handlers.UpdateConseil))
     mux.HandleFunc("DELETE /api/conseils/{id}", middleware.AuthMiddleware(handlers.DeleteConseil))
     mux.HandleFunc("POST /api/admin/conseils/valider", middleware.AuthMiddleware(middleware.RoleMiddleware("admin")(handlers.ValiderConseil)))
+    // stats et commentaires conseils
+    mux.HandleFunc("POST /api/conseils/{id}/vue", middleware.AuthMiddleware(handlers.VueConseil))
+    mux.HandleFunc("POST /api/conseils/{id}/like", middleware.AuthMiddleware(handlers.LikeConseil))
+    mux.HandleFunc("GET /api/conseils/{id}/commentaires", middleware.AuthMiddleware(handlers.ListCommentairesConseil))
+    mux.HandleFunc("POST /api/conseils/{id}/commentaires", middleware.AuthMiddleware(handlers.CreateCommentaireConseil))
+    mux.HandleFunc("GET /api/commentaires/en-attente", middleware.AuthMiddleware(handlers.ListCommentairesEnAttente))
+    mux.HandleFunc("PUT /api/commentaires/{id}/moderer", middleware.AuthMiddleware(handlers.ModererCommentaire))
 
     // forum et moderation
     mux.HandleFunc("GET /api/forum", middleware.AuthMiddleware(handlers.ListForumMessages))
@@ -140,8 +161,19 @@ func main() {
 
     // Upcycling Score
     mux.HandleFunc("GET /api/score", middleware.AuthMiddleware(handlers.GetScore))
+    // Questionnaires satisfaction post-événement
+    mux.HandleFunc("POST /api/evenements/{id}/questionnaire", middleware.AuthMiddleware(handlers.CreateQuestionnaire))
+    mux.HandleFunc("GET /api/evenements/{id}/questionnaire", middleware.AuthMiddleware(handlers.GetQuestionnaire))
+    mux.HandleFunc("POST /api/questionnaires/{qid}/envoyer", middleware.AuthMiddleware(handlers.EnvoyerQuestionnaire))
+    mux.HandleFunc("POST /api/questionnaires/{qid}/repondre", middleware.AuthMiddleware(handlers.RepondreQuestionnaire))
+    mux.HandleFunc("GET /api/questionnaires/{qid}/reponses", middleware.AuthMiddleware(handlers.GetReponsesQuestionnaire))
 
     // back-office admin
+    mux.HandleFunc("GET /api/admin/factures", middleware.AuthMiddleware(middleware.RoleMiddleware("admin")(handlers.AdminFactures)))
+    mux.HandleFunc("GET /api/admin/publicites", middleware.AuthMiddleware(middleware.RoleMiddleware("admin")(handlers.ListPublicites)))
+    mux.HandleFunc("POST /api/admin/publicites", middleware.AuthMiddleware(middleware.RoleMiddleware("admin")(handlers.CreatePublicite)))
+    mux.HandleFunc("PUT /api/admin/publicites/{id}/statut", middleware.AuthMiddleware(middleware.RoleMiddleware("admin")(handlers.UpdatePubliciteStatut)))
+    mux.HandleFunc("DELETE /api/admin/publicites/{id}", middleware.AuthMiddleware(middleware.RoleMiddleware("admin")(handlers.DeletePublicite)))
     mux.HandleFunc("GET /api/admin/stats", middleware.AuthMiddleware(middleware.RoleMiddleware("admin")(handlers.GetAdminStats)))
     mux.HandleFunc("GET /api/admin/users", middleware.AuthMiddleware(middleware.RoleMiddleware("admin")(handlers.ListUsers)))
     mux.HandleFunc("GET /api/admin/users/counts", middleware.AuthMiddleware(middleware.RoleMiddleware("admin")(handlers.CountUsersByRole)))
