@@ -1,5 +1,6 @@
 // gestion des conseils
 
+let _quill = null;
 
 const CAT_COLORS = {
   technique: { bg:'var(--green-50)',  txt:'var(--green-700)' },
@@ -64,6 +65,7 @@ function ouvrirModalConseil(id) {
   const form  = document.getElementById('form-conseil');
   form.reset();
   document.getElementById('c-id').value = '';
+  if (_quill) _quill.setText('');
 
   if (id) {
     const c = conseils.find(x => x.id === id);
@@ -73,7 +75,7 @@ function ouvrirModalConseil(id) {
     document.getElementById('c-titre').value     = c.titre;
     document.getElementById('c-categorie').value = c.categorie;
     document.getElementById('c-statut').value    = c.statut;
-    document.getElementById('c-contenu').value   = c.contenu || '';
+    if (_quill) _quill.clipboard.dangerouslyPasteHTML(c.contenu || '');
   } else {
     document.getElementById('modal-titre-label').innerHTML = '<i class="fa-solid fa-plus"></i> Nouveau conseil';
   }
@@ -82,6 +84,7 @@ function ouvrirModalConseil(id) {
 
 function fermerModalConseil() {
   document.getElementById('modal-conseil').classList.remove('open');
+  if (_quill) _quill.setText('');
 }
 
 window.ouvrirModalConseil = ouvrirModalConseil;
@@ -127,6 +130,21 @@ function esc(s) { return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt
 
 document.addEventListener('DOMContentLoaded', async () => {
   await initLayout('conseils');
+
+  _quill = new Quill('#quill-editor', {
+    theme: 'snow',
+    placeholder: 'Rédigez votre conseil...',
+    modules: {
+      toolbar: [
+        [{ header: [2, 3, false] }],
+        ['bold', 'italic', 'underline'],
+        [{ list: 'ordered' }, { list: 'bullet' }],
+        ['link'],
+        ['clean'],
+      ],
+    },
+  });
+
   fetchConseils();
 
   document.getElementById('btn-nouveau')?.addEventListener('click', () => ouvrirModalConseil(null));
@@ -139,11 +157,12 @@ document.addEventListener('DOMContentLoaded', async () => {
   document.getElementById('form-conseil')?.addEventListener('submit', async e => {
     e.preventDefault();
     const id   = document.getElementById('c-id').value;
+    const rawHtml = _quill ? _quill.root.innerHTML : '';
     const data = {
       titre:     document.getElementById('c-titre').value.trim(),
       categorie: document.getElementById('c-categorie').value,
       statut:    document.getElementById('c-statut').value,
-      contenu:   document.getElementById('c-contenu').value.trim(),
+      contenu:   rawHtml === '<p><br></p>' ? '' : rawHtml,
     };
     if (!data.titre) { showToast('Le titre est obligatoire', 'warning'); return; }
 
