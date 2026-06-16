@@ -17,24 +17,44 @@
   </div>
   <div class="page-title-actions">
     <button class="btn btn-outline btn-sm" onclick="exporterIcal()"><i class="fa-solid fa-calendar-arrow-down"></i> Exporter (.ics)</button>
-    <button class="btn btn-primary"><i class="fa-solid fa-plus"></i> <span data-i18n="planning_btn_add">Ajouter un créneau</span></button>
   </div>
 </div>
 
 <div class="card animate-in">
-  <div class="card-header"><h2><i class="fa-solid fa-calendar-week"></i> <span data-i18n="planning_week_label">Semaine du</span> <span id="planning-week-range">21 au 27 avril 2026</span></h2></div>
+  <div class="card-header" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px">
+    <h2><i class="fa-solid fa-calendar-week"></i> <span data-i18n="planning_title">Mon planning</span></h2>
+    <div style="display:flex;gap:8px">
+      <button class="btn btn-outline btn-sm active" id="btn-liste" onclick="basculerVue('liste')"><i class="fa-solid fa-list"></i> Liste</button>
+      <button class="btn btn-outline btn-sm" id="btn-cal" onclick="basculerVue('cal')"><i class="fa-solid fa-calendar"></i> Calendrier</button>
+    </div>
+  </div>
   <div class="card-body">
-    <div class="planning-list" id="planning-list"></div>
+    <div id="liste-wrap">
+      <div class="planning-list" id="planning-list"></div>
+    </div>
+
+    <div id="fc-wrap" style="display:none">
+      <div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap">
+        <button class="btn btn-outline btn-sm active" id="fc-month" onclick="changerVueFC('dayGridMonth')">Mois</button>
+        <button class="btn btn-outline btn-sm" id="fc-week"  onclick="changerVueFC('timeGridWeek')">Semaine</button>
+        <button class="btn btn-outline btn-sm" id="fc-day"   onclick="changerVueFC('timeGridDay')">Jour</button>
+      </div>
+      <div id="fullcalendar"></div>
+    </div>
   </div>
 </div>
 
 <script src="js/layout.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js"></script>
 <script>
 const COLORS = { atelier:'var(--green-700)', formation:'#e8a020', reunion:'#5C7C6E', evenement:'#2e8b57' };
 
 function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 
-function renderPlanning(items) {
+let _items = [];
+let _calendar = null;
+
+function renderListe(items) {
   const container = document.getElementById('planning-list');
   if (!container) return;
   const locale = typeof _lang !== 'undefined' && _lang === 'en' ? 'en-GB' : 'fr-FR';
@@ -45,11 +65,12 @@ function renderPlanning(items) {
   }
 
   container.innerHTML = items.map(e => {
-    const type = e.type || 'evenement';
+    const type    = e.type || 'evenement';
     const couleur = COLORS[type] || 'var(--green-500)';
-    const dateStr = e.date_debut
-      ? new Date(e.date_debut).toLocaleDateString(locale, { weekday:'short', day:'numeric', month:'short' })
-      : (e.date_heure ? new Date(e.date_heure).toLocaleDateString(locale, { weekday:'short', day:'numeric', month:'short' }) : '');
+    const rawDate = e.date_debut || e.date_heure;
+    const dateStr = rawDate
+      ? new Date(rawDate).toLocaleDateString(locale, { weekday:'short', day:'numeric', month:'short', year:'numeric' })
+      : '';
     return `
       <div class="planning-item" style="border-left:3px solid ${couleur}">
         <div class="planning-date">${esc(dateStr)}</div>
@@ -65,21 +86,60 @@ function renderPlanning(items) {
   }).join('');
 }
 
-document.addEventListener('DOMContentLoaded', async () => {
-  await initLayout('planning');
-  let items = [];
-  try {
-    const res = await apiFetch('/evenements/mes-inscriptions');
-    if (res?.ok) { const d = await res.json(); if (Array.isArray(d)) items = d; }
-  } catch {}
-  if (!items.length) {
-    try {
-      const res = await apiFetch('/planning/me');
-      if (res?.ok) { const d = await res.json(); if (Array.isArray(d)) items = d; }
-    } catch {}
+function initFullCalendar() {
+  if (_calendar) { _calendar.render(); return; }
+  const el = document.getElementById('fullcalendar');
+  if (!el || typeof FullCalendar === 'undefined') return;
+
+  const locale = typeof _lang !== 'undefined' && _lang === 'en' ? 'en' : 'fr';
+
+  _calendar = new FullCalendar.Calendar(el, {
+    locale,
+    initialView:   'dayGridMonth',
+    headerToolbar: { left: 'prev,next today', center: 'title', right: '' },
+    height:        'auto',
+    events: _items.map(e => ({
+      title: e.titre || '',
+      start: e.date_debut || e.date_heure,
+      backgroundColor: COLORS[e.type || 'evenement'] || '#2e8b57',
+      borderColor:     COLORS[e.type || 'evenement'] || '#2e8b57',
+    })),
+    eventClick(info) {
+      const locale2 = typeof _lang !== 'undefined' && _lang === 'en' ? 'en-GB' : 'fr-FR';
+      const d = new Date(info.event.start).toLocaleDateString(locale2, { weekday:'long', day:'numeric', month:'long', year:'numeric' });
+      alert(`${info.event.title}\n${d}`);
+    },
+  });
+  _calendar.render();
+}
+
+window.basculerVue = function(vue) {
+  const listeWrap = document.getElementById('liste-wrap');
+  const fcWrap    = document.getElementById('fc-wrap');
+  const btnListe  = document.getElementById('btn-liste');
+  const btnCal    = document.getElementById('btn-cal');
+
+  if (vue === 'cal') {
+    listeWrap.style.display = 'none';
+    fcWrap.style.display    = 'block';
+    btnCal.classList.add('active');
+    btnListe.classList.remove('active');
+    initFullCalendar();
+  } else {
+    listeWrap.style.display = 'block';
+    fcWrap.style.display    = 'none';
+    btnListe.classList.add('active');
+    btnCal.classList.remove('active');
   }
-  renderPlanning(items);
-});
+};
+
+window.changerVueFC = function(view) {
+  if (!_calendar) return;
+  _calendar.changeView(view);
+  ['fc-month','fc-week','fc-day'].forEach(id => document.getElementById(id)?.classList.remove('active'));
+  const map = { dayGridMonth:'fc-month', timeGridWeek:'fc-week', timeGridDay:'fc-day' };
+  document.getElementById(map[view])?.classList.add('active');
+};
 
 function exporterIcal() {
   const token = localStorage.getItem('uc_sal_token');
@@ -88,6 +148,24 @@ function exporterIcal() {
   a.download = 'planning-upcycleconnect.ics';
   a.click();
 }
+
+document.addEventListener('DOMContentLoaded', async () => {
+  await initLayout('planning');
+
+  try {
+    const res = await apiFetch('/evenements/mes-inscriptions');
+    if (res?.ok) { const d = await res.json(); if (Array.isArray(d)) _items = d; }
+  } catch {}
+
+  if (!_items.length) {
+    try {
+      const res = await apiFetch('/planning/me');
+      if (res?.ok) { const d = await res.json(); if (Array.isArray(d)) _items = d; }
+    } catch {}
+  }
+
+  renderListe(_items);
+});
 </script>
 </body>
 </html>
