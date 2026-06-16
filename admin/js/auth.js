@@ -37,6 +37,7 @@ document.getElementById('loginForm')?.addEventListener('submit', async (e) => {
     }
 
     setToken(data.token);
+    if (data.csrf_token) setCsrfToken(data.csrf_token);
     if (data.user) localStorage.setItem('uc_admin_user', JSON.stringify(data.user));
     window.location.href = 'dashboard.html';
 

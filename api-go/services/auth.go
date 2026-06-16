@@ -34,20 +34,20 @@ func (s *AuthService) Register(user *models.Utilisateur) error {
     return s.userRepo.Create(user)
 }
 
-func (s *AuthService) Login(email, password string) (uint, string, error) {
+func (s *AuthService) Login(email, password string) (uint, string, string, error) {
     user, err := s.userRepo.GetByEmail(email)
     if err != nil || user == nil {
-        return 0, "", errors.New("identifiants incorrects")
+        return 0, "", "", errors.New("identifiants incorrects")
     }
     if !user.Actif {
-        return 0, "", errors.New("Compte non activé. Vérifiez votre boîte mail et cliquez sur le lien d'activation.")
+        return 0, "", "", errors.New("Compte non activé. Vérifiez votre boîte mail et cliquez sur le lien d'activation.")
     }
     if !utils.CheckPasswordHash(password, user.MotDePasse) {
-        return 0, "", errors.New("identifiants incorrects")
+        return 0, "", "", errors.New("identifiants incorrects")
     }
-    token, err := utils.GenerateJWT(user.ID, user.Role)
+    token, csrfToken, err := utils.GenerateJWT(user.ID, user.Role)
     if err != nil {
-        return 0, "", err
+        return 0, "", "", err
     }
-    return user.ID, token, nil
+    return user.ID, token, csrfToken, nil
 }

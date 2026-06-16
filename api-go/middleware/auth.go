@@ -31,11 +31,20 @@ func AuthMiddleware(next http.HandlerFunc) http.HandlerFunc {
             http.Error(w, `{"error":"Format du token invalide"}`, http.StatusUnauthorized)
             return
         }
-        userID, role, err := utils.ValidateJWT(parts[1])
+        userID, role, csrfToken, err := utils.ValidateJWT(parts[1])
         if err != nil {
             http.Error(w, `{"error":"Token invalide ou expiré"}`, http.StatusUnauthorized)
             return
         }
+
+        switch r.Method {
+        case http.MethodPost, http.MethodPut, http.MethodDelete, http.MethodPatch:
+            if r.Header.Get("X-CSRF-Token") != csrfToken {
+                http.Error(w, `{"error":"CSRF token invalide"}`, http.StatusForbidden)
+                return
+            }
+        }
+
         ctx := context.WithValue(r.Context(), ContextUserID, userID)
         ctx = context.WithValue(ctx, ContextRole, role)
         next(w, r.WithContext(ctx))

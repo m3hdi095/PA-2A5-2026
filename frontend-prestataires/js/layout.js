@@ -8,7 +8,10 @@ function setToken(token)   { localStorage.setItem('uc_pro_token', token); }
 function clearToken()      {
   localStorage.removeItem('uc_pro_token');
   localStorage.removeItem('uc_pro_user');
+  localStorage.removeItem('uc_pro_csrf');
 }
+function getCsrfToken()  { return localStorage.getItem('uc_pro_csrf'); }
+function setCsrfToken(t) { localStorage.setItem('uc_pro_csrf', t); }
 function getProUser() {
   try { return JSON.parse(localStorage.getItem('uc_pro_user')); } catch { return null; }
 }
@@ -18,6 +21,8 @@ async function apiFetch(chemin, options = {}) {
   const headers = { 'Content-Type': 'application/json', ...options.headers };
   const token = getToken();
   if (token) headers['Authorization'] = `Bearer ${token}`;
+  const csrf = getCsrfToken();
+  if (csrf) headers['X-CSRF-Token'] = csrf;
   try {
     const res = await fetch(`${apiBase}${chemin}`, { ...options, headers });
     if (res.status === 401) {

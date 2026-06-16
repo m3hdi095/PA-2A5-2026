@@ -51,6 +51,7 @@ document.addEventListener('DOMContentLoaded', () => {
         return;
       }
       localStorage.setItem('uc_sal_token', data.token || data.access_token);
+      if (data.csrf_token) localStorage.setItem('uc_sal_csrf', data.csrf_token);
       localStorage.setItem('uc_sal_user', JSON.stringify(data.user || {}));
       window.location.href = 'dashboard.html';
     } catch {

@@ -103,6 +103,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const data = await loginApi(email, password);
       const token = data.access_token || data.token;
       localStorage.setItem('uc_part_token', token);
+      if (data.csrf_token) localStorage.setItem('uc_part_csrf', data.csrf_token);
       if (data.user) localStorage.setItem('uc_part_user', JSON.stringify(data.user));
       if (data.user && data.user.role !== 'particulier' && data.user.role !== 'admin') {
         clearError();

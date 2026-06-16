@@ -3,13 +3,17 @@ const serverBase = new URL(apiBase).origin;
 
 function getToken()    { return localStorage.getItem('uc_sal_token'); }
 function setToken(t)   { localStorage.setItem('uc_sal_token', t); }
-function clearToken()  { localStorage.removeItem('uc_sal_token'); localStorage.removeItem('uc_sal_user'); }
+function clearToken()  { localStorage.removeItem('uc_sal_token'); localStorage.removeItem('uc_sal_user'); localStorage.removeItem('uc_sal_csrf'); }
+function getCsrfToken()  { return localStorage.getItem('uc_sal_csrf'); }
+function setCsrfToken(t) { localStorage.setItem('uc_sal_csrf', t); }
 function getSalUser()  { try { return JSON.parse(localStorage.getItem('uc_sal_user')); } catch { return null; } }
 
 async function apiFetch(chemin, options = {}) {
   const headers = { 'Content-Type': 'application/json', ...options.headers };
   const token = getToken();
   if (token) headers['Authorization'] = `Bearer ${token}`;
+  const csrf = getCsrfToken();
+  if (csrf) headers['X-CSRF-Token'] = csrf;
   try {
     const res = await fetch(`${apiBase}${chemin}`, { ...options, headers });
     if (res.status === 401) { clearToken(); window.location.href = 'index.html'; return null; }
