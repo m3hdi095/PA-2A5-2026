@@ -19,7 +19,7 @@ func ExportPlanningIcal(w http.ResponseWriter, r *http.Request) {
 	userID, _ := r.Context().Value(middleware.ContextUserID).(uint)
 	if userID == 0 {
 		if tok := r.URL.Query().Get("token"); tok != "" {
-			id, _, err := utils.ValidateJWT(tok)
+			id, _, _, err := utils.ValidateJWT(tok)
 			if err == nil {
 				userID = id
 			}

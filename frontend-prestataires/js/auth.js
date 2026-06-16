@@ -71,6 +71,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       }
 
       setToken(data.token || data.access_token);
+      if (data.csrf_token) setCsrfToken(data.csrf_token);
       localStorage.setItem('uc_pro_user', JSON.stringify(data.user || {}));
       showToastLogin(t('toast_login_ok'), 'success');
       setTimeout(() => { window.location.href = 'dashboard.html'; }, 700);

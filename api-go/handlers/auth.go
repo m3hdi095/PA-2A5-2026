@@ -76,7 +76,7 @@ func Login(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, `{"error":"Données invalides"}`, http.StatusBadRequest)
 		return
 	}
-	userID, token, err := authService.Login(creds.Email, creds.Password)
+	userID, token, csrfToken, err := authService.Login(creds.Email, creds.Password)
 	if err != nil {
 		http.Error(w, `{"error":"Identifiants incorrects"}`, http.StatusUnauthorized)
 		return
@@ -84,9 +84,10 @@ func Login(w http.ResponseWriter, r *http.Request) {
 	// on renvoie le user complet parce que les frontends stockent le rôle en localStorage au login
 	user, _ := userService.GetUser(userID)
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(map[string]interface{}{
-		"token": token,
-		"role":  user.Role,
-		"user":  user,
+	json.NewEncoder(w).Encode(map[string]any{
+		"token":      token,
+		"csrf_token": csrfToken,
+		"role":       user.Role,
+		"user":       user,
 	})
 }

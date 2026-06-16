@@ -15,7 +15,11 @@ function setToken(token) {
 function clearToken() {
   localStorage.removeItem('uc_admin_token');
   localStorage.removeItem('uc_admin_user');
+  localStorage.removeItem('uc_admin_csrf');
 }
+
+function getCsrfToken() { return localStorage.getItem('uc_admin_csrf'); }
+function setCsrfToken(t) { localStorage.setItem('uc_admin_csrf', t); }
 
 function getAdminUser() {
   try { return JSON.parse(localStorage.getItem('uc_admin_user')); } catch { return null; }
@@ -26,6 +30,8 @@ async function apiFetch(chemin, options = {}) {
   const headers = { 'Content-Type': 'application/json', ...options.headers };
   const token = getToken();
   if (token) headers['Authorization'] = `Bearer ${token}`;
+  const csrf = getCsrfToken();
+  if (csrf) headers['X-CSRF-Token'] = csrf;
   const res = await fetch(`${apiBase}${chemin}`, { ...options, headers });
   if (res.status === 401) {
     // token expiré ou invalide, on deconnecte et on redirige
