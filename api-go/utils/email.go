@@ -66,3 +66,22 @@ func EmailInscriptionEvenementBody(prenom, titreEvent, dateEvent string) string 
 <p>L'équipe UpcycleConnect</p>
 `, prenom, titreEvent, dateEvent)
 }
+
+func EmailValidationProBody(prenom string) string {
+	return fmt.Sprintf(`
+<p>Bonjour %s,</p>
+<p>Bonne nouvelle ! Votre compte professionnel sur <strong>UpcycleConnect</strong> a été <strong>validé</strong> par notre équipe.</p>
+<p>Vous pouvez dès maintenant vous connecter à votre espace et accéder à toutes les fonctionnalités professionnelles.</p>
+<p><a href="https://upcycleconnect.com/frontend-prestataires/index.html" style="background:#0d9488;color:#fff;padding:10px 20px;border-radius:6px;text-decoration:none">Accéder à mon espace</a></p>
+<p>L'équipe UpcycleConnect</p>
+`, prenom)
+}
+
+func EmailRejetProBody(prenom string) string {
+	return fmt.Sprintf(`
+<p>Bonjour %s,</p>
+<p>Après examen de votre dossier, nous ne sommes pas en mesure de valider votre compte professionnel sur <strong>UpcycleConnect</strong> pour le moment.</p>
+<p>Si vous pensez qu'il s'agit d'une erreur ou si vous souhaitez soumettre des informations complémentaires, contactez-nous à <a href="mailto:contact@upcycleconnect.com">contact@upcycleconnect.com</a>.</p>
+<p>L'équipe UpcycleConnect</p>
+`, prenom)
+}

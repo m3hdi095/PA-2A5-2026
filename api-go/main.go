@@ -203,6 +203,8 @@ func main() {
     mux.HandleFunc("PUT /api/admin/users/{id}/activate", middleware.AuthMiddleware(middleware.RoleMiddleware("admin")(handlers.ActivateUser)))
     // soft delete RGPD, pas de suppression physique
     mux.HandleFunc("DELETE /api/admin/users/{id}", middleware.AuthMiddleware(middleware.RoleMiddleware("admin")(handlers.SoftDeleteUser)))
+    mux.HandleFunc("GET /api/admin/projets/en-attente", middleware.AuthMiddleware(middleware.RoleMiddleware("admin")(handlers.AdminListProjetsEnAttente)))
+    mux.HandleFunc("POST /api/admin/projets/validate", middleware.AuthMiddleware(middleware.RoleMiddleware("admin")(handlers.AdminValiderProjet)))
     mux.HandleFunc("GET /api/admin/annonces/en-attente", middleware.AuthMiddleware(middleware.RoleMiddleware("admin")(handlers.ListPendingAnnonces)))
     mux.HandleFunc("POST /api/admin/annonces/validate", middleware.AuthMiddleware(middleware.RoleMiddleware("admin")(handlers.ValidateAnnonce)))
     mux.HandleFunc("POST /api/admin/evenements/validate", middleware.AuthMiddleware(middleware.RoleMiddleware("admin")(handlers.ValidateEvenement)))

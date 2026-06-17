@@ -5,6 +5,7 @@ package handlers
 
 import (
 	"encoding/json"
+	"log"
 	"net/http"
 	"strconv"
 
@@ -12,6 +13,7 @@ import (
 	"upcycleconnect/api/database"
 	"upcycleconnect/api/models"
 	"upcycleconnect/api/repositories"
+	"upcycleconnect/api/utils"
 )
 
 func GetPublicConfig(w http.ResponseWriter, r *http.Request) {
@@ -95,10 +97,36 @@ func ActivateUser(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, `{"error":"Données invalides"}`, http.StatusBadRequest)
 		return
 	}
+
+	user, err := adminUserRepo.GetByID(req.UserID)
+	if err != nil {
+		http.Error(w, `{"error":"Utilisateur introuvable"}`, http.StatusNotFound)
+		return
+	}
+
 	if err := adminUserRepo.UpdateActivation(req.UserID, req.Actif); err != nil {
 		http.Error(w, `{"error":"Erreur lors de la mise à jour"}`, http.StatusInternalServerError)
 		return
 	}
+
+	go func() {
+		prenom := user.Prenom
+		if prenom == "" {
+			prenom = user.Nom
+		}
+		var subject, body string
+		if req.Actif {
+			subject = "Votre compte professionnel UpcycleConnect a été validé"
+			body = utils.EmailValidationProBody(prenom)
+		} else {
+			subject = "Votre compte professionnel UpcycleConnect"
+			body = utils.EmailRejetProBody(prenom)
+		}
+		if err := utils.SendEmail(user.Email, subject, body); err != nil {
+			log.Printf("Erreur envoi email activation user %d : %v", req.UserID, err)
+		}
+	}()
+
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(map[string]string{"status": "ok"})
