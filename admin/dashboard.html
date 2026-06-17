@@ -11,16 +11,23 @@
 <body>
 
 <!-- Bannière de bienvenue -->
-<div style="background:linear-gradient(120deg,rgba(45,74,62,.88) 0%,rgba(45,102,79,.78) 100%),url('../brand_assets/image_acceuil_maybe.jpeg') center/cover no-repeat;border-radius:var(--radius-lg);padding:32px 36px;margin-bottom:24px;display:flex;align-items:center;justify-content:space-between;gap:16px">
-  <div>
-    <div style="font-size:12px;font-weight:600;color:rgba(255,255,255,.6);text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px" data-i18n="dashboard_espace_admin">Espace administration</div>
-    <h2 style="font-family:var(--font-heading);font-size:1.6rem;font-weight:800;color:#fff;margin:0 0 6px;letter-spacing:-.02em"><span data-i18n="dashboard_welcome">Bonjour</span>, <span id="adminName">Admin</span> <span style="opacity:.7">!</span></h2>
-    <p style="font-size:13.5px;color:rgba(255,255,255,.65);margin:0" data-i18n="dashboard_manage_subtitle">Gérez la plateforme UpcycleConnect depuis ce tableau de bord.</p>
+<div class="dashboard-hero" style="align-items:center;margin-bottom:24px">
+  <img src="../brand_assets/image_acceuil_maybe.jpeg" alt="" aria-hidden="true"
+       class="dashboard-hero-img" style="object-position:center 35%">
+  <div class="dashboard-hero-overlay"></div>
+  <div class="dashboard-hero-body" style="padding:32px 36px">
+    <div>
+      <p class="dashboard-hero-label" data-i18n="dashboard_espace_admin">Espace administration</p>
+      <h2 class="dashboard-hero-title" style="font-size:1.6rem;margin-bottom:6px">
+        <span data-i18n="dashboard_welcome">Bonjour</span>, <span id="adminName">Admin</span> <span style="opacity:.7">!</span>
+      </h2>
+      <p style="font-size:13.5px;color:rgba(255,255,255,.65);margin:0" data-i18n="dashboard_manage_subtitle">Gérez la plateforme UpcycleConnect depuis ce tableau de bord.</p>
+    </div>
+    <a href="validations.html" class="dashboard-hero-btn" style="border-radius:var(--radius-pill)">
+      <i class="fa-solid fa-circle-check" aria-hidden="true"></i>
+      <span data-i18n="btn_validations">Validations</span>
+    </a>
   </div>
-  <a href="validations.html" style="display:inline-flex;align-items:center;gap:8px;background:rgba(255,255,255,.15);border:1.5px solid rgba(255,255,255,.3);color:#fff;font-size:13px;font-weight:600;padding:10px 20px;border-radius:var(--radius-pill);text-decoration:none;backdrop-filter:blur(4px);flex-shrink:0">
-    <i class="fa-solid fa-circle-check"></i>
-    <span data-i18n="btn_validations">Validations</span>
-  </a>
 </div>
 
 <!-- En-tête de page -->
@@ -86,11 +93,11 @@
 <!-- Alertes -->
 <div class="card animate-in" id="alertes-card" style="margin-bottom:20px;display:none">
   <div class="card-header" style="border-bottom:1px solid var(--border-color)">
-    <h2 style="color:#c0392b">
+    <h2 style="color:var(--danger-text)">
       <i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i>
       <span data-i18n="dashboard_alertes">Alertes</span>
     </h2>
-    <span id="alertes-count" style="background:#fdecea;color:#c0392b;font-size:12px;font-weight:700;padding:3px 10px;border-radius:20px"></span>
+    <span id="alertes-count" style="background:var(--danger-bg);color:var(--danger-text);font-size:12px;font-weight:700;padding:3px 10px;border-radius:20px"></span>
   </div>
   <div id="alertes-list" style="padding:0"></div>
 </div>

@@ -43,7 +43,7 @@ function renderFormations() {
   if (filtreType) list = list.filter(f => f.type === filtreType);
 
   if (!list.length) {
-    container.innerHTML = `<div class="empty-state"><i class="fa-solid fa-graduation-cap" aria-hidden="true"></i><p>${t('formation_no_filter')}</p></div>`;
+    container.innerHTML = `<div class="empty-state"><i class="fa-solid fa-graduation-cap" aria-hidden="true"></i><p>${t('formation_no_filter')}</p><button class="btn btn-outline" onclick="resetFiltreFormations()"><i class="fa-solid fa-rotate-left" aria-hidden="true"></i> Voir toutes les formations</button></div>`;
     return;
   }
 
@@ -177,6 +177,13 @@ window.confirmerPaiementFormation = async () => {
     if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fa-brands fa-stripe-s"></i> Payer'; }
   }
 };
+
+function resetFiltreFormations() {
+  filtreType = '';
+  document.querySelectorAll('.filtre-tab').forEach(b => b.classList.remove('active'));
+  document.querySelector('.filtre-tab[data-val=""]')?.classList.add('active');
+  renderFormations();
+}
 
 function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 

@@ -20,6 +20,8 @@
   "auth_btn_register":       "Créer mon compte",
   "auth_switch_to_register": "Pas encore de compte ? Créer un compte",
   "auth_switch_to_login":    "Déjà un compte ? Se connecter",
+  "auth_forgot_password":    "Mot de passe oublié ?",
+  "auth_send":               "Envoyer",
   "auth_error_invalid":      "Identifiants incorrects.",
   "auth_error_fields":       "Veuillez remplir tous les champs.",
 
