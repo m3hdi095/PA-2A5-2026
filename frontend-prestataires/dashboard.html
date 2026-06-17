@@ -11,54 +11,16 @@
 <body>
 
 <!-- Bannière de bienvenue -->
-<div style="
-  position: relative; border-radius: 16px; overflow: hidden;
-  margin-bottom: 20px; min-height: 160px;
-  display: flex; align-items: flex-end;
-  animation: cardIn .5s var(--ease,cubic-bezier(.22,1,.36,1)) both;
-">
-  <img src="../brand_assets/img_tri_recyclage2.jpg" alt=""
-       aria-hidden="true"
-       style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center 55%;">
-  <div style="position:absolute;inset:0;background:linear-gradient(120deg,rgba(45,74,62,.92) 0%,rgba(45,102,79,.72) 100%);"></div>
-  <div style="position:relative;z-index:1;padding:24px 28px;width:100%;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;">
+<div class="dashboard-hero">
+  <img src="../brand_assets/img_tri_recyclage2.jpg" alt="" aria-hidden="true"
+       class="dashboard-hero-img" style="object-position:center 55%">
+  <div class="dashboard-hero-overlay"></div>
+  <div class="dashboard-hero-body">
     <div>
-      <p style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:rgba(178,222,195,.8);margin-bottom:4px;">
-        Espace Professionnel · <span id="date-now" style="font-weight:500;text-transform:none;letter-spacing:0;"></span>
-      </p>
-      <h2 style="font-family:'Poppins',sans-serif;font-weight:800;font-size:1.4rem;color:#fff;margin:0;letter-spacing:-.01em;">
-        Tableau de bord
-      </h2>
+      <p class="dashboard-hero-label">Espace Professionnel · <span id="date-now" style="font-weight:500;text-transform:none;letter-spacing:0"></span></p>
+      <h2 class="dashboard-hero-title">Tableau de bord</h2>
     </div>
-    <a href="annonces.html" style="
-      display:inline-flex;align-items:center;gap:8px;
-      background:rgba(255,255,255,.15);border:1.5px solid rgba(255,255,255,.35);
-      color:#fff;font-weight:700;font-size:13px;padding:10px 20px;border-radius:8px;
-      text-decoration:none;backdrop-filter:blur(8px);
-      transition:background .2s,border-color .2s;white-space:nowrap;
-    " onmouseover="this.style.background='rgba(255,255,255,.25)'"
-       onmouseout="this.style.background='rgba(255,255,255,.15)'">
-      <i class="fa-solid fa-box-open" style="font-size:12px;" aria-hidden="true"></i>
-      Parcourir les annonces
-    </a>
-  </div>
-</div>
-
-<!-- En-tête de page (masqué, remplacé par la bannière) -->
-<div class="page-title-row animate-in" style="display:none">
-  <div>
-    <h1>
-      <div class="page-title-icon green">
-        <i class="fa-solid fa-table-columns" aria-hidden="true"></i>
-      </div>
-      Tableau de bord
-    </h1>
-    <p class="page-title-sub">
-      <span></span>
-    </p>
-  </div>
-  <div class="page-title-actions">
-    <a href="annonces.html" class="btn btn-primary">
+    <a href="annonces.html" class="dashboard-hero-btn">
       <i class="fa-solid fa-box-open" aria-hidden="true"></i>
       Parcourir les annonces
     </a>

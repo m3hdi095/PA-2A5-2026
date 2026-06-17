@@ -329,10 +329,10 @@
   top: calc(100% + 8px);
   right: 0;
   width: 320px;
-  background: #fff;
+  background: var(--white);
   border: 1px solid var(--border, #e5e7eb);
   border-radius: 12px;
-  box-shadow: 0 8px 24px rgba(0,0,0,.12);
+  box-shadow: var(--shadow-sm);
   z-index: 9999;
   overflow: hidden;
 }
@@ -395,10 +395,10 @@
   background: rgba(255,255,255,.9); border: none; border-radius: 50%;
   width: 34px; height: 34px; display: flex; align-items: center; justify-content: center;
   cursor: pointer; font-size: 16px; color: var(--text-muted);
-  box-shadow: 0 1px 4px rgba(0,0,0,.15); transition: transform .15s, color .15s;
+  box-shadow: var(--shadow-xs); transition: transform .15s, color .15s;
 }
-.fav-btn:hover { transform: scale(1.15); color: #e53e3e; }
-.fav-btn.active { color: #e53e3e; }
+.fav-btn:hover { transform: scale(1.15); color: var(--danger); }
+.fav-btn.active { color: var(--danger); }
 
 /* bulles de conversation */
 .msg-bubble { max-width: 78%; padding: 10px 14px; border-radius: 14px; font-size: 13px; line-height: 1.55; position: relative; }
@@ -408,4 +408,21 @@
 .msg-date   { font-size: 10px; margin-top: 4px; opacity: .7; text-align: right; }
 .msg-mine .msg-date { color: rgba(255,255,255,.8); }
 
-#btn-favoris.active { background: var(--red-50,#fff5f5); border-color: #e53e3e; color: #e53e3e; }
+#btn-favoris.active { background: var(--danger-bg); border-color: var(--danger); color: var(--danger); }
+
+/*  FILTRE TABS (projets, annonces)  */
+.filtre-tab {
+  display: flex; align-items: center; gap: 8px;
+  padding: 8px 16px; border: none; background: none;
+  border-radius: var(--radius); font-family: var(--font-heading); font-size: 13px; font-weight: 600;
+  color: var(--text-muted); cursor: pointer;
+  transition: background .18s var(--ease), color .18s var(--ease);
+}
+.filtre-tab:hover { background: var(--green-50); color: var(--green-700); }
+.filtre-tab.active { background: var(--green-700); color: var(--white); }
+.filtre-tab.active .tab-count { background: rgba(255,255,255,.2); color: var(--white); }
+.tab-count {
+  background: var(--green-50); color: var(--text-muted);
+  font-size: 11px; font-weight: 700; padding: 1px 7px;
+  border-radius: var(--radius-pill); transition: background .18s var(--ease), color .18s var(--ease);
+}

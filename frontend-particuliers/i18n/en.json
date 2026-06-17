@@ -20,6 +20,8 @@
   "auth_btn_register":       "Create my account",
   "auth_switch_to_register": "No account yet? Sign up",
   "auth_switch_to_login":    "Already have an account? Sign in",
+  "auth_forgot_password":    "Forgot your password?",
+  "auth_send":               "Send",
   "auth_error_invalid":      "Incorrect credentials.",
   "auth_error_fields":       "Please fill in all fields.",
 

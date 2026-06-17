@@ -222,6 +222,8 @@ function showToast(message, type = 'success') {
     toast = document.createElement('div');
     toast.id = 'toast-sal';
     toast.className = 'toast-notif';
+    toast.setAttribute('role', 'status');
+    toast.setAttribute('aria-live', 'polite');
     document.body.appendChild(toast);
   }
   const icones = { success: 'fa-circle-check', error: 'fa-circle-xmark', warning: 'fa-triangle-exclamation', info: 'fa-circle-info' };

@@ -7,6 +7,20 @@ let pageActuelle = 1;
 let annoncesData = [];
 let viewMode = 'all'; // 'all' | 'mine'
 
+function resetFiltres() {
+  filtreActif = { recherche: '', type: '', categorie: '', tri: 'recent' };
+  pageActuelle = 1;
+  const rechEl = document.getElementById('f-recherche');
+  const typeEl = document.getElementById('f-type');
+  const catEl  = document.getElementById('f-categorie');
+  const triEl  = document.getElementById('f-tri');
+  if (rechEl) rechEl.value = '';
+  if (typeEl) typeEl.value = '';
+  if (catEl)  catEl.value  = '';
+  if (triEl)  triEl.value  = 'recent';
+  renderAnnonces();
+}
+
 document.addEventListener('DOMContentLoaded', async () => {
   await initLayout('annonces');
 
@@ -65,7 +79,7 @@ async function chargerMesAnnonces() {
   if (totalEl) totalEl.textContent = `${mes.length} annonce${mes.length !== 1 ? 's' : ''}`;
 
   if (!mes.length) {
-    if (container) container.innerHTML = `<div class="empty-state" style="grid-column:1/-1"><i class="fa-solid fa-bullhorn"></i><p>Vous n'avez pas encore publié d'annonce.</p></div>`;
+    if (container) container.innerHTML = `<div class="empty-state" style="grid-column:1/-1"><i class="fa-solid fa-bullhorn" aria-hidden="true"></i><p>Vous n'avez pas encore publié d'annonce.</p><button class="btn btn-primary" onclick="document.getElementById('btn-nouvelle-annonce').click()"><i class="fa-solid fa-plus" aria-hidden="true"></i> Publier une annonce</button></div>`;
     return;
   }
 
@@ -182,7 +196,7 @@ function renderAnnonces() {
   if (totalEl) totalEl.textContent = `${total} annonce${total !== 1 ? 's' : ''}`;
 
   if (!slice.length) {
-    container.innerHTML = `<div class="empty-state"><i class="fa-solid fa-box-open" aria-hidden="true"></i><p>Aucune annonce ne correspond à votre recherche</p></div>`;
+    container.innerHTML = `<div class="empty-state"><i class="fa-solid fa-box-open" aria-hidden="true"></i><p>Aucune annonce ne correspond à votre recherche</p><button class="btn btn-outline" onclick="resetFiltres()"><i class="fa-solid fa-rotate-left" aria-hidden="true"></i> Réinitialiser les filtres</button></div>`;
     document.getElementById('pagination-wrap').innerHTML = '';
     return;
   }

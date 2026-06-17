@@ -407,7 +407,7 @@ function ajouterMarqueur(c) {
     .bindPopup(`
       <div style="font-family:Montserrat,sans-serif;min-width:180px">
         <div style="font-weight:700;font-size:13px;margin-bottom:4px">${escAdmin(nomConteneur(c))}</div>
-        <div style="font-size:11px;color:#7A7570;margin-bottom:8px">${escAdmin(c.adresse)}</div>
+        <div style="font-size:11px;color:var(--text-muted);margin-bottom:8px">${escAdmin(c.adresse)}</div>
         <div style="font-size:12px;margin-bottom:4px">
           <b>${pct}%</b> ${t('cont_popup_rempli')} <b>${c.nb_objets || 0}/${c.capacite}</b> ${t('cont_popup_objets')}
         </div>

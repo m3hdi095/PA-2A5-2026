@@ -299,6 +299,8 @@ function showToast(message, type = 'success') {
     toast = document.createElement('div');
     toast.id = 'toast-pro';
     toast.className = 'toast-notif';
+    toast.setAttribute('role', 'status');
+    toast.setAttribute('aria-live', 'polite');
     document.body.appendChild(toast);
   }
   const icones = {
