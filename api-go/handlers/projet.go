@@ -5,18 +5,20 @@
 package handlers
 
 import (
-	"upcycleconnect/api/middleware"
-    "encoding/json"
-    "net/http"
-    "strconv"
-    "time"
+	"encoding/json"
+	"net/http"
+	"strconv"
+	"time"
 
-    "upcycleconnect/api/database"
-    "upcycleconnect/api/models"
-    "upcycleconnect/api/services"
+	"upcycleconnect/api/database"
+	"upcycleconnect/api/middleware"
+	"upcycleconnect/api/models"
+	"upcycleconnect/api/repositories"
+	"upcycleconnect/api/services"
 )
 
-var projetService = services.NewProjetService()
+var projetService   = services.NewProjetService()
+var projetRepo      = repositories.ProjetRepository{}
 
 func CreateProjet(w http.ResponseWriter, r *http.Request) {
     userID := r.Context().Value(middleware.ContextUserID).(uint)
@@ -31,12 +33,16 @@ func CreateProjet(w http.ResponseWriter, r *http.Request) {
         http.Error(w, `{"error":"Données invalides"}`, http.StatusBadRequest)
         return
     }
+    statut := "en_cours"
+    if input.PartageCommunaute {
+        statut = "en_attente"
+    }
     projet := &models.ProjetUpcycling{
         Titre:             input.Titre,
         Description:       input.Description,
         DateDebut:         input.DateDebut,
         DateFin:           input.DateFin,
-        Statut:            "en_cours",
+        Statut:            statut,
         PartageCommunaute: input.PartageCommunaute,
         IDUtilisateur:     userID,
     }
@@ -104,6 +110,50 @@ func UpdateProjet(w http.ResponseWriter, r *http.Request) {
     }
     if err := projetService.UpdateStatut(uint(id), userID, req.Statut); err != nil {
         jsonError(w, err.Error(), http.StatusBadRequest)
+        return
+    }
+    w.Header().Set("Content-Type", "application/json")
+    json.NewEncoder(w).Encode(map[string]string{"status": "ok"})
+}
+
+func AdminListProjetsEnAttente(w http.ResponseWriter, r *http.Request) {
+    projets, err := projetRepo.ListEnAttente()
+    if err != nil {
+        http.Error(w, `{"error":"Erreur interne"}`, http.StatusInternalServerError)
+        return
+    }
+    // enrichir avec le nom de l'auteur via une requête séparée légère
+    type ProjetAdmin struct {
+        models.ProjetUpcycling
+        AuteurPrenom string `json:"auteur_prenom"`
+        AuteurNom    string `json:"auteur_nom"`
+    }
+    result := make([]ProjetAdmin, 0, len(projets))
+    for _, p := range projets {
+        pa := ProjetAdmin{ProjetUpcycling: p}
+        database.DB.QueryRow("SELECT COALESCE(prenom,''), COALESCE(nom,'') FROM utilisateur WHERE id_utilisateur = ?", p.IDUtilisateur).
+            Scan(&pa.AuteurPrenom, &pa.AuteurNom)
+        result = append(result, pa)
+    }
+    w.Header().Set("Content-Type", "application/json")
+    json.NewEncoder(w).Encode(result)
+}
+
+func AdminValiderProjet(w http.ResponseWriter, r *http.Request) {
+    var req struct {
+        ProjetID uint   `json:"projet_id"`
+        Decision string `json:"decision"` // "valide" ou "refuse"
+    }
+    if err := json.NewDecoder(r.Body).Decode(&req); err != nil || req.ProjetID == 0 {
+        http.Error(w, `{"error":"Données invalides"}`, http.StatusBadRequest)
+        return
+    }
+    if req.Decision != "valide" && req.Decision != "refuse" {
+        http.Error(w, `{"error":"Décision invalide"}`, http.StatusBadRequest)
+        return
+    }
+    if err := projetRepo.AdminUpdateStatut(req.ProjetID, req.Decision); err != nil {
+        http.Error(w, `{"error":"Erreur lors de la mise à jour"}`, http.StatusInternalServerError)
         return
     }
     w.Header().Set("Content-Type", "application/json")

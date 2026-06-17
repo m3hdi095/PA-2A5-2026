@@ -415,7 +415,7 @@ func (r *ProjetRepository) ListByUser(userID uint, limit, offset int) ([]models.
 }
 
 func (r *ProjetRepository) ListPublic(limit, offset int) ([]models.ProjetUpcycling, error) {
-	rows, err := database.DB.Query("SELECT id_projet, titre, COALESCE(description,''), COALESCE(date_debut, CURDATE()), COALESCE(date_fin, CURDATE()), statut, score_impact, COALESCE(kg_dechets_evites,0), partage_communaute, id_utilisateur FROM projet_upcycling WHERE partage_communaute = 1 ORDER BY date_debut DESC LIMIT ? OFFSET ?", limit, offset)
+	rows, err := database.DB.Query("SELECT id_projet, titre, COALESCE(description,''), COALESCE(date_debut, CURDATE()), COALESCE(date_fin, CURDATE()), statut, score_impact, COALESCE(kg_dechets_evites,0), partage_communaute, id_utilisateur FROM projet_upcycling WHERE partage_communaute = 1 AND statut = 'valide' ORDER BY date_debut DESC LIMIT ? OFFSET ?", limit, offset)
 	if err != nil {
 		return nil, err
 	}
@@ -442,6 +442,28 @@ func (r *ProjetRepository) UpdateStatut(id, userID uint, statut string) error {
 		return errors.New("projet introuvable ou accès interdit")
 	}
 	return nil
+}
+
+func (r *ProjetRepository) ListEnAttente() ([]models.ProjetUpcycling, error) {
+	rows, err := database.DB.Query(`SELECT id_projet, titre, COALESCE(description,''), COALESCE(date_debut, CURDATE()), COALESCE(date_fin, CURDATE()), statut, score_impact, COALESCE(kg_dechets_evites,0), partage_communaute, id_utilisateur FROM projet_upcycling WHERE partage_communaute = 1 AND statut = 'en_attente' ORDER BY date_debut DESC`)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	projets := make([]models.ProjetUpcycling, 0)
+	for rows.Next() {
+		var p models.ProjetUpcycling
+		if err := rows.Scan(&p.ID, &p.Titre, &p.Description, &p.DateDebut, &p.DateFin, &p.Statut, &p.ScoreImpact, &p.KgDechetsEvites, &p.PartageCommunaute, &p.IDUtilisateur); err != nil {
+			return nil, err
+		}
+		projets = append(projets, p)
+	}
+	return projets, nil
+}
+
+func (r *ProjetRepository) AdminUpdateStatut(id uint, statut string) error {
+	_, err := database.DB.Exec(`UPDATE projet_upcycling SET statut = ? WHERE id_projet = ?`, statut, id)
+	return err
 }
 
 //  ÉTAPE PROJET
