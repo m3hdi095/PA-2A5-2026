@@ -11,13 +11,25 @@ document.addEventListener('DOMContentLoaded', async () => {
 });
 
 async function chargerFormations() {
+  let apiOk = false;
   try {
     const res = await apiFetch(`/evenements?lang=${_lang}`);
     if (res?.ok) {
       const data = await res.json();
-      if (Array.isArray(data)) formationsData = data;
+      if (Array.isArray(data)) { formationsData = data; apiOk = true; }
     }
   } catch {}
+
+  if (!apiOk) {
+    const banner = document.createElement('div');
+    banner.className = 'empty-state card';
+    banner.style.cssText = 'padding:16px 20px;display:flex;align-items:center;gap:12px;background:var(--warning-bg,#fff8e1);border-color:var(--warning,#f59e0b);margin-bottom:16px';
+    banner.innerHTML = '<i class="fa-solid fa-triangle-exclamation" style="color:var(--warning,#f59e0b)" aria-hidden="true"></i>' +
+      '<span style="font-size:13px">Affichage hors-ligne — données non actualisées. Vérifiez votre connexion.</span>';
+    const container = document.getElementById('formations-container');
+    container?.parentElement?.insertBefore(banner, container);
+  }
+
   mettreAJourCompteurs();
   renderFormations();
 }
