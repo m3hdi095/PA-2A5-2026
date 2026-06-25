@@ -23,21 +23,23 @@ for i in $(seq 1 30); do
   sleep 2
 done
 
-#  2. API Go 
+#  2. API Go
 echo "[2/3] Démarrage API Go (port 8080)..."
-# Tuer l'ancienne instance si elle tourne
-pkill -f "exe/api" 2>/dev/null || true
-sleep 1
+cd "$API_DIR"
 
-go run . > "$LOG_DIR/api-go.log" 2>&1 &
-API_PID=$!
-echo "    PID: $API_PID - logs: $LOG_DIR/api-go.log"
-sleep 3
-
-if ! kill -0 $API_PID 2>/dev/null; then
-  echo "    ERREUR: l'API n'a pas démarré. Logs:"
-  cat "$LOG_DIR/api-go.log"
-  exit 1
+# Si le container Docker API tourne déjà, on l'utilise directement
+if docker ps --filter name=api-go-api-1 --filter status=running | grep -q api-go-api-1; then
+  echo "    Container Docker api-go-api-1 déjà actif, skip."
+else
+  # Sinon lancer via Docker Compose (évite le conflit de port avec go run)
+  pkill -f "exe/api" 2>/dev/null || true
+  docker compose up -d api > "$LOG_DIR/api-go.log" 2>&1
+  sleep 4
+  if ! docker ps --filter name=api-go-api-1 --filter status=running | grep -q api-go-api-1; then
+    echo "    ERREUR: l'API n'a pas démarré. Logs:"
+    cat "$LOG_DIR/api-go.log"
+    exit 1
+  fi
 fi
 echo "    API démarrée."
 
