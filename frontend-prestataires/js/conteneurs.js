@@ -220,6 +220,22 @@ window.fermerModalScan = () => {
   document.getElementById('modal-scan')?.classList.remove('open');
 };
 
+let _scanCodeEnAttente = null;
+let _stripeScanner = null;
+let _stripeCardScan = null;
+
+async function getStripeScan() {
+  if (_stripeScanner) return _stripeScanner;
+  try {
+    const res = await apiFetch('/config');
+    if (res?.ok) {
+      const cfg = await res.json();
+      if (cfg.stripe_pk && window.Stripe) _stripeScanner = window.Stripe(cfg.stripe_pk);
+    }
+  } catch {}
+  return _stripeScanner;
+}
+
 window.confirmerScan = async () => {
   const code = document.getElementById('scan-code-input')?.value?.trim();
   if (!code) { showToast('Entrez un code barre.', 'warning'); return; }
@@ -227,6 +243,74 @@ window.confirmerScan = async () => {
   const btn = document.getElementById('btn-confirmer-scan');
   if (btn) { btn.disabled = true; btn.textContent = 'Vérification...'; }
 
+  try {
+    const infoRes = await apiFetch('/depots/infos-code?code=' + encodeURIComponent(code));
+    if (infoRes?.ok) {
+      const info = await infoRes.json();
+      if (info.prix > 0 && info.type_annonce === 'vente') {
+        _scanCodeEnAttente = code;
+        document.getElementById('scan-objet-titre')?.textContent !== undefined &&
+          (document.getElementById('scan-objet-titre').textContent = 'Objet : ' + (info.titre || ('Objet #' + info.id_objet)));
+        document.getElementById('scan-objet-prix').textContent = info.prix.toFixed(2) + ' €';
+        document.getElementById('scan-paiement-error').textContent = '';
+
+        const stripe = await getStripeScan();
+        const cardEl = document.getElementById('card-element-scan');
+        if (stripe && cardEl && !_stripeCardScan) {
+          const elements = stripe.elements();
+          _stripeCardScan = elements.create('card', { style: { base: { fontFamily: 'Poppins, sans-serif', fontSize: '14px' } } });
+          _stripeCardScan.mount('#card-element-scan');
+        } else if (!stripe && cardEl) {
+          cardEl.innerHTML = '<p style="font-size:12px;color:var(--text-muted);text-align:center;padding:8px">Stripe non configuré (mode démo)</p>';
+        }
+        fermerModalScan();
+        document.getElementById('modal-paiement-scan')?.classList.add('open');
+        return;
+      }
+    }
+    await _effectuerRecuperation(code, btn);
+  } catch {
+    document.getElementById('scan-result').textContent = 'Erreur réseau.';
+  } finally {
+    if (btn) { btn.disabled = false; btn.textContent = 'Confirmer la récupération'; }
+  }
+};
+
+window.confirmerPaiementScan = async () => {
+  const btn = document.getElementById('btn-payer-scan');
+  const errEl = document.getElementById('scan-paiement-error');
+  if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Traitement...'; }
+  errEl.textContent = '';
+
+  const code = _scanCodeEnAttente;
+  if (!code) { errEl.textContent = 'Code perdu. Réessayez.'; if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fa-brands fa-stripe-s"></i> Payer et récupérer'; } return; }
+
+  const montantTxt = document.getElementById('scan-objet-prix')?.textContent || '0';
+  const montant = parseFloat(montantTxt) || 0;
+
+  try {
+    const stripe = await getStripeScan();
+    if (stripe && _stripeCardScan && montant > 0) {
+      const piRes = await apiFetch('/create-payment-intent', {
+        method: 'POST',
+        body: JSON.stringify({ amount: montant, currency: 'eur', type: 'recuperation', reference_id: 0 }),
+      });
+      if (!piRes?.ok) { errEl.textContent = 'Impossible de créer le paiement.'; return; }
+      const { client_secret } = await piRes.json();
+      const { error } = await stripe.confirmCardPayment(client_secret, { payment_method: { card: _stripeCardScan } });
+      if (error) { errEl.textContent = error.message || 'Paiement refusé.'; return; }
+    }
+    document.getElementById('modal-paiement-scan')?.classList.remove('open');
+    await _effectuerRecuperation(code, null);
+    _scanCodeEnAttente = null;
+  } catch {
+    errEl.textContent = 'Erreur lors du paiement.';
+  } finally {
+    if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fa-brands fa-stripe-s"></i> Payer et récupérer'; }
+  }
+};
+
+async function _effectuerRecuperation(code, btn) {
   try {
     const res = await apiFetch('/depots/recuperer-par-code', {
       method: 'POST',
@@ -239,14 +323,14 @@ window.confirmerScan = async () => {
       await chargerHistorique();
       await chargerConteneurs();
     } else {
-      document.getElementById('scan-result').textContent = data.error || 'Code introuvable ou déjà récupéré.';
+      const errEl = document.getElementById('scan-result');
+      if (errEl) errEl.textContent = data.error || 'Code introuvable ou déjà récupéré.';
     }
   } catch {
-    document.getElementById('scan-result').textContent = 'Erreur réseau.';
-  } finally {
-    if (btn) { btn.disabled = false; btn.textContent = 'Confirmer la récupération'; }
+    const errEl = document.getElementById('scan-result');
+    if (errEl) errEl.textContent = 'Erreur réseau.';
   }
-};
+}
 
 function renderHistorique() {
   const tbody = document.getElementById('historique-body');

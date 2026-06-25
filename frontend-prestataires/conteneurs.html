@@ -181,7 +181,39 @@ window.selectConteneur = function(id) {
     </div>`;
   wrapper.style.display = 'block';
 };
+
+window.simulerScan = function(id) {
+  conteneurActif = id;
+  ouvrirModalScan();
+};
 </script>
+
+<!-- Modal paiement récupération objet payant -->
+<div class="modal-overlay" id="modal-paiement-scan" onclick="if(event.target===this)document.getElementById('modal-paiement-scan').classList.remove('open')">
+  <div class="modal-card" style="max-width:420px">
+    <div class="modal-header">
+      <span style="font-family:Poppins,sans-serif;font-weight:700;font-size:15px">
+        <i class="fa-brands fa-stripe-s"></i> Paiement requis
+      </span>
+      <button class="modal-close" onclick="document.getElementById('modal-paiement-scan').classList.remove('open')">&times;</button>
+    </div>
+    <div class="modal-body" style="padding:20px;display:flex;flex-direction:column;gap:14px">
+      <p id="scan-objet-titre" style="font-size:13px;font-weight:600;color:var(--green-700)"></p>
+      <p id="scan-objet-prix" style="font-size:22px;font-weight:800;font-family:Poppins,sans-serif;color:var(--text);margin:0"></p>
+      <div id="card-element-scan" style="padding:12px;border:1.5px solid var(--border);border-radius:var(--radius);background:#fff"></div>
+      <p id="scan-paiement-error" style="color:var(--danger-text);font-size:12.5px;min-height:16px"></p>
+      <div style="display:flex;gap:10px">
+        <button class="btn btn-outline" onclick="document.getElementById('modal-paiement-scan').classList.remove('open')" style="flex:1">Annuler</button>
+        <button id="btn-payer-scan" class="btn btn-primary" onclick="confirmerPaiementScan()" style="flex:2">
+          <i class="fa-brands fa-stripe-s"></i> Payer et récupérer
+        </button>
+      </div>
+      <p style="font-size:11px;color:var(--text-muted);text-align:center">Paiement sécurisé par Stripe · Non remboursable après récupération</p>
+    </div>
+  </div>
+</div>
+
+<script src="https://js.stripe.com/v3/"></script>
 
 </body>
 </html>

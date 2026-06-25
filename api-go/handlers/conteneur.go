@@ -93,6 +93,39 @@ func RecupererDepot(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(map[string]string{"status": "recupere"})
 }
 
+func InfosCodeDepot(w http.ResponseWriter, r *http.Request) {
+	role := r.Context().Value(middleware.ContextRole).(string)
+	if role != "professionnel" && role != "admin" {
+		http.Error(w, `{"error":"Accès réservé aux professionnels"}`, http.StatusForbidden)
+		return
+	}
+	code := r.URL.Query().Get("code")
+	if code == "" {
+		http.Error(w, `{"error":"Code manquant"}`, http.StatusBadRequest)
+		return
+	}
+	type infosCode struct {
+		IDObjet     uint    `json:"id_objet"`
+		Titre       string  `json:"titre"`
+		Prix        float64 `json:"prix"`
+		TypeAnnonce string  `json:"type_annonce"`
+	}
+	var infos infosCode
+	err := database.DB.QueryRow(`
+		SELECT o.id_objet, o.nom, COALESCE(a.prix, 0), COALESCE(a.type_annonce, 'don')
+		FROM depot_objet d
+		JOIN objet o ON o.id_objet = d.id_objet
+		LEFT JOIN annonce a ON a.id_objet = o.id_objet AND a.statut = 'validee'
+		WHERE d.code_barre_retrait = ? AND d.statut = 'valide'
+		LIMIT 1`, code).Scan(&infos.IDObjet, &infos.Titre, &infos.Prix, &infos.TypeAnnonce)
+	if err != nil {
+		jsonError(w, "code introuvable ou déjà utilisé", http.StatusNotFound)
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(infos)
+}
+
 func RecupererDepotParCode(w http.ResponseWriter, r *http.Request) {
 	role := r.Context().Value(middleware.ContextRole).(string)
 	if role != "professionnel" && role != "admin" {
