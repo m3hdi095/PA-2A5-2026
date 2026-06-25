@@ -110,6 +110,7 @@ func main() {
 	// reservee aux professionnels, le service verifie le role
 	mux.HandleFunc("POST /api/depots/{id}/recuperer", middleware.AuthMiddleware(handlers.RecupererDepot))
 	mux.HandleFunc("POST /api/depots/recuperer-par-code", middleware.AuthMiddleware(handlers.RecupererDepotParCode))
+	mux.HandleFunc("GET /api/depots/infos-code", middleware.AuthMiddleware(handlers.InfosCodeDepot))
 
 	// Projets upcycling
 	mux.HandleFunc("POST /api/projets", middleware.AuthMiddleware(handlers.CreateProjet))
