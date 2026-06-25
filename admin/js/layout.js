@@ -1,6 +1,5 @@
-// Base de l'API Go, penser à changer si on déploie ailleurs
-const apiBase    = 'http://localhost:8080/api';
-const serverBase = 'http://localhost:8080';
+const apiBase    = window.location.origin + '/api';
+const serverBase = window.location.origin;
 
 // jwt
 
