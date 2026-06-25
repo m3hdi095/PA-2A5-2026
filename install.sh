@@ -58,7 +58,7 @@ else
   ok "Node.js $(node --version)"
 fi
 
-# Configuration .env ──────────────────────────────────────────────────────
+# Configuration .env 
 
 ENV_FILE="$API_DIR/.env"
 
@@ -75,6 +75,7 @@ JWT_SECRET=CHANGEZ_CE_SECRET_JWT_EN_PRODUCTION
 
 STRIPE_SECRET_KEY=
 STRIPE_PUBLIC_KEY=
+STRIPE_WEBHOOK_SECRET=    # Clé de signature webhook Stripe (dashboard Stripe -> Webhooks -> Signing secret)
 
 ONESIGNAL_APP_ID=
 ONESIGNAL_REST_API_KEY=
