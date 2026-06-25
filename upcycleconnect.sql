@@ -641,3 +641,24 @@ INSERT INTO traduction (table_concernee, id_enregistrement, champ, langue, valeu
 ('categorie', 4, 'nom', 'en', 'Plastic'),
 ('categorie', 5, 'nom', 'en', 'Electronics'),
 ('categorie', 6, 'nom', 'en', 'Other');
+
+CREATE TABLE IF NOT EXISTS tournee (
+    id_tournee    INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    date_tournee  DATE         NOT NULL,
+    note          TEXT,
+    conteneurs    TEXT,
+    statut        ENUM('planifiee','en_cours','terminee') DEFAULT 'planifiee',
+    date_creation DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS alerte_materiau (
+    id_alerte        INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    id_professionnel INT UNSIGNED NOT NULL,
+    categorie        VARCHAR(100),
+    type_annonce     VARCHAR(50),
+    rayon            INT UNSIGNED DEFAULT 20,
+    mot_cle          VARCHAR(200),
+    active           TINYINT(1)   DEFAULT 1,
+    date_creation    DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (id_professionnel) REFERENCES utilisateur(id_utilisateur) ON DELETE CASCADE
+);
