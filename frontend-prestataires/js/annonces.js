@@ -1,8 +1,9 @@
 // liste, recherche et interaction avec les annonces de matériaux (style LeBonCoin)
 
 const CAT_ICONES_MAP = {
-  textiles:     'fa-shirt',
   bois:         'fa-tree',
+  textile:      'fa-shirt',
+  textiles:     'fa-shirt',
   metal:        'fa-wrench',
   plastique:    'fa-recycle',
   electronique: 'fa-microchip',
@@ -143,13 +144,17 @@ function renderGrid() {
     const isFavori  = favorisIDs.has(a.id);
     const msgBadge  = a.nb_messages > 0 ? `<span style="font-size:11px;color:var(--text-muted)"><i class="fa-regular fa-comment" aria-hidden="true"></i> ${a.nb_messages}</span>` : '';
 
+    const imgContent = a.photo_principale
+      ? `<img src="${serverBase}${a.photo_principale}" style="width:100%;height:100%;object-fit:cover" loading="lazy" onerror="this.parentElement.innerHTML='<i class=\\'fa-solid ${icone}\\' aria-hidden=\\'true\\'></i>'">`
+      : `<i class="fa-solid ${icone}" aria-hidden="true"></i>`;
+
     return `
       <div class="annonce-card animate-in" style="animation-delay:${i * 50}ms;position:relative">
         <button class="fav-btn ${isFavori ? 'active' : ''}" onclick="toggleFavori(event,${a.id})" title="${isFavori ? 'Retirer des favoris' : 'Ajouter aux favoris'}" aria-label="Favori">
           <i class="fa-${isFavori ? 'solid' : 'regular'} fa-heart"></i>
         </button>
         <div class="annonce-card-img" onclick="ouvrirDetail(${a.id})" style="cursor:pointer">
-          <i class="fa-solid ${icone}" aria-hidden="true"></i>
+          ${imgContent}
           ${typeBadge}
         </div>
         <div class="annonce-card-body" onclick="ouvrirDetail(${a.id})" style="cursor:pointer">
