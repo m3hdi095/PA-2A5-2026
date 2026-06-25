@@ -1,6 +1,6 @@
 // auth espace particuliers
 
-const API_BASE = 'http://localhost:8080/api';
+const API_BASE = window.location.origin + '/api';
 
 async function loginApi(email, password) {
   const res = await fetch(`${API_BASE}/login`, {
