@@ -371,6 +371,23 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
   } catch(e) {}
 
+  // Restore settings from localStorage for all non-compte panels
+  ['general','paiement','securite','notifications'].forEach(panel => {
+    try {
+      const saved = JSON.parse(localStorage.getItem('uc_settings_' + panel) || 'null');
+      if (!saved) return;
+      const el = document.getElementById('panel-' + panel);
+      if (!el) return;
+      el.querySelectorAll('input[type="text"],input[type="email"],input[type="tel"],input[type="number"],input[type="password"],select').forEach(inp => {
+        if (inp.id && saved[inp.id] !== undefined) inp.value = saved[inp.id];
+      });
+      el.querySelectorAll('input[type="checkbox"]').forEach(cb => {
+        const key = cb.closest('.toggle-row')?.querySelector('.toggle-label')?.textContent?.trim() || cb.name;
+        if (key && saved['cb_' + key] !== undefined) cb.checked = saved['cb_' + key];
+      });
+    } catch {}
+  });
+
   // Nav tabs
   document.querySelectorAll('.settings-nav-item').forEach(btn => {
     btn.addEventListener('click', () => {
@@ -456,6 +473,19 @@ window.save = async () => {
     } catch {}
     showToast('Erreur lors de la mise à jour', 'error');
     return;
+  }
+  // Save panel settings to localStorage
+  const panel = document.getElementById('panel-' + activePanel);
+  if (panel) {
+    const data = {};
+    panel.querySelectorAll('input[type="text"],input[type="email"],input[type="tel"],input[type="number"],select').forEach(inp => {
+      if (inp.id) data[inp.id] = inp.value;
+    });
+    panel.querySelectorAll('input[type="checkbox"]').forEach(cb => {
+      const key = cb.closest('.toggle-row')?.querySelector('.toggle-label')?.textContent?.trim() || cb.name;
+      if (key) data['cb_' + key] = cb.checked;
+    });
+    localStorage.setItem('uc_settings_' + activePanel, JSON.stringify(data));
   }
   showToast(t('params_toast_saved') || 'Paramètres enregistrés', 'success');
 };
