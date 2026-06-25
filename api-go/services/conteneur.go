@@ -81,9 +81,27 @@ func (s *ConteneurService) RequestDepot(particulierID, conteneurID, objetID uint
         _ = errBC
     }
 
-    // push au particulier pour lui dire que le depot a bien ete enregistre
+    // push + email au particulier avec le code barre
     go s.sendNotif(particulierID, "Dépôt enregistré",
         fmt.Sprintf("Votre dépôt est en attente de validation. Code d'ouverture : %s", codeOuverture))
+
+    go func() {
+        userRepo := &repositories.UserRepository{}
+        user, err := userRepo.GetByID(particulierID)
+        if err == nil && user.Email != "" {
+            sujet := "UpcycleConnect – votre code barre de dépôt"
+            corps := fmt.Sprintf(
+                "Bonjour %s,\n\n"+
+                    "Votre dépôt a bien été enregistré et est en attente de validation.\n\n"+
+                    "Code d'ouverture du conteneur : %s\n"+
+                    "Code barre de retrait : %s\n\n"+
+                    "Présentez ce code barre lors du dépôt de votre objet.\n\n"+
+                    "À bientôt,\nL'équipe UpcycleConnect",
+                user.Prenom, codeOuverture, codeBarreData,
+            )
+            _ = utils.SendEmail(user.Email, sujet, corps)
+        }
+    }()
 
     return depot, nil
 }
