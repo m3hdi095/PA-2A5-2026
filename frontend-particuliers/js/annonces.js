@@ -1,11 +1,22 @@
 // annonces particuliers
 
+const CAT_ICONES_MAP = {
+  bois:         'fa-tree',
+  textile:      'fa-shirt',
+  textiles:     'fa-shirt',
+  metal:        'fa-wrench',
+  plastique:    'fa-recycle',
+  electronique: 'fa-microchip',
+  autre:        'fa-box-open',
+};
 
 const PAGE_SIZE = 9;
 let filtreActif = { recherche: '', type: '', categorie: '', tri: 'recent' };
 let pageActuelle = 1;
 let annoncesData = [];
 let viewMode = 'all'; // 'all' | 'mine'
+let _gpsLat = null;
+let _gpsLon = null;
 
 function resetFiltres() {
   filtreActif = { recherche: '', type: '', categorie: '', tri: 'recent' };
@@ -163,7 +174,12 @@ async function chargerCategories() {
 
 async function chargerAnnonces() {
   try {
-    const res = await apiFetch(`/annonces?lang=${_lang}`);
+    let url = `/annonces?lang=${_lang}`;
+    if (_gpsLat !== null && _gpsLon !== null) {
+      const rayon = document.getElementById('f-rayon')?.value || '10';
+      url += `&lat=${_gpsLat}&lon=${_gpsLon}&rayon=${rayon}`;
+    }
+    const res = await apiFetch(url);
     if (res?.ok) {
       const data = await res.json();
       if (Array.isArray(data)) annoncesData = data;
@@ -171,6 +187,43 @@ async function chargerAnnonces() {
   } catch {}
   renderAnnonces();
 }
+
+window.toggleGPS = async () => {
+  if (_gpsLat !== null) { desactiverGPS(); return; }
+  if (!navigator.geolocation) { showToast('Géolocalisation non supportée par ce navigateur', 'warning'); return; }
+  const btn = document.getElementById('btn-gps');
+  if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>'; }
+  navigator.geolocation.getCurrentPosition(
+    pos => {
+      _gpsLat = pos.coords.latitude;
+      _gpsLon = pos.coords.longitude;
+      const row = document.getElementById('gps-row');
+      if (row) row.style.display = 'flex';
+      const lbl = document.getElementById('gps-label');
+      if (lbl) lbl.textContent = `${_gpsLat.toFixed(4)}, ${_gpsLon.toFixed(4)}`;
+      if (btn) { btn.disabled = false; btn.style.background = 'var(--teal-700)'; btn.style.color = '#fff'; btn.style.borderColor = 'var(--teal-700)'; btn.innerHTML = '<i class="fa-solid fa-location-crosshairs"></i> <span>GPS actif</span>'; }
+      pageActuelle = 1;
+      chargerAnnonces();
+    },
+    () => {
+      showToast('Impossible d\'obtenir la position', 'warning');
+      if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fa-solid fa-location-crosshairs"></i> <span data-i18n="filter_proximite">Proximité</span>'; }
+    },
+    { timeout: 8000 }
+  );
+};
+
+window.desactiverGPS = () => {
+  _gpsLat = null; _gpsLon = null;
+  const row = document.getElementById('gps-row');
+  if (row) row.style.display = 'none';
+  const btn = document.getElementById('btn-gps');
+  if (btn) { btn.style.background = ''; btn.style.color = ''; btn.style.borderColor = ''; btn.innerHTML = '<i class="fa-solid fa-location-crosshairs"></i> <span data-i18n="filter_proximite">Proximité</span>'; }
+  pageActuelle = 1;
+  chargerAnnonces();
+};
+
+window.onRayonChange = () => { if (_gpsLat !== null) { pageActuelle = 1; chargerAnnonces(); } };
 
 function getAnnoncesFiltered() {
   let list = [...annoncesData];
@@ -202,21 +255,43 @@ function renderAnnonces() {
   }
 
   container.innerHTML = slice.map((a, i) => {
+    const icone = CAT_ICONES_MAP[(a.categorie || '').toLowerCase()] || 'fa-box-open';
     const typeBadge = a.type_annonce === 'don'
       ? `<span class="badge badge-don"><i class="fa-solid fa-hand-holding-heart" aria-hidden="true"></i> ${t('annonce_type_don')}</span>`
       : `<span class="badge badge-vente"><i class="fa-solid fa-tag" aria-hidden="true"></i> ${t('annonce_type_vente')}</span>`;
     const prix = a.prix > 0 ? `${a.prix.toFixed(2)} €` : t('annonce_gratuit');
+    const locale = _lang === 'en' ? 'en-GB' : 'fr-FR';
+    const dateAff = a.date_publication ? new Date(a.date_publication).toLocaleDateString(locale, { day: '2-digit', month: 'short' }) : '';
+    const msgBadge = a.nb_messages > 0 ? `<span style="font-size:11px;color:var(--text-muted)"><i class="fa-regular fa-comment" aria-hidden="true"></i> ${a.nb_messages}</span>` : '';
+    const imgContent = a.photo_principale
+      ? `<img src="${serverBase}${a.photo_principale}" style="width:100%;height:100%;object-fit:cover" loading="lazy" onerror="this.parentElement.innerHTML='<i class=\\'fa-solid ${icone}\\' aria-hidden=\\'true\\'></i>'">`
+      : `<i class="fa-solid ${icone}" aria-hidden="true"></i>`;
     return `
-      <div class="annonce-card animate-in" style="animation-delay:${i * .05}s" onclick="ouvrirDetail(${a.id})" tabindex="0">
-        <div class="annonce-header">
+      <div class="annonce-card animate-in" style="animation-delay:${i * .05}s;padding:0">
+        <div class="annonce-card-img" onclick="ouvrirDetail(${a.id})" style="cursor:pointer">
+          ${imgContent}
           ${typeBadge}
-          <span style="font-size:11px;color:var(--text-muted)">${esc(a.localisation)}</span>
         </div>
-        <div class="annonce-titre">${esc(a.titre)}</div>
-        <div class="annonce-desc">${esc(a.description || '')}</div>
-        <div class="annonce-footer">
-          <span class="annonce-prix">${prix}</span>
-          <span class="annonce-meta"><i class="fa-solid fa-user" aria-hidden="true"></i> ${esc(a.auteur || '')}</span>
+        <div class="annonce-card-body" onclick="ouvrirDetail(${a.id})" style="cursor:pointer">
+          <div class="annonce-titre">${esc(a.titre)}</div>
+          <div class="annonce-desc">${esc(a.description || '')}</div>
+          <div class="annonce-meta-row">
+            ${a.localisation ? `<span class="annonce-meta-item"><i class="fa-solid fa-location-dot" aria-hidden="true"></i> ${esc(a.localisation)}</span>` : ''}
+            ${a.auteur ? `<span class="annonce-meta-item"><i class="fa-regular fa-user" aria-hidden="true"></i> ${esc(a.auteur.trim())}</span>` : ''}
+            ${dateAff ? `<span class="annonce-meta-item"><i class="fa-regular fa-calendar" aria-hidden="true"></i> ${dateAff}</span>` : ''}
+          </div>
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-top:4px">
+            <div class="annonce-prix">${prix}</div>
+            ${msgBadge}
+          </div>
+        </div>
+        <div class="annonce-card-footer">
+          <button class="btn btn-outline btn-sm" onclick="ouvrirDetail(${a.id})" style="flex:1">
+            <i class="fa-solid fa-eye" aria-hidden="true"></i> Détail
+          </button>
+          <button class="btn btn-primary btn-sm" onclick="contacterAuteur(${a.id})" style="flex:1">
+            <i class="fa-regular fa-envelope" aria-hidden="true"></i> Contacter
+          </button>
         </div>
       </div>`;
   }).join('');
@@ -314,9 +389,9 @@ window.contacterAuteur = async (id) => {
   await basculerMessages(id);
 };
 
-// ────────────────────────────────────────────────────────────
+
 // Section messagerie (deux colonnes style inbox)
-// ────────────────────────────────────────────────────────────
+
 
 let _convAnnonceID = null;
 
@@ -536,10 +611,14 @@ async function soumettreAnnonce(e) {
       if (photosInput?.files?.length && annonce?.id) {
         const fd = new FormData();
         Array.from(photosInput.files).slice(0, 10).forEach(f => fd.append('photos', f));
-        const token = localStorage.getItem('uc_part_token') || localStorage.getItem('uc_pro_token');
+        const token = localStorage.getItem('uc_part_token');
+        const csrf  = localStorage.getItem('uc_part_csrf');
+        const uploadHeaders = {};
+        if (token) uploadHeaders['Authorization'] = `Bearer ${token}`;
+        if (csrf)  uploadHeaders['X-CSRF-Token']  = csrf;
         await fetch(`${apiBase}/annonces/${annonce.id}/photos`, {
           method: 'POST',
-          headers: token ? { Authorization: `Bearer ${token}` } : {},
+          headers: uploadHeaders,
           body: fd,
         });
       }

@@ -191,14 +191,32 @@ func (r *AnnonceRepository) GetByID(id uint) (*models.Annonce, error) {
 	return &a, err
 }
 
-func (r *AnnonceRepository) List(filter string, limit, offset int, lang string) ([]models.Annonce, error) {
+func (r *AnnonceRepository) List(filter string, limit, offset int, lang string, lat, lon, rayon float64) ([]models.Annonce, error) {
+	where := `WHERE a.statut = 'validee' AND (a.date_expiration IS NULL OR a.date_expiration > NOW())`
+	args := []interface{}{lang, lang}
+
+	if filter == "don" || filter == "vente" {
+		where += ` AND a.type_annonce = ?`
+		args = append(args, filter)
+	}
+
+	if rayon > 0 && lat != 0 && lon != 0 {
+		where += ` AND a.latitude IS NOT NULL AND a.longitude IS NOT NULL
+		AND (6371 * acos(GREATEST(-1, LEAST(1,
+		  cos(radians(?)) * cos(radians(a.latitude)) * cos(radians(a.longitude) - radians(?))
+		  + sin(radians(?)) * sin(radians(a.latitude))
+		)))) <= ?`
+		args = append(args, lat, lon, lat, rayon)
+	}
+
 	query := `SELECT a.id_annonce,
 		COALESCE(MAX(t_titre.valeur_traduite), a.titre),
 		COALESCE(MAX(t_desc.valeur_traduite), a.description),
 		a.type_annonce, a.prix, a.date_publication, a.statut, a.id_utilisateur, a.id_objet, COALESCE(MAX(c.nom), ''),
 		CONCAT(COALESCE(MAX(u.prenom),''), ' ', COALESCE(MAX(u.nom),'')),
 		COALESCE(a.localisation, MAX(u.ville), ''),
-		COUNT(DISTINCT ma.id)
+		COUNT(DISTINCT ma.id),
+		COALESCE(MIN(ph.url), '')
 	FROM annonce a
 	LEFT JOIN objet o ON a.id_objet = o.id_objet
 	LEFT JOIN categorie c ON o.categorie_id = c.id_categorie
@@ -206,11 +224,12 @@ func (r *AnnonceRepository) List(filter string, limit, offset int, lang string) 
 	LEFT JOIN traduction t_desc  ON t_desc.table_concernee  = 'annonce' AND t_desc.id_enregistrement  = a.id_annonce AND t_desc.champ  = 'description' AND t_desc.langue  = ?
 	LEFT JOIN utilisateur u ON u.id_utilisateur = a.id_utilisateur
 	LEFT JOIN message_annonce ma ON ma.id_annonce = a.id_annonce
-	WHERE a.statut = 'validee'
-	AND (a.date_expiration IS NULL OR a.date_expiration > NOW())
+	LEFT JOIN photo_annonce ph ON ph.id_annonce = a.id_annonce
+	` + where + `
 	GROUP BY a.id_annonce, a.titre, a.description, a.type_annonce, a.prix, a.date_publication, a.date_expiration, a.statut, a.id_utilisateur, a.id_objet, a.localisation
 	ORDER BY a.date_publication DESC LIMIT ? OFFSET ?`
-	args := []interface{}{lang, lang, limit, offset}
+
+	args = append(args, limit, offset)
 	rows, err := database.DB.Query(query, args...)
 	if err != nil {
 		return nil, err
@@ -219,7 +238,7 @@ func (r *AnnonceRepository) List(filter string, limit, offset int, lang string) 
 	annonces := make([]models.Annonce, 0)
 	for rows.Next() {
 		var a models.Annonce
-		err := rows.Scan(&a.ID, &a.Titre, &a.Description, &a.TypeAnnonce, &a.Prix, &a.DatePublication, &a.Statut, &a.IDUtilisateur, &a.IDObjet, &a.Categorie, &a.Auteur, &a.Localisation, &a.NbMessages)
+		err := rows.Scan(&a.ID, &a.Titre, &a.Description, &a.TypeAnnonce, &a.Prix, &a.DatePublication, &a.Statut, &a.IDUtilisateur, &a.IDObjet, &a.Categorie, &a.Auteur, &a.Localisation, &a.NbMessages, &a.PhotoPrincipale)
 		if err != nil {
 			return nil, err
 		}

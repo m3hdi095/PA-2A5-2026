@@ -117,7 +117,10 @@ CREATE TABLE annonce (
     prix DECIMAL(10,2) DEFAULT 0.00,
     date_publication DATETIME DEFAULT CURRENT_TIMESTAMP,
     statut ENUM('brouillon', 'en_attente', 'validee', 'refusee', 'publiee', 'desactivee') DEFAULT 'en_attente',
-    id_utilisateur INT UNSIGNED NOT NULL,   
+    localisation VARCHAR(200) NULL,
+    latitude DECIMAL(10,7) NULL,
+    longitude DECIMAL(10,7) NULL,
+    id_utilisateur INT UNSIGNED NOT NULL,
     id_objet INT UNSIGNED NOT NULL,
     FOREIGN KEY (id_utilisateur) REFERENCES utilisateur(id_utilisateur),
     FOREIGN KEY (id_objet) REFERENCES objet(id_objet)
