@@ -69,6 +69,9 @@ type Annonce struct {
 	Localisation    string     `json:"localisation,omitempty"`
 	NbMessages      int        `json:"nb_messages,omitempty"`
 	EstFavori       bool       `json:"est_favori,omitempty"`
+	Latitude        *float64   `json:"latitude,omitempty"`
+	Longitude       *float64   `json:"longitude,omitempty"`
+	PhotoPrincipale string     `json:"photo_principale,omitempty"`
 }
 
 type Conteneur struct {

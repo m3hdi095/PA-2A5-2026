@@ -85,6 +85,15 @@
         <i class="fa-solid fa-qrcode" style="color:var(--teal-500);font-size:18px;margin-right:8px" aria-hidden="true"></i>
         Un QR code unique vous sera envoyé par <strong>e-mail et SMS</strong>. Il est valable <strong>24h</strong> et à usage unique. Assurez-vous d'être disponible pour déposer l'objet dans ce délai.
       </div>
+      <div class="form-group" style="margin-top:14px">
+        <label class="form-label" style="font-size:13px;font-weight:600;color:var(--text)">
+          <i class="fa-solid fa-location-dot" style="color:var(--teal-600);margin-right:5px" aria-hidden="true"></i>
+          <span data-i18n="depot_select_conteneur">Conteneur de dépôt</span>
+        </label>
+        <select id="modal-conteneur-select" class="form-control">
+          <option value="">Chargement des conteneurs…</option>
+        </select>
+      </div>
       <div class="form-actions" style="margin-top:8px">
         <button type="button" class="btn btn-outline" id="modal-annuler" data-i18n="annonce_annuler">Annuler</button>
         <button type="button" class="btn btn-primary" id="modal-confirmer">

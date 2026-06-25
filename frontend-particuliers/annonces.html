@@ -63,6 +63,26 @@
         <option value="prix_asc" data-i18n="filter_prix_asc">Prix croissant</option>
         <option value="prix_desc" data-i18n="filter_prix_desc">Prix décroissant</option>
       </select>
+      <button id="btn-gps" class="btn btn-outline btn-sm" onclick="toggleGPS()" title="Filtrer par localisation" style="flex-shrink:0;white-space:nowrap">
+        <i class="fa-solid fa-location-crosshairs" aria-hidden="true"></i>
+        <span data-i18n="filter_proximite">Proximité</span>
+      </button>
+    </div>
+    <div id="gps-row" style="display:none;margin-top:10px;display:none;align-items:center;gap:10px;font-size:13px">
+      <i class="fa-solid fa-circle-dot" style="color:var(--teal-600)" aria-hidden="true"></i>
+      <span id="gps-label" style="color:var(--text-soft)">Position active</span>
+      <label style="display:flex;align-items:center;gap:6px">
+        <span data-i18n="filter_rayon">Rayon</span>
+        <select id="f-rayon" class="filter-select" style="padding:4px 8px;font-size:12px" onchange="onRayonChange()">
+          <option value="5">5 km</option>
+          <option value="10" selected>10 km</option>
+          <option value="25">25 km</option>
+          <option value="50">50 km</option>
+        </select>
+      </label>
+      <button class="btn btn-ghost btn-sm" onclick="desactiverGPS()" style="padding:4px 8px;font-size:12px;color:var(--text-muted)">
+        <i class="fa-solid fa-xmark" aria-hidden="true"></i>
+      </button>
     </div>
   </div>
 </div>
