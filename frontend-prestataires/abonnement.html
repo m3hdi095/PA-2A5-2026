@@ -7,6 +7,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=Montserrat:wght@400;500;600&display=swap" rel="stylesheet"/>
   <link rel="stylesheet" href="css/style.css"/>
   <script src="https://js.stripe.com/v3/"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 </head>
 <body>
 
@@ -306,12 +307,64 @@ async function chargerFactures() {
       <td style="font-weight:700;color:var(--green-700)">${(+f.montant||15).toFixed(2).replace('.',',')} €</td>
       <td><span class="badge ${STAT[f.statut]||'badge-success'}">${f.statut||'payée'}</span></td>
       <td style="text-align:right">
-        <button class="btn btn-ghost btn-sm" onclick="showToast('Téléchargement PDF non disponible en sandbox','info')">
-          <i class="fa-solid fa-download"></i>
+        <button class="btn btn-ghost btn-sm" onclick="telechargerFacturePdf(${f.id||i+1}, '${(+f.montant||15).toFixed(2)}', '${f.date_paiement||''}', '${f.statut||'payée'}')" title="Télécharger PDF">
+          <i class="fa-solid fa-file-pdf"></i>
         </button>
       </td>
     </tr>`).join('');
 }
+
+window.telechargerFacturePdf = function(id, montant, datePaiement, statut) {
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+  const num = 'F-' + String(id).padStart(4, '0');
+  const locale = typeof _lang !== 'undefined' && _lang === 'en' ? 'en-GB' : 'fr-FR';
+  const dateStr = datePaiement ? new Date(datePaiement).toLocaleDateString(locale, { day: 'numeric', month: 'long', year: 'numeric' }) : new Date().toLocaleDateString(locale);
+
+  doc.setFillColor(45, 102, 79);
+  doc.rect(0, 0, 210, 38, 'F');
+  doc.setTextColor(255, 255, 255);
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(20);
+  doc.text('UPCYCLECONNECT', 15, 22);
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(9);
+  doc.text('Facture d\'abonnement · Espace Professionnel', 15, 30);
+
+  doc.setTextColor(50, 50, 50);
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(13);
+  doc.text(`Facture N° : ${num}`, 15, 56);
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(10);
+  doc.text(`Date : ${dateStr}`, 15, 64);
+  doc.text(`Plan : Premium`, 15, 71);
+  doc.text(`Statut : ${statut}`, 15, 78);
+
+  doc.setDrawColor(200, 200, 200);
+  doc.line(15, 90, 195, 90);
+  doc.setFont('helvetica', 'bold');
+  doc.text('Description', 15, 103);
+  doc.text('HT', 120, 103);
+  doc.text('TVA 20%', 148, 103);
+  doc.text('TTC', 180, 103);
+  doc.line(15, 107, 195, 107);
+  doc.setFont('helvetica', 'normal');
+  const ht = (parseFloat(montant) / 1.2).toFixed(2);
+  const tva = (parseFloat(montant) - parseFloat(ht)).toFixed(2);
+  doc.text('Abonnement Premium UpcycleConnect', 15, 117);
+  doc.text(`${ht} €`, 120, 117);
+  doc.text(`${tva} €`, 148, 117);
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(45, 102, 79);
+  doc.text(`${parseFloat(montant).toFixed(2)} €`, 180, 117);
+
+  doc.setTextColor(150, 150, 150);
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(8);
+  doc.text('UpcycleConnect · contact@upcycleconnect.fr · Paris, France', 105, 280, { align: 'center' });
+  doc.save(`${num}.pdf`);
+};
 
 let _stripe = null;
 let _cardElement = null;
