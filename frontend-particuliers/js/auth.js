@@ -1,6 +1,7 @@
 // auth espace particuliers
 
-const API_BASE = window.location.origin + '/api';
+const _isLocalAuth = ['localhost','127.0.0.1'].includes(window.location.hostname);
+const API_BASE     = _isLocalAuth ? 'http://localhost:8080/api' : window.location.origin + '/api';
 
 async function loginApi(email, password) {
   const res = await fetch(`${API_BASE}/login`, {
