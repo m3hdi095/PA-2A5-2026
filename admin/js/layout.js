@@ -1,5 +1,6 @@
-const apiBase    = window.location.origin + '/api';
-const serverBase = window.location.origin;
+const _isLocal   = ['localhost','127.0.0.1'].includes(window.location.hostname);
+const apiBase    = _isLocal ? 'http://localhost:8080/api' : window.location.origin + '/api';
+const serverBase = _isLocal ? 'http://localhost:8080'     : window.location.origin;
 
 // jwt
 
@@ -154,7 +155,7 @@ const PAGE_NOMS = {
   users:         'Utilisateurs',
   validations:   'Validations',
   categories:    'Catégories',
-  prestations:   'Événements',
+  prestations:   'Prestations',
   factures:      'Facturation',
   conteneurs:    'Conteneurs',
   notifications: 'Notifications',
