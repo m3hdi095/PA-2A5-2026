@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Mes événements | Espace Salariés</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=Montserrat:wght@400;500;600&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" crossorigin="anonymous"/>
+  <link rel="stylesheet" href="css/style.css"/>
+</head>
+<body>
+
+<div class="page-title-row animate-in">
+  <div>
+    <h1>
+      <div class="page-title-icon green">
+        <i class="fa-solid fa-calendar-days" aria-hidden="true"></i>
+      </div>
+      Mes événements
+    </h1>
+    <p class="page-title-sub">Créez et gérez vos formations, ateliers et événements</p>
+  </div>
+  <div class="page-title-actions">
+    <button class="btn btn-primary" id="btn-nouvel-event">
+      <i class="fa-solid fa-plus" aria-hidden="true"></i>
+      Nouvel événement
+    </button>
+  </div>
+</div>
+
+<!-- Liste des événements du salarié -->
+<div class="card animate-in" style="margin-bottom:20px">
+  <div class="card-header">
+    <h2><i class="fa-solid fa-list" aria-hidden="true"></i> Mes créations</h2>
+    <span id="badge-total" class="badge badge-teal">0</span>
+  </div>
+  <div id="events-list" class="card-body" style="display:flex;flex-direction:column;gap:10px">
+    <div class="skeleton" style="height:60px;border-radius:var(--radius)"></div>
+    <div class="skeleton" style="height:60px;border-radius:var(--radius)"></div>
+  </div>
+</div>
+
+<!-- Modal création / édition -->
+<div class="modal-overlay" id="modal-event">
+  <div class="modal-box" style="max-width:560px">
+    <div class="modal-header">
+      <div class="modal-title" id="modal-event-titre">Nouvel événement</div>
+      <button class="modal-close" id="modal-event-close">&times;</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="ev-id"/>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Titre <span class="required">*</span></label>
+          <input id="ev-titre" class="form-control" type="text" placeholder="Atelier récupération palettes…" maxlength="150"/>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Type <span class="required">*</span></label>
+          <select id="ev-type" class="form-control">
+            <option value="formation">Formation</option>
+            <option value="atelier">Atelier</option>
+            <option value="evenement">Événement</option>
+            <option value="conseil">Conseil</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Description</label>
+        <textarea id="ev-description" class="form-control" rows="3" placeholder="Décrivez le contenu et les objectifs…"></textarea>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Date de début <span class="required">*</span></label>
+          <input id="ev-date-debut" class="form-control" type="datetime-local"/>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Date de fin</label>
+          <input id="ev-date-fin" class="form-control" type="datetime-local"/>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Lieu</label>
+          <input id="ev-lieu" class="form-control" type="text" placeholder="Salle B2, Atelier principal…"/>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Capacité max</label>
+          <input id="ev-places" class="form-control" type="number" min="1" max="500" placeholder="20"/>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Tarif (€, laisser 0 si gratuit)</label>
+        <input id="ev-tarif" class="form-control" type="number" min="0" step="0.01" placeholder="0"/>
+      </div>
+      <p id="ev-error" style="color:var(--danger,#ef5350);font-size:13px;display:none"></p>
+    </div>
+    <div class="form-actions" style="padding:16px 22px;border-top:1px solid var(--border)">
+      <button class="btn btn-outline" id="btn-ev-cancel">Annuler</button>
+      <button class="btn btn-primary" id="btn-ev-save">
+        <i class="fa-solid fa-paper-plane" aria-hidden="true"></i>
+        Soumettre pour validation
+      </button>
+    </div>
+  </div>
+</div>
+
+<script src="js/layout.js" data-page="evenements"></script>
+<script>
+const TYPE_BADGE = {
+  formation: '<span class="badge badge-teal">Formation</span>',
+  atelier:   '<span class="badge badge-green">Atelier</span>',
+  evenement: '<span class="badge badge-orange">Événement</span>',
+  conseil:   '<span class="badge" style="background:var(--beige-light)">Conseil</span>',
+};
+const STATUT_BADGE = {
+  en_attente: '<span class="badge badge-orange">En attente</span>',
+  valide:     '<span class="badge badge-green">Validé</span>',
+  annule:     '<span class="badge" style="background:var(--danger-bg);color:var(--danger)">Annulé</span>',
+};
+
+let mesEvents = [];
+
+document.addEventListener('DOMContentLoaded', async () => {
+  await initLayout('evenements');
+  await chargerMesEvents();
+
+  document.getElementById('btn-nouvel-event').addEventListener('click', () => ouvrirModal());
+  document.getElementById('modal-event-close').addEventListener('click', fermerModal);
+  document.getElementById('btn-ev-cancel').addEventListener('click', fermerModal);
+  document.getElementById('modal-event').addEventListener('click', e => {
+    if (e.target === document.getElementById('modal-event')) fermerModal();
+  });
+  document.getElementById('btn-ev-save').addEventListener('click', sauvegarderEvent);
+});
+
+async function chargerMesEvents() {
+  const list = document.getElementById('events-list');
+  try {
+    const res = await apiFetch('/evenements/mes-creations');
+    if (res?.ok) {
+      const data = await res.json();
+      mesEvents = Array.isArray(data) ? data : [];
+    }
+  } catch {}
+  renderEvents();
+}
+
+function renderEvents() {
+  const list = document.getElementById('events-list');
+  const badge = document.getElementById('badge-total');
+  badge.textContent = mesEvents.length;
+
+  if (!mesEvents.length) {
+    list.innerHTML = `<div class="empty-state" style="padding:40px 0">
+      <i class="fa-solid fa-calendar-xmark" aria-hidden="true"></i>
+      <p>Aucun événement créé. Cliquez sur "Nouvel événement" pour commencer.</p>
+    </div>`;
+    return;
+  }
+
+  const locale = _lang === 'en' ? 'en-GB' : 'fr-FR';
+  list.innerHTML = mesEvents.map(ev => {
+    const dateStr = ev.date_debut
+      ? new Date(ev.date_debut).toLocaleDateString(locale, { day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' })
+      : '—';
+    return `<div class="val-card" style="gap:12px">
+      <div class="val-type-icon">${TYPE_BADGE[ev.type] || ''}</div>
+      <div class="val-info">
+        <div class="val-title">${esc(ev.titre || 'Sans titre')}</div>
+        <div class="val-meta">${dateStr} · ${esc(ev.lieu || 'Lieu non défini')} · ${ev.nb_places || '?'} places</div>
+      </div>
+      ${STATUT_BADGE[ev.statut] || ''}
+      <div class="val-actions">
+        <button class="btn btn-outline btn-sm" onclick="ouvrirModal(${ev.id})">
+          <i class="fa-solid fa-pen" aria-hidden="true"></i> Modifier
+        </button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function ouvrirModal(id) {
+  const ev = id ? mesEvents.find(e => e.id === id) : null;
+  document.getElementById('modal-event-titre').textContent = ev ? 'Modifier l\'événement' : 'Nouvel événement';
+  document.getElementById('ev-id').value        = ev?.id || '';
+  document.getElementById('ev-titre').value     = ev?.titre || '';
+  document.getElementById('ev-type').value      = ev?.type || 'formation';
+  document.getElementById('ev-description').value = ev?.description || '';
+  document.getElementById('ev-date-debut').value = ev?.date_debut ? ev.date_debut.slice(0,16) : '';
+  document.getElementById('ev-date-fin').value   = ev?.date_fin   ? ev.date_fin.slice(0,16)   : '';
+  document.getElementById('ev-lieu').value       = ev?.lieu || '';
+  document.getElementById('ev-places').value     = ev?.nb_places || '';
+  document.getElementById('ev-tarif').value      = ev?.tarif || 0;
+  document.getElementById('ev-error').style.display = 'none';
+  document.getElementById('modal-event').classList.add('open');
+}
+
+function fermerModal() {
+  document.getElementById('modal-event').classList.remove('open');
+}
+
+async function sauvegarderEvent() {
+  const titre = document.getElementById('ev-titre').value.trim();
+  const dateDebut = document.getElementById('ev-date-debut').value;
+  const errEl = document.getElementById('ev-error');
+
+  if (!titre || !dateDebut) {
+    errEl.textContent = 'Le titre et la date de début sont obligatoires.';
+    errEl.style.display = 'block';
+    return;
+  }
+
+  const id = document.getElementById('ev-id').value;
+  const payload = {
+    titre,
+    type:        document.getElementById('ev-type').value,
+    description: document.getElementById('ev-description').value.trim(),
+    date_debut:  dateDebut,
+    date_fin:    document.getElementById('ev-date-fin').value || null,
+    lieu:        document.getElementById('ev-lieu').value.trim(),
+    nb_places:   parseInt(document.getElementById('ev-places').value) || 0,
+    tarif:       parseFloat(document.getElementById('ev-tarif').value) || 0,
+  };
+
+  const btn = document.getElementById('btn-ev-save');
+  btn.disabled = true;
+
+  try {
+    const res = id
+      ? await apiFetch(`/evenements/${id}`, { method: 'PUT',  body: JSON.stringify(payload) })
+      : await apiFetch('/evenements',        { method: 'POST', body: JSON.stringify(payload) });
+
+    if (res?.ok) {
+      fermerModal();
+      showToast(id ? 'Événement mis à jour' : 'Événement soumis pour validation', 'success');
+      await chargerMesEvents();
+    } else {
+      const err = await res?.json().catch(() => ({}));
+      errEl.textContent = err?.error || 'Erreur lors de l\'enregistrement.';
+      errEl.style.display = 'block';
+    }
+  } catch {
+    errEl.textContent = 'Erreur réseau.';
+    errEl.style.display = 'block';
+  }
+
+  btn.disabled = false;
+}
+
+function esc(str) {
+  return String(str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+</script>
+</body>
+</html>

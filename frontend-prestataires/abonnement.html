@@ -101,7 +101,7 @@
   <!-- Plan Premium -->
   <div class="plan-card plan-premium">
     <div class="plan-titre">Premium</div>
-    <div class="plan-prix">15 € <span>/ mois</span></div>
+    <div class="plan-prix"><span id="prix-premium-card">15</span> € <span>/ mois</span></div>
     <div class="plan-features">
       <div class="plan-feature">
         <i class="fa-solid fa-check" aria-hidden="true"></i>
@@ -185,7 +185,7 @@
     </div>
     <div class="modal-body">
       <div style="background:var(--green-50);border-radius:var(--radius-lg);padding:20px;text-align:center;margin-bottom:20px">
-        <div style="font-family:Poppins,sans-serif;font-size:28px;font-weight:800;color:var(--green-700)">15 €</div>
+        <div style="font-family:Poppins,sans-serif;font-size:28px;font-weight:800;color:var(--green-700)"><span id="prix-premium-modal">15</span> €</div>
         <div style="font-size:13px;color:var(--text-muted);margin-top:2px">par mois · annulable à tout moment</div>
       </div>
       <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:20px">
@@ -209,7 +209,7 @@
       </div>
       <button id="btn-payer-abo" class="btn btn-premium" style="width:100%;padding:14px;font-size:14px" onclick="confirmerStripe()">
         <i class="fa-brands fa-stripe-s" aria-hidden="true"></i>
-        Payer avec Stripe : 15 €/mois
+        Payer avec Stripe : <span id="prix-premium-btn">15</span> €/mois
       </button>
       <p style="font-size:11px;color:var(--text-muted);text-align:center;margin-top:12px">
         Paiement sécurisé · Stripe · Annulable à tout moment
@@ -224,12 +224,27 @@ let planActuel = 'freemium';
 
 document.addEventListener('DOMContentLoaded', async () => {
   await initLayout('abonnement');
+  chargerTarifDepuisConfig();
   await chargerPlan();
   await chargerFactures();
   document.getElementById('modal-upgrade')?.addEventListener('click', e => {
     if (e.target === document.getElementById('modal-upgrade')) fermerUpgrade();
   });
 });
+
+async function chargerTarifDepuisConfig() {
+  try {
+    const res = await fetch(`${apiBase}/config`);
+    if (!res.ok) return;
+    const cfg = await res.json();
+    const tarif = parseFloat(cfg.tarif_premium) || 15;
+    const tarifStr = Number.isInteger(tarif) ? String(tarif) : tarif.toFixed(2).replace('.', ',');
+    ['prix-premium-card', 'prix-premium-modal', 'prix-premium-btn'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.textContent = tarifStr;
+    });
+  } catch {}
+}
 
 async function chargerPlan() {
   try {

@@ -148,6 +148,17 @@ async function chargerStats() {
     moisData.push(depots.filter(dep => (dep.date_demande || '').startsWith(ym)).length);
   }
 
+  if (!window.Chart) {
+    document.querySelectorAll('canvas').forEach(c => {
+      c.parentElement.innerHTML =
+        '<div class="empty-state" style="padding:40px 0">' +
+        '<i class="fa-solid fa-chart-bar" aria-hidden="true"></i>' +
+        '<p>Graphiques indisponibles — bibliothèque Chart.js non chargée (vérifiez votre connexion).</p>' +
+        '</div>';
+    });
+    return;
+  }
+
   if (window.Chart) {
     new Chart(document.getElementById('chart-recup'), {
       type: 'bar',
