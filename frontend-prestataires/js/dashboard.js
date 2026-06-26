@@ -5,11 +5,42 @@ document.addEventListener('DOMContentLoaded', async () => {
   if (!utilisateur) return;
 
   afficherDate();
+  afficherBandeauPlan(utilisateur);
   chargerStats(utilisateur);
   chargerAnnoncesRecentes();
   chargerMesProjets(utilisateur);
   chargerAlertes();
 });
+
+function afficherBandeauPlan(utilisateur) {
+  const banner = document.getElementById('plan-banner');
+  if (!banner) return;
+  const plan = utilisateur?.plan || utilisateur?.abonnement || 'gratuit';
+  const isPremium = plan === 'premium';
+
+  banner.style.display = 'flex';
+  if (isPremium) {
+    banner.style.background = 'var(--green-50)';
+    banner.style.borderColor = 'var(--green-300)';
+    document.getElementById('plan-banner-icon').className = 'fa-solid fa-crown';
+    document.getElementById('plan-banner-icon').style.color = 'var(--green-700)';
+    document.getElementById('plan-banner-title').textContent = 'Plan Premium actif';
+    document.getElementById('plan-banner-sub').textContent = 'Vous bénéficiez des alertes matériaux, de la mise en avant et des statistiques avancées.';
+    const cta = document.getElementById('plan-banner-cta');
+    cta.textContent = 'Gérer mon abonnement';
+    cta.className = 'btn btn-outline btn-sm';
+  } else {
+    banner.style.background = 'var(--beige-light,#faf8f5)';
+    banner.style.borderColor = 'var(--border)';
+    document.getElementById('plan-banner-icon').className = 'fa-solid fa-arrow-up-right-dots';
+    document.getElementById('plan-banner-icon').style.color = 'var(--uc-teal)';
+    document.getElementById('plan-banner-title').textContent = 'Vous êtes sur le Plan Gratuit';
+    document.getElementById('plan-banner-sub').textContent = 'Passez Premium pour débloquer les alertes matériaux, la mise en avant et les stats avancées.';
+    const cta = document.getElementById('plan-banner-cta');
+    cta.textContent = 'Passer Premium';
+    cta.className = 'btn btn-primary btn-sm';
+  }
+}
 
 function afficherDate() {
   const el = document.getElementById('date-now');
