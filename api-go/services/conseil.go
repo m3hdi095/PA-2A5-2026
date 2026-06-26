@@ -65,6 +65,29 @@ func (s *ConseilService) ListMesArticles(salarieID uint) ([]models.ArticleConsei
 	return articles, nil
 }
 
+func (s *ConseilService) ListEnAttente() ([]models.ArticleConseil, error) {
+	rows, err := database.DB.Query(
+		`SELECT c.id_conseil, c.titre, c.contenu, c.statut, c.date_publication,
+		        c.id_salarie_redacteur,
+		        CONCAT(COALESCE(u.prenom,''), ' ', COALESCE(u.nom,''))
+		 FROM conseil c
+		 LEFT JOIN utilisateur u ON u.id_utilisateur = c.id_salarie_redacteur
+		 WHERE c.statut = 'en_attente'
+		 ORDER BY c.date_publication ASC`,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var articles []models.ArticleConseil
+	for rows.Next() {
+		var a models.ArticleConseil
+		rows.Scan(&a.ID, &a.Titre, &a.Contenu, &a.Statut, &a.DatePublication, &a.IDSalarieRedacteur, &a.Auteur)
+		articles = append(articles, a)
+	}
+	return articles, nil
+}
+
 func (s *ConseilService) Create(article *models.ArticleConseil) error {
 	if article.Titre == "" || article.Contenu == "" {
 		return errors.New("titre et contenu sont obligatoires")
