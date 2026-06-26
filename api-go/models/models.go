@@ -211,6 +211,7 @@ type ArticleConseil struct {
 	DatePublication    time.Time `json:"date_publication"`
 	IDSalarieRedacteur uint      `json:"id_salarie_redacteur"`
 	IDAdminValidation  *uint     `json:"id_admin_validation,omitempty"`
+	Auteur             string    `json:"auteur,omitempty"`
 }
 
 type ForumMessage struct {

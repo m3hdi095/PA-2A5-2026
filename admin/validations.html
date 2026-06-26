@@ -50,6 +50,10 @@
     <i class="fa-solid fa-recycle" aria-hidden="true"></i>
     Projets <span class="tab-count" id="countProjets">0</span>
   </button>
+  <button class="val-tab" data-tab="conseils">
+    <i class="fa-solid fa-lightbulb" aria-hidden="true"></i>
+    Conseils <span class="tab-count" id="countConseils">0</span>
+  </button>
 </div>
 
 <!-- CONTENT -->
@@ -74,9 +78,10 @@ const ICONE_VAL = {
   conteneur: '<i class="fa-solid fa-box" aria-hidden="true"></i>',
   formation: '<i class="fa-solid fa-graduation-cap" aria-hidden="true"></i>',
   projet:    '<i class="fa-solid fa-recycle" aria-hidden="true"></i>',
+  conseil:   '<i class="fa-solid fa-lightbulb" aria-hidden="true"></i>',
 };
 
-let valData = { annonces: [], conteneurs: [], formations: [], projets: [] };
+let valData = { annonces: [], conteneurs: [], formations: [], projets: [], conseils: [] };
 let activeTab = 'annonces';
 
 function renderTab(tab) {
@@ -125,6 +130,7 @@ function updateCounts() {
   document.getElementById('countConteneurs').textContent = valData.conteneurs.length;
   document.getElementById('countFormations').textContent = valData.formations.length;
   document.getElementById('countProjets').textContent    = valData.projets.length;
+  document.getElementById('countConseils').textContent   = valData.conseils.length;
   document.getElementById('totalBadge').textContent = `${total} ${t('badge_en_attente')}`;
 }
 
@@ -246,6 +252,22 @@ async function loadFormationsFromAPI() {
   } catch {}
 }
 
+async function loadConseils() {
+  try {
+    const res = await apiFetch('/admin/conseils/en-attente');
+    if (!res?.ok) return;
+    const data = await res.json();
+    valData.conseils = (Array.isArray(data) ? data : []).map(c => ({
+      id:     c.id,
+      titre:  c.titre || 'Sans titre',
+      type:   'conseil',
+      auteur: (c.auteur || '').trim() || ('Salarié #' + c.id_salarie_redacteur),
+      date:   c.date_publication || new Date().toISOString(),
+      desc:   c.contenu || '',
+    }));
+  } catch {}
+}
+
 window.approve = async (id, tab) => {
   let ok = false;
   try {
@@ -269,6 +291,11 @@ window.approve = async (id, tab) => {
       res = await apiFetch('/admin/projets/validate', {
         method: 'POST',
         body: JSON.stringify({ projet_id: id, decision: 'valide' }),
+      });
+    } else if (tab === 'conseils') {
+      res = await apiFetch('/admin/conseils/valider', {
+        method: 'POST',
+        body: JSON.stringify({ article_id: id, decision: 'publie' }),
       });
     }
     ok = res?.ok === true;
@@ -301,6 +328,11 @@ window.reject = async (id, tab) => {
         method: 'POST',
         body: JSON.stringify({ projet_id: id, decision: 'refuse' }),
       });
+    } else if (tab === 'conseils') {
+      res = await apiFetch('/admin/conseils/valider', {
+        method: 'POST',
+        body: JSON.stringify({ article_id: id, decision: 'refuse' }),
+      });
     }
     ok = res?.ok === true;
   } catch {}
@@ -328,6 +360,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     loadDepotsFromAPI(),
     loadFormationsFromAPI(),
     loadProjetsFromAPI(),
+    loadConseils(),
   ]);
 
   updateCounts();
@@ -344,7 +377,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   document.getElementById('refreshBtn').addEventListener('click', async () => {
     const btn = document.getElementById('refreshBtn');
     btn.disabled = true;
-    await Promise.all([loadAnnoncesFromAPI(), loadDepotsFromAPI(), loadFormationsFromAPI(), loadProjetsFromAPI()]);
+    await Promise.all([loadAnnoncesFromAPI(), loadDepotsFromAPI(), loadFormationsFromAPI(), loadProjetsFromAPI(), loadConseils()]);
     updateCounts();
     renderTab(activeTab);
     btn.disabled = false;

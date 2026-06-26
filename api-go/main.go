@@ -153,6 +153,7 @@ func main() {
 	mux.HandleFunc("POST /api/conseils", middleware.AuthMiddleware(handlers.CreateConseil))
 	mux.HandleFunc("PUT /api/conseils/{id}", middleware.AuthMiddleware(handlers.UpdateConseil))
 	mux.HandleFunc("DELETE /api/conseils/{id}", middleware.AuthMiddleware(handlers.DeleteConseil))
+	mux.HandleFunc("GET /api/admin/conseils/en-attente", middleware.AuthMiddleware(middleware.RoleMiddleware("admin")(handlers.AdminListConseils)))
 	mux.HandleFunc("POST /api/admin/conseils/valider", middleware.AuthMiddleware(middleware.RoleMiddleware("admin")(handlers.ValiderConseil)))
 	// stats et commentaires conseils
 	mux.HandleFunc("POST /api/conseils/{id}/vue", middleware.AuthMiddleware(handlers.VueConseil))

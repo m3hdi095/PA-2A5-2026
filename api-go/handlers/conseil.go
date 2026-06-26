@@ -132,6 +132,20 @@ func LikeConseil(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(map[string]interface{}{"liked": liked, "nb_likes": nbLikes})
 }
 
+// liste des articles en attente de validation pour l'admin
+func AdminListConseils(w http.ResponseWriter, r *http.Request) {
+	articles, err := conseilService.ListEnAttente()
+	if err != nil {
+		http.Error(w, `{"error":"Erreur interne"}`, http.StatusInternalServerError)
+		return
+	}
+	if articles == nil {
+		articles = []models.ArticleConseil{}
+	}
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(articles)
+}
+
 // admin valide ou refuse un article, decision = 'publie' ou 'refuse'
 func ValiderConseil(w http.ResponseWriter, r *http.Request) {
 	role := r.Context().Value(middleware.ContextRole).(string)
