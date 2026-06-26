@@ -24,7 +24,15 @@ async function chargerStats() {
     setStatValue('stat-factures',    stats.total_factures);
   } catch {
     ['stat-users','stat-prestations','stat-categories','stat-factures']
-      .forEach(id => setStatValue(id, '-'));
+      .forEach(id => setStatValue(id, '—'));
+    const statsRow = document.querySelector('.stats-row');
+    if (statsRow && !document.getElementById('stats-error-banner')) {
+      const banner = document.createElement('p');
+      banner.id = 'stats-error-banner';
+      banner.style.cssText = 'color:var(--danger,#ef5350);font-size:13px;margin-top:8px;display:flex;align-items:center;gap:8px';
+      banner.innerHTML = '<i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i> Impossible de charger les statistiques — vérifiez que l\'API est démarrée.';
+      statsRow.after(banner);
+    }
   }
 }
 

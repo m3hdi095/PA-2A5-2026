@@ -24,7 +24,8 @@ type Config struct {
     SMTPPort   int
     SMTPUser   string
     SMTPPass   string
-    BaseURL    string
+    BaseURL       string
+    TarifPremium  float64
 }
 
 var AppConfig *Config
@@ -37,6 +38,7 @@ func LoadConfig() {
     }
 
     smtpPort, _ := strconv.Atoi(getEnv("SMTP_PORT", "587"))
+    tarifPremium, _ := strconv.ParseFloat(getEnv("TARIF_PREMIUM", "15"), 64)
 
     AppConfig = &Config{
         DBHost:     getEnv("DB_HOST", "localhost"),
@@ -54,7 +56,8 @@ func LoadConfig() {
         SMTPPort:   smtpPort,
         SMTPUser:   getEnv("SMTP_USER", ""),
         SMTPPass:   getEnv("SMTP_PASSWORD", ""),
-        BaseURL:    getEnv("BASE_URL", "http://localhost:8080"),
+        BaseURL:      getEnv("BASE_URL", "http://localhost:8080"),
+        TarifPremium: tarifPremium,
     }
 }
 
