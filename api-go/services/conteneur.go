@@ -89,16 +89,8 @@ func (s *ConteneurService) RequestDepot(particulierID, conteneurID, objetID uint
         userRepo := &repositories.UserRepository{}
         user, err := userRepo.GetByID(particulierID)
         if err == nil && user.Email != "" {
-            sujet := "UpcycleConnect – votre code barre de dépôt"
-            corps := fmt.Sprintf(
-                "Bonjour %s,\n\n"+
-                    "Votre dépôt a bien été enregistré et est en attente de validation.\n\n"+
-                    "Code d'ouverture du conteneur : %s\n"+
-                    "Code barre de retrait : %s\n\n"+
-                    "Présentez ce code barre lors du dépôt de votre objet.\n\n"+
-                    "À bientôt,\nL'équipe UpcycleConnect",
-                user.Prenom, codeOuverture, codeBarreData,
-            )
+            sujet := "UpcycleConnect – votre code de dépôt"
+            corps := utils.EmailDepotBody(user.Prenom, codeOuverture, codeBarreData)
             _ = utils.SendEmail(user.Email, sujet, corps)
         }
     }()
