@@ -35,24 +35,23 @@ async function chargerPlanning() {
     const inscriptions  = resInscriptions?.ok  ? await resInscriptions.json()  : [];
     const planningPerso = resPlanning?.ok ? await resPlanning.json() : [];
 
-    // on a besoin des dates des evenements pour les afficher dans le planning
-    const evenements = await chargerEvenements();
+    // les détails de l'événement sont maintenant joints côté API (ev_titre, ev_date_debut…)
+    // donc pas besoin d'appeler chargerEvenements() — ça évitait les events passés de toute façon
 
     // Construire la liste unifiée
     const items = [];
 
-    // Événements inscrits
+    // Événements inscrits (passés + futurs)
     (Array.isArray(inscriptions) ? inscriptions : []).forEach(insc => {
-      const ev = evenements.find(e => e.id === insc.id_evenement);
-      if (!ev) return;
+      if (!insc.ev_titre || !insc.ev_date_debut) return; // inscription orpheline (event supprimé)
       items.push({
         id:       insc.id,
-        titre:    ev.titre,
-        lieu:     ev.lieu || '',
-        dateHeure: new Date(ev.date_debut),
-        type:     ev.type || 'evenement',
+        titre:    insc.ev_titre,
+        lieu:     insc.ev_lieu || '',
+        dateHeure: new Date(insc.ev_date_debut),
+        type:     insc.ev_type || 'evenement',
         inscrit:  true,
-        idEvenement: ev.id,
+        idEvenement: insc.id_evenement,
       });
     });
 

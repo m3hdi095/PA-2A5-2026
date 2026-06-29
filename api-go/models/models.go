@@ -147,6 +147,11 @@ type Inscription struct {
 	IDUtilisateur   uint      `json:"id_utilisateur"`
 	IDEvenement     uint      `json:"id_evenement"`
 	IDPaiement      *uint     `json:"id_paiement,omitempty"`
+	// détails de l'événement joinés pour éviter un second appel côté front
+	EvTitre    string `json:"ev_titre,omitempty"`
+	EvDateDebut string `json:"ev_date_debut,omitempty"`
+	EvLieu      string `json:"ev_lieu,omitempty"`
+	EvType      string `json:"ev_type,omitempty"`
 }
 
 type Paiement struct {
