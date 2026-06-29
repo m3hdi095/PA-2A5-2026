@@ -57,6 +57,7 @@ func main() {
 	mux.Handle("/uploads/", http.StripPrefix("/uploads/", http.FileServer(http.Dir("./uploads/"))))
 
 	// routes publiques
+	mux.HandleFunc("GET /api/public/stats", handlers.PublicStats)
 	mux.HandleFunc("POST /api/register", handlers.Register)
 	mux.HandleFunc("POST /api/login", handlers.Login)
 	mux.HandleFunc("POST /api/forgot-password", handlers.ForgotPassword)
@@ -196,6 +197,11 @@ func main() {
     mux.HandleFunc("POST /api/admin/publicites", middleware.AuthMiddleware(middleware.RoleMiddleware("admin")(handlers.CreatePublicite)))
     mux.HandleFunc("PUT /api/admin/publicites/{id}/statut", middleware.AuthMiddleware(middleware.RoleMiddleware("admin")(handlers.UpdatePubliciteStatut)))
     mux.HandleFunc("DELETE /api/admin/publicites/{id}", middleware.AuthMiddleware(middleware.RoleMiddleware("admin")(handlers.DeletePublicite)))
+    mux.HandleFunc("GET /api/publicites/mes-campagnes", middleware.AuthMiddleware(handlers.MesCampagnes))
+    mux.HandleFunc("POST /api/publicites/demande", middleware.AuthMiddleware(handlers.DemanderPublicite))
+    mux.HandleFunc("GET /api/contrats/mon-contrat", middleware.AuthMiddleware(handlers.MonContrat))
+    mux.HandleFunc("GET /api/admin/contrats", middleware.AuthMiddleware(middleware.RoleMiddleware("admin")(handlers.AdminListContrats)))
+    mux.HandleFunc("PUT /api/admin/contrats/{id}/statut", middleware.AuthMiddleware(middleware.RoleMiddleware("admin")(handlers.AdminUpdateContratStatut)))
     mux.HandleFunc("GET /api/admin/stats", middleware.AuthMiddleware(middleware.RoleMiddleware("admin")(handlers.GetAdminStats)))
     mux.HandleFunc("GET /api/admin/alertes", middleware.AuthMiddleware(middleware.RoleMiddleware("admin")(handlers.GetAdminAlertes)))
     mux.HandleFunc("GET /api/admin/users", middleware.AuthMiddleware(middleware.RoleMiddleware("admin")(handlers.ListUsers)))

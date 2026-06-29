@@ -58,8 +58,10 @@ const PAGE_NOMS_SAL = {
   formations:  { fr: 'Gestion des formations',    en: 'Session management' },
   planning:    { fr: 'Mon planning',              en: 'My schedule' },
   conseils:    { fr: 'Gestion des conseils',      en: 'Article management' },
-  moderation:  { fr: 'Modération des forums',     en: 'Forum moderation' },
-  profil:      { fr: 'Mon profil',                en: 'My profile' },
+  moderation:       { fr: 'Modération des forums',     en: 'Forum moderation' },
+  questionnaires:   { fr: 'Questionnaires',            en: 'Surveys' },
+  evenements:       { fr: 'Mes événements',            en: 'My events' },
+  profil:           { fr: 'Mon profil',                en: 'My profile' },
 };
 
 function buildSidebarHTML() {
@@ -98,6 +100,14 @@ function buildSidebarHTML() {
         <i class="fa-solid fa-shield-halved" aria-hidden="true"></i>
         ${t('nav_moderation')}
         <span class="nav-badge" id="badge-moderation"></span>
+      </a>
+      <a href="evenements.html" class="nav-link" data-page="evenements">
+        <i class="fa-solid fa-calendar-plus" aria-hidden="true"></i>
+        ${_lang === 'en' ? 'My events' : 'Mes événements'}
+      </a>
+      <a href="questionnaires.html" class="nav-link" data-page="questionnaires">
+        <i class="fa-solid fa-clipboard-question" aria-hidden="true"></i>
+        ${_lang === 'en' ? 'Surveys' : 'Questionnaires'}
       </a>
     </div>
     <div class="nav-section">

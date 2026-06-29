@@ -121,6 +121,14 @@ function buildSidebarHTML() {
         <i class="fa-solid fa-rectangle-ad" aria-hidden="true"></i>
         ${t('nav_publicite')}
       </a>
+      <a href="contrats.html" class="nav-link" data-page="contrats">
+        <i class="fa-solid fa-file-contract" aria-hidden="true"></i>
+        Contrats
+      </a>
+      <a href="tournees.html" class="nav-link" data-page="tournees">
+        <i class="fa-solid fa-truck" aria-hidden="true"></i>
+        Tournées
+      </a>
       <a href="notifications.html" class="nav-link" data-page="notifications">
         <i class="fa-solid fa-bell" aria-hidden="true"></i>
         ${t('nav_notifications')}

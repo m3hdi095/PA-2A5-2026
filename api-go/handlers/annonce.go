@@ -1,7 +1,7 @@
 package handlers
 
-// Handlers pour les annonces  création, listage, mise à jour et suppression douce.
-// Les vérifications de propriété (est-ce que c'est bien mon annonce ?) se font dans le service.
+// tout ce qui touche aux annonces, creation, modif, suppression
+// la verif "c'est bien mon annonce ?" se passe dans le service, pas ici
 
 import (
 	"upcycleconnect/api/middleware"
@@ -19,7 +19,7 @@ import (
 var annonceService = services.NewAnnonceService()
 
 func CreateAnnonce(w http.ResponseWriter, r *http.Request) {
-	// On récupère les champs du body : on ne prend que ce dont on a besoin
+	// on prend que ce qu'il faut du body, le reste on ignore
 	var input struct {
 		Titre        string   `json:"titre"`
 		Description  string   `json:"description"`
@@ -40,8 +40,8 @@ func CreateAnnonce(w http.ResponseWriter, r *http.Request) {
 	// userID vient du token JWT, le client peut pas le falsifier
 	userID := r.Context().Value(middleware.ContextUserID).(uint)
 
-	// Si aucun objet fourni, on en crée un automatiquement à partir du titre de l'annonce
-	// TODO: permettre au front d'envoyer des infos objet plus détaillées
+	// si l'objet est pas fourni on en fabrique un depuis le titre, c'est probablement pas parfait
+	// TODO: laisser le front envoyer un vrai objet avec categorie etc.
 	objetID := input.IDObjet
 	if objetID == 0 {
 		etat := input.Etat

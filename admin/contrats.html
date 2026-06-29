@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8"/>
+  <link rel="icon" type="image/png" href="../brand_assets/Favicon.png"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Contrats | UpcycleConnect Admin</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=Montserrat:wght@400;500;600&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="css/style.css"/>
+</head>
+<body>
+
+<div class="page-title-row">
+  <div>
+    <h1>
+      <div class="page-title-icon green">
+        <i class="fa-solid fa-file-contract" aria-hidden="true"></i>
+      </div>
+      Gestion des contrats
+    </h1>
+    <p class="page-title-sub">Suivi des contrats professionnels</p>
+  </div>
+</div>
+
+<!-- Filtres -->
+<section class="card animate-in" style="animation-delay:.05s">
+  <div class="filter-row">
+    <div class="filter-tabs" id="filtre-statut-tabs" role="tablist">
+      <button class="filter-tab active" role="tab" data-statut="">Tous</button>
+      <button class="filter-tab" role="tab" data-statut="actif">Actifs</button>
+      <button class="filter-tab" role="tab" data-statut="termine">Terminés</button>
+      <button class="filter-tab" role="tab" data-statut="resilie">Résiliés</button>
+    </div>
+  </div>
+</section>
+
+<!-- Liste -->
+<section class="card animate-in" style="animation-delay:.1s">
+  <div class="card-header">
+    <h2 class="card-title"><i class="fa-solid fa-list"></i> Contrats</h2>
+    <span id="total-contrats" class="badge badge-neutral">—</span>
+  </div>
+  <div id="contrats-list"><div class="loading-skeleton" style="height:140px;border-radius:8px"></div></div>
+</section>
+
+<!-- Modal changement de statut -->
+<div id="modal-statut" class="modal-overlay" style="display:none" role="dialog" aria-modal="true">
+  <div class="modal-content" style="max-width:400px">
+    <div class="modal-header">
+      <h3><i class="fa-solid fa-pen"></i> Modifier le statut</h3>
+      <button class="modal-close" id="modal-statut-close">&times;</button>
+    </div>
+    <div class="modal-body">
+      <p id="modal-statut-desc" style="margin-bottom:1rem;color:var(--text-secondary)"></p>
+      <div class="form-group">
+        <label class="form-label" for="select-statut">Nouveau statut</label>
+        <select id="select-statut" class="form-control form-select">
+          <option value="actif">Actif</option>
+          <option value="termine">Terminé</option>
+          <option value="resilie">Résilié</option>
+        </select>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" id="btn-statut-annuler">Annuler</button>
+      <button class="btn btn-primary" id="btn-statut-confirmer">
+        <i class="fa-solid fa-check"></i> Confirmer
+      </button>
+    </div>
+  </div>
+</div>
+
+<script src="js/layout.js"></script>
+<script>
+let _contratCourant = null;
+
+document.addEventListener('DOMContentLoaded', async () => {
+  const utilisateur = await initLayout('contrats');
+  if (!utilisateur) return;
+
+  chargerContrats('');
+
+  document.getElementById('filtre-statut-tabs').addEventListener('click', e => {
+    const tab = e.target.closest('.filter-tab');
+    if (!tab) return;
+    document.querySelectorAll('#filtre-statut-tabs .filter-tab').forEach(t => t.classList.remove('active'));
+    tab.classList.add('active');
+    chargerContrats(tab.dataset.statut);
+  });
+
+  document.getElementById('modal-statut-close').addEventListener('click', fermerModal);
+  document.getElementById('btn-statut-annuler').addEventListener('click', fermerModal);
+  document.getElementById('modal-statut').addEventListener('click', e => {
+    if (e.target === e.currentTarget) fermerModal();
+  });
+  document.getElementById('btn-statut-confirmer').addEventListener('click', confirmerStatut);
+});
+
+async function chargerContrats(statut) {
+  const el = document.getElementById('contrats-list');
+  const totalEl = document.getElementById('total-contrats');
+  el.innerHTML = '<div class="loading-skeleton" style="height:140px;border-radius:8px"></div>';
+
+  const qs = statut ? `?statut=${encodeURIComponent(statut)}` : '';
+  const res = await apiFetch(`/admin/contrats${qs}`);
+  if (!res || !res.ok) {
+    el.innerHTML = '<p class="empty-state-msg"><i class="fa-solid fa-triangle-exclamation"></i> Erreur de chargement.</p>';
+    return;
+  }
+  const contrats = await res.json();
+  totalEl.textContent = contrats.length;
+
+  if (!contrats.length) {
+    el.innerHTML = `<div class="empty-state"><i class="fa-solid fa-file-circle-xmark"></i><p>Aucun contrat${statut ? ' pour ce statut' : ''}</p></div>`;
+    return;
+  }
+
+  const statutClass = { actif: 'badge-success', termine: 'badge-neutral', resilie: 'badge-error' };
+  const statutLabel = { actif: 'Actif', termine: 'Terminé', resilie: 'Résilié' };
+
+  el.innerHTML = `
+    <table class="data-table">
+      <thead><tr>
+        <th>Entreprise</th><th>Type</th><th>Début</th><th>Fin</th><th>Montant</th><th>Statut</th><th>Actions</th>
+      </tr></thead>
+      <tbody>
+        ${contrats.map(c => `
+          <tr>
+            <td><strong>${esc(c.nom_entreprise || '—')}</strong></td>
+            <td>${esc(c.type_contrat)}</td>
+            <td>${c.date_debut}</td>
+            <td>${c.date_fin}</td>
+            <td>${Number(c.montant).toLocaleString('fr-FR',{style:'currency',currency:'EUR'})}</td>
+            <td><span class="badge ${statutClass[c.statut] || 'badge-neutral'}">${statutLabel[c.statut] || c.statut}</span></td>
+            <td>
+              <button class="btn btn-ghost btn-sm" onclick="ouvrirModal(${c.id},'${esc(c.nom_entreprise||'')}','${c.statut}')">
+                <i class="fa-solid fa-pen-to-square"></i> Modifier
+              </button>
+              ${c.fichier_pdf ? `<a href="${esc(c.fichier_pdf)}" target="_blank" class="btn btn-ghost btn-sm"><i class="fa-solid fa-file-pdf"></i></a>` : ''}
+            </td>
+          </tr>`).join('')}
+      </tbody>
+    </table>`;
+}
+
+function ouvrirModal(id, nomEntreprise, statutActuel) {
+  _contratCourant = id;
+  document.getElementById('modal-statut-desc').textContent = `Contrat de : ${nomEntreprise || '—'}`;
+  document.getElementById('select-statut').value = statutActuel;
+  document.getElementById('modal-statut').style.display = 'flex';
+}
+function fermerModal() {
+  document.getElementById('modal-statut').style.display = 'none';
+  _contratCourant = null;
+}
+
+async function confirmerStatut() {
+  if (!_contratCourant) return;
+  const statut = document.getElementById('select-statut').value;
+  const btn = document.getElementById('btn-statut-confirmer');
+  btn.disabled = true; btn.textContent = 'Sauvegarde…';
+
+  const res = await apiFetch(`/admin/contrats/${_contratCourant}/statut`, {
+    method: 'PUT',
+    body: JSON.stringify({ statut }),
+  });
+  btn.disabled = false; btn.innerHTML = '<i class="fa-solid fa-check"></i> Confirmer';
+
+  if (!res || !res.ok) { showToast('Erreur lors de la mise à jour', 'error'); return; }
+  fermerModal();
+  showToast('Statut mis à jour', 'success');
+  const activeTab = document.querySelector('#filtre-statut-tabs .filter-tab.active');
+  chargerContrats(activeTab?.dataset.statut || '');
+}
+
+function esc(s) {
+  return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+</script>
+</body>
+</html>

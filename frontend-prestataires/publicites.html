@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8"/>
+  <link rel="icon" type="image/png" href="../brand_assets/Favicon.png"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Publicités | Espace Professionnel</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=Montserrat:wght@400;500;600&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="css/style.css"/>
+</head>
+<body>
+
+<div class="page-title-row animate-in">
+  <div>
+    <h1>
+      <div class="page-title-icon green">
+        <i class="fa-solid fa-bullhorn" aria-hidden="true"></i>
+      </div>
+      Publicités &amp; Campagnes
+    </h1>
+    <p class="page-title-sub">Boostez votre visibilité sur UpcycleConnect</p>
+  </div>
+  <div class="page-title-actions">
+    <button class="btn btn-primary" id="btn-nouvelle-campagne">
+      <i class="fa-solid fa-plus"></i> Nouvelle campagne
+    </button>
+  </div>
+</div>
+
+<!-- Mes campagnes -->
+<section class="card animate-in" style="animation-delay:.1s">
+  <div class="card-header">
+    <h2 class="card-title"><i class="fa-solid fa-chart-bar"></i> Mes campagnes</h2>
+  </div>
+  <div id="campagnes-list"><div class="loading-skeleton" style="height:100px;border-radius:8px"></div></div>
+</section>
+
+<!-- Formats dispo -->
+<section class="card animate-in" style="animation-delay:.2s">
+  <div class="card-header">
+    <h2 class="card-title"><i class="fa-solid fa-star"></i> Formats disponibles</h2>
+  </div>
+  <div class="stats-grid" style="grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:1rem">
+    <div class="stat-card">
+      <div class="stat-icon teal"><i class="fa-solid fa-rectangle-ad"></i></div>
+      <div class="stat-info">
+        <div class="stat-label">Bannière</div>
+        <div class="stat-desc">Affichage en haut de page sur les annonces publiques</div>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon green"><i class="fa-solid fa-handshake"></i></div>
+      <div class="stat-info">
+        <div class="stat-label">Sponsoring</div>
+        <div class="stat-desc">Votre logo sur les pages formations et événements</div>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon blue"><i class="fa-solid fa-link"></i></div>
+      <div class="stat-info">
+        <div class="stat-label">Partenariat</div>
+        <div class="stat-desc">Mise en avant dans les conseils et articles</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Modal nouvelle campagne -->
+<div id="modal-campagne" class="modal-overlay" style="display:none" role="dialog" aria-modal="true" aria-labelledby="modal-camp-titre">
+  <div class="modal-content" style="max-width:500px">
+    <div class="modal-header">
+      <h3 id="modal-camp-titre"><i class="fa-solid fa-bullhorn"></i> Nouvelle campagne publicitaire</h3>
+      <button class="modal-close" id="modal-camp-close" aria-label="Fermer">&times;</button>
+    </div>
+    <form id="form-campagne" class="modal-body" novalidate>
+      <div class="form-group">
+        <label class="form-label" for="camp-titre">Titre de la campagne <span class="required">*</span></label>
+        <input type="text" id="camp-titre" class="form-control" placeholder="Ex : Printemps du recyclage 2026" required/>
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="camp-type">Type de format <span class="required">*</span></label>
+        <select id="camp-type" class="form-control form-select" required>
+          <option value="banniere">Bannière</option>
+          <option value="sponsoring">Sponsoring</option>
+          <option value="partenariat">Partenariat</option>
+        </select>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label" for="camp-debut">Date de début <span class="required">*</span></label>
+          <input type="date" id="camp-debut" class="form-control" required/>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="camp-fin">Date de fin <span class="required">*</span></label>
+          <input type="date" id="camp-fin" class="form-control" required/>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="camp-budget">Budget mensuel (€)</label>
+        <input type="number" id="camp-budget" class="form-control" min="0" step="0.01" placeholder="Ex : 50"/>
+      </div>
+      <p id="camp-error" class="form-error" style="display:none"></p>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline" id="btn-camp-annuler">Annuler</button>
+        <button type="submit" class="btn btn-primary" id="btn-camp-submit">
+          <i class="fa-solid fa-paper-plane"></i> Envoyer la demande
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script src="js/layout.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', async () => {
+  const utilisateur = await initLayout('publicites');
+  if (!utilisateur) return;
+
+  chargerCampagnes();
+
+  document.getElementById('btn-nouvelle-campagne').addEventListener('click', () => ouvrirModal());
+  document.getElementById('modal-camp-close').addEventListener('click', fermerModal);
+  document.getElementById('btn-camp-annuler').addEventListener('click', fermerModal);
+  document.getElementById('modal-campagne').addEventListener('click', e => {
+    if (e.target === e.currentTarget) fermerModal();
+  });
+  document.getElementById('form-campagne').addEventListener('submit', soumettreDemandePublicite);
+});
+
+async function chargerCampagnes() {
+  const el = document.getElementById('campagnes-list');
+  const res = await apiFetch('/publicites/mes-campagnes');
+  if (!res || !res.ok) {
+    el.innerHTML = '<p class="empty-state-msg"><i class="fa-solid fa-triangle-exclamation"></i> Impossible de charger vos campagnes.</p>';
+    return;
+  }
+  const pubs = await res.json();
+  if (!pubs.length) {
+    el.innerHTML = `
+      <div class="empty-state">
+        <i class="fa-solid fa-bullhorn"></i>
+        <p>Aucune campagne pour le moment</p>
+        <span>Lancez votre première campagne publicitaire pour booster votre visibilité.</span>
+      </div>`;
+    return;
+  }
+  const statutClass = { actif: 'badge-success', expire: 'badge-neutral', refuse: 'badge-error' };
+  const statutLabel = { actif: 'Active', expire: 'Expirée', refuse: 'Refusée' };
+  const typeLabel   = { banniere: 'Bannière', sponsoring: 'Sponsoring', partenariat: 'Partenariat' };
+  el.innerHTML = `
+    <table class="data-table">
+      <thead><tr><th>Titre</th><th>Type</th><th>Début</th><th>Fin</th><th>Budget/mois</th><th>Statut</th></tr></thead>
+      <tbody>
+        ${pubs.map(p => `
+          <tr>
+            <td><strong>${esc(p.titre)}</strong></td>
+            <td>${typeLabel[p.type_pub] || p.type_pub}</td>
+            <td>${p.date_debut}</td>
+            <td>${p.date_fin}</td>
+            <td>${p.budget_mensuel ? Number(p.budget_mensuel).toLocaleString('fr-FR',{style:'currency',currency:'EUR'}) : '—'}</td>
+            <td><span class="badge ${statutClass[p.statut] || 'badge-neutral'}">${statutLabel[p.statut] || p.statut}</span></td>
+          </tr>`).join('')}
+      </tbody>
+    </table>`;
+}
+
+function ouvrirModal() {
+  document.getElementById('modal-campagne').style.display = 'flex';
+  document.getElementById('camp-titre').focus();
+}
+function fermerModal() {
+  document.getElementById('modal-campagne').style.display = 'none';
+  document.getElementById('form-campagne').reset();
+  afficherErreur('');
+}
+
+async function soumettreDemandePublicite(e) {
+  e.preventDefault();
+  const titre  = document.getElementById('camp-titre').value.trim();
+  const type   = document.getElementById('camp-type').value;
+  const debut  = document.getElementById('camp-debut').value;
+  const fin    = document.getElementById('camp-fin').value;
+  const budget = parseFloat(document.getElementById('camp-budget').value) || 0;
+
+  if (!titre || !debut || !fin) { afficherErreur('Veuillez remplir tous les champs obligatoires.'); return; }
+  if (debut > fin) { afficherErreur('La date de début doit être avant la date de fin.'); return; }
+
+  const btn = document.getElementById('btn-camp-submit');
+  btn.disabled = true; btn.textContent = 'Envoi…';
+
+  const res = await apiFetch('/publicites/demande', {
+    method: 'POST',
+    body: JSON.stringify({ titre, type_pub: type, budget_mensuel: budget, date_debut: debut, date_fin: fin }),
+  });
+
+  btn.disabled = false; btn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> Envoyer la demande';
+
+  if (!res || !res.ok) {
+    afficherErreur('Erreur lors de l\'envoi. Réessayez.');
+    return;
+  }
+  fermerModal();
+  showToast('Demande envoyée avec succès !', 'success');
+  chargerCampagnes();
+}
+
+function afficherErreur(msg) {
+  const el = document.getElementById('camp-error');
+  el.textContent = msg;
+  el.style.display = msg ? 'block' : 'none';
+}
+
+function esc(s) {
+  return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+</script>
+</body>
+</html>

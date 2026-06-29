@@ -16,7 +16,7 @@ function getProUser() {
   try { return JSON.parse(localStorage.getItem('uc_pro_user')); } catch { return null; }
 }
 
-// Fetch authentifié, à utiliser partout
+// wrapper pour pas réécrire les headers partout, ca évite les oublis de token
 async function apiFetch(chemin, options = {}) {
   const headers = { 'Content-Type': 'application/json', ...options.headers };
   const token = getToken();
@@ -78,6 +78,8 @@ const PAGE_NOMS = {
   stats:        'Statistiques & rapports',
   abonnement:   'Mon abonnement',
   profil:       'Mon profil',
+  contrats:     'Mes contrats',
+  publicites:   'Publicités',
 };
 
 function buildSidebarHTML() {
@@ -130,6 +132,14 @@ function buildSidebarHTML() {
       <a href="abonnement.html" class="nav-link" data-page="abonnement">
         <i class="fa-solid fa-crown" aria-hidden="true"></i>
         ${t('nav_abonnement')}
+      </a>
+      <a href="contrats.html" class="nav-link" data-page="contrats">
+        <i class="fa-solid fa-file-contract" aria-hidden="true"></i>
+        Mes contrats
+      </a>
+      <a href="publicites.html" class="nav-link" data-page="publicites">
+        <i class="fa-solid fa-bullhorn" aria-hidden="true"></i>
+        Publicités
       </a>
       <a href="profil.html" class="nav-link" data-page="profil">
         <i class="fa-solid fa-user-tie" aria-hidden="true"></i>
@@ -210,12 +220,12 @@ function injecterMiseEnPage() {
 
   document.body.classList.add('pro-layout');
 
-  // Sidebar
+  // on insère la sidebar au début du body
   const sbEl = document.createElement('div');
   sbEl.innerHTML = buildSidebarHTML().trim();
   document.body.insertBefore(sbEl.firstElementChild, document.body.firstChild);
 
-  // Main content wrapper
+  // le main enveloppe topbar + contenu de page
   const nomPage = chemin.split('/').pop().replace('.html', '') || 'dashboard';
   const mainContent = document.createElement('main');
   mainContent.className = 'main-content';
@@ -234,11 +244,11 @@ function injecterMiseEnPage() {
   mainContent.appendChild(pageBody);
   document.body.appendChild(mainContent);
 
-  // Lien actif
+  // mettre en surbrillance le lien de la page courante
   const lienActif = document.querySelector(`.nav-link[data-page="${nomPage}"]`);
   if (lienActif) lienActif.classList.add('active');
 
-  // Toggle sidebar mobile
+  // hamburger mobile
   document.getElementById('sidebar-toggle')?.addEventListener('click', () => {
     document.getElementById('sidebar')?.classList.toggle('open');
   });
@@ -315,7 +325,7 @@ function showToast(message, type = 'success') {
   toast._t = setTimeout(() => toast.classList.remove('visible'), 3500);
 }
 
-// point d'entree de chaque page prestataire, vérifie le token et charge l'identite
+// à appeler en premier sur chaque page, gère auth + sidebar + profil
 async function initLayout(nomPage) {
   const chemin = window.location.pathname;
   const estLogin = chemin.endsWith('index.html')
@@ -331,7 +341,7 @@ async function initLayout(nomPage) {
   injecterMiseEnPage();
   applyTranslations();
 
-  // Remplir identité sidebar
+  // on remplit le nom et l'avatar dans la sidebar
   const prenom   = utilisateur.prenom || '';
   const nom      = utilisateur.nom    || '';
   const nomAff   = prenom ? `${prenom} ${nom}`.trim() : nom || 'Professionnel';

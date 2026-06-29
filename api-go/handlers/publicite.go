@@ -23,7 +23,7 @@ type Publicite struct {
 	CreatedAt        *time.Time `json:"created_at,omitempty"`
 }
 
-// GET /api/admin/publicites
+// toutes les pubs, filtrable par statut
 func ListPublicites(w http.ResponseWriter, r *http.Request) {
 	statut := r.URL.Query().Get("statut")
 
@@ -76,7 +76,7 @@ func ListPublicites(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-// POST /api/admin/publicites
+// l'admin crée une pub directement, sans passer par une demande
 func CreatePublicite(w http.ResponseWriter, r *http.Request) {
 	var input struct {
 		Titre           string  `json:"titre"`
@@ -107,7 +107,7 @@ func CreatePublicite(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(map[string]interface{}{"id": id, "status": "ok"})
 }
 
-// PUT /api/admin/publicites/{id}/statut
+// pour passer une pub de actif à expire ou refuse
 func UpdatePubliciteStatut(w http.ResponseWriter, r *http.Request) {
 	id, err := strconv.ParseUint(r.PathValue("id"), 10, 32)
 	if err != nil {
@@ -131,7 +131,7 @@ func UpdatePubliciteStatut(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(map[string]string{"status": "ok"})
 }
 
-// DELETE /api/admin/publicites/{id}
+// suppression directe, pas de soft delete ici contrairement aux annonces
 func DeletePublicite(w http.ResponseWriter, r *http.Request) {
 	id, err := strconv.ParseUint(r.PathValue("id"), 10, 32)
 	if err != nil {
@@ -140,4 +140,63 @@ func DeletePublicite(w http.ResponseWriter, r *http.Request) {
 	}
 	database.DB.Exec(`DELETE FROM publicite WHERE id_pub = ?`, id)
 	w.WriteHeader(http.StatusNoContent)
+}
+
+// le pro envoie une demande de campagne, l'admin verra ca de son côté
+func DemanderPublicite(w http.ResponseWriter, r *http.Request) {
+	userID := r.Context().Value(middleware.ContextUserID).(uint)
+	var req struct {
+		Titre         string  `json:"titre"`
+		TypePub       string  `json:"type_pub"`
+		BudgetMensuel float64 `json:"budget_mensuel"`
+		DateDebut     string  `json:"date_debut"`
+		DateFin       string  `json:"date_fin"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		http.Error(w, `{"error":"Données invalides"}`, http.StatusBadRequest)
+		return
+	}
+	if req.Titre == "" || req.DateDebut == "" || req.DateFin == "" {
+		http.Error(w, `{"error":"Titre et dates sont obligatoires"}`, http.StatusBadRequest)
+		return
+	}
+	if req.TypePub == "" {
+		req.TypePub = "banniere"
+	}
+	result, err := database.DB.Exec(
+		`INSERT INTO publicite (titre, type_pub, budget_mensuel, date_debut, date_fin, statut, id_professionnel)
+		 VALUES (?, ?, ?, ?, ?, 'actif', ?)`,
+		req.Titre, req.TypePub, req.BudgetMensuel, req.DateDebut, req.DateFin, userID,
+	)
+	if err != nil {
+		http.Error(w, `{"error":"Erreur lors de la création"}`, http.StatusInternalServerError)
+		return
+	}
+	id, _ := result.LastInsertId()
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusCreated)
+	json.NewEncoder(w).Encode(map[string]interface{}{"id": id, "status": "demande enregistrée"})
+}
+
+// les campagnes du pro connecté, pour qu'il voie ce qu'il a soumis
+func MesCampagnes(w http.ResponseWriter, r *http.Request) {
+	userID := r.Context().Value(middleware.ContextUserID).(uint)
+	rows, err := database.DB.Query(
+		`SELECT id_pub, titre, type_pub, COALESCE(budget_mensuel,0),
+		        DATE_FORMAT(date_debut,'%Y-%m-%d'), DATE_FORMAT(date_fin,'%Y-%m-%d'), statut
+		 FROM publicite WHERE id_professionnel = ? ORDER BY date_debut DESC`, userID,
+	)
+	if err != nil {
+		http.Error(w, `{"error":"Erreur interne"}`, http.StatusInternalServerError)
+		return
+	}
+	defer rows.Close()
+	pubs := make([]Publicite, 0)
+	for rows.Next() {
+		var p Publicite
+		rows.Scan(&p.ID, &p.Titre, &p.TypePub, &p.BudgetMensuel, &p.DateDebut, &p.DateFin, &p.Statut)
+		pubs = append(pubs, p)
+	}
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(pubs)
 }

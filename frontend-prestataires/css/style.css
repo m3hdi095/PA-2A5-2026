@@ -6,7 +6,7 @@
 .pro-layout { display: flex; min-height: 100vh; overflow-x: hidden; }
 
 /* pro login page */
-/* Pro uses .login-left + .login-right (shared uses .login-hero + .login-form-section) */
+/* les classes sont différentes du shared, on a nommé autrement dans la maquette initiale */
 .login-left {
   background:
     linear-gradient(160deg, var(--hero-overlay-start) 0%, var(--hero-overlay-mid) 60%, var(--hero-overlay-end) 100%),
@@ -46,7 +46,7 @@
   color: var(--green-200);
   text-transform: uppercase; letter-spacing: .08em; line-height: 1.3;
 }
-/* Override shared .login-hero - in pro, it's the content zone inside .login-left */
+/* ici .login-hero est reutilisé mais pour une zone de contenu, pas le hero pleine page du shared */
 .login-hero {
   flex: 1; display: flex; flex-direction: column;
   justify-content: center; position: relative;
