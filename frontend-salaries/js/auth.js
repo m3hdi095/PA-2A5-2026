@@ -4,6 +4,15 @@ document.addEventListener('DOMContentLoaded', () => {
   const token = localStorage.getItem('uc_sal_token');
   if (token) { window.location.href = 'dashboard.html'; return; }
 
+  // message de confirmation après activation par lien email
+  if (new URLSearchParams(window.location.search).get('verified') === '1') {
+    const banner = document.getElementById('auth-error') || document.createElement('p');
+    banner.id = 'auth-error';
+    banner.textContent = 'Compte activé avec succès. Vous pouvez vous connecter.';
+    banner.style.cssText = 'background:#e6f4ea;color:#2d4a3e;padding:10px 14px;border-radius:8px;margin-bottom:12px;font-size:.9rem;';
+    document.getElementById('form-login')?.prepend(banner);
+  }
+
   const formLogin    = document.getElementById('form-login');
   const formRegister = document.getElementById('form-register');
   const toRegister   = document.getElementById('to-register');

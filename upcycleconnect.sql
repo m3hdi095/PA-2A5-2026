@@ -19,9 +19,13 @@ CREATE TABLE utilisateur (
     code_postal VARCHAR(20),
     telephone VARCHAR(20),
     date_inscription DATETIME DEFAULT CURRENT_TIMESTAMP,
-    actif BOOLEAN DEFAULT TRUE,
+    actif BOOLEAN DEFAULT FALSE,
     tutoriel_vu BOOLEAN DEFAULT FALSE,
-    langue_preferee CHAR(2) DEFAULT 'fr'
+    langue_preferee CHAR(2) DEFAULT 'fr',
+    email_token VARCHAR(64) DEFAULT NULL,
+    email_verifie BOOLEAN DEFAULT FALSE,
+    reset_pwd_token VARCHAR(64) DEFAULT NULL,
+    reset_pwd_expires DATETIME DEFAULT NULL
 );
 
 CREATE TABLE particulier (
@@ -662,3 +666,56 @@ CREATE TABLE IF NOT EXISTS alerte_materiau (
     date_creation    DATETIME DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (id_professionnel) REFERENCES utilisateur(id_utilisateur) ON DELETE CASCADE
 );
+
+-- commentaires sur les articles de conseils (modération)
+CREATE TABLE IF NOT EXISTS commentaire_conseil (
+    id_commentaire  INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    id_conseil      INT UNSIGNED NOT NULL,
+    id_utilisateur  INT UNSIGNED NOT NULL,
+    contenu         TEXT NOT NULL,
+    statut          ENUM('en_attente','approuve','refuse') DEFAULT 'en_attente',
+    date_envoi      DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (id_conseil)     REFERENCES conseil(id_conseil) ON DELETE CASCADE,
+    FOREIGN KEY (id_utilisateur) REFERENCES utilisateur(id_utilisateur) ON DELETE CASCADE
+);
+
+-- questionnaires de satisfaction post-événement
+CREATE TABLE IF NOT EXISTS questionnaire_satisfaction (
+    id_questionnaire INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    id_evenement     INT UNSIGNED NOT NULL,
+    id_salarie       INT UNSIGNED NOT NULL,
+    questions        TEXT,
+    statut           ENUM('brouillon','envoye') DEFAULT 'brouillon',
+    date_creation    DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (id_evenement) REFERENCES evenement(id_evenement) ON DELETE CASCADE,
+    FOREIGN KEY (id_salarie)   REFERENCES utilisateur(id_utilisateur) ON DELETE CASCADE
+);
+
+-- réponses aux questionnaires de satisfaction
+CREATE TABLE IF NOT EXISTS reponse_satisfaction (
+    id_reponse       INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    id_questionnaire INT UNSIGNED NOT NULL,
+    id_utilisateur   INT UNSIGNED NOT NULL,
+    reponses         TEXT,
+    date_reponse     DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (id_questionnaire) REFERENCES questionnaire_satisfaction(id_questionnaire) ON DELETE CASCADE,
+    FOREIGN KEY (id_utilisateur)   REFERENCES utilisateur(id_utilisateur) ON DELETE CASCADE
+);
+
+-- données de démo : contrat professionnel (EcoMatériaux SARL, id=3)
+INSERT INTO contrat (id_contrat, type_contrat, date_debut, date_fin, montant, statut, id_professionnel, id_admin_validation) VALUES
+(1, 'Contrat Premium Annuel', '2026-01-01', '2026-12-31', 1200.00, 'actif', 3, 1);
+
+-- données de démo : tournée de collecte planifiée
+INSERT INTO tournee (id_tournee, date_tournee, note, conteneurs, statut) VALUES
+(1, '2026-07-01', 'Collecte secteur Nord — Paris 18e et 19e', 'C-001,C-002', 'planifiee'),
+(2, '2026-06-15', 'Collecte secteur Est — Paris 11e', 'C-003', 'terminee');
+
+-- données de démo : alerte matériaux pour le pro (id=3)
+INSERT INTO alerte_materiau (id_alerte, id_professionnel, categorie, type_annonce, rayon, mot_cle, active) VALUES
+(1, 3, 'Bois', 'don', 30, 'palette', 1),
+(2, 3, 'Métal', 'vente', 20, NULL, 1);
+
+-- données de démo : commentaire en attente de modération sur le conseil 1
+INSERT INTO commentaire_conseil (id_commentaire, id_conseil, id_utilisateur, contenu, statut) VALUES
+(1, 1, 2, 'Super article, j\'ai essayé la jardinière en palette ce weekend, ça marche très bien !', 'en_attente');

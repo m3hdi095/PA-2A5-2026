@@ -111,19 +111,29 @@ func VerifyEmail(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	result, err := database.DB.Exec(
-		`UPDATE utilisateur SET actif = 1, email_verifie = 1, email_token = NULL WHERE email_token = ?`, token,
-	)
+	// on récupère le rôle avant de modifier pour pouvoir rediriger vers le bon espace
+	var userID uint
+	var role string
+	err := database.DB.QueryRow(
+		`SELECT id_utilisateur, role FROM utilisateur WHERE email_token = ?`, token,
+	).Scan(&userID, &role)
 	if err != nil {
-		http.Error(w, `{"error":"Erreur interne"}`, http.StatusInternalServerError)
-		return
-	}
-	n, _ := result.RowsAffected()
-	if n == 0 {
 		http.Error(w, `{"error":"Token invalide ou déjà utilisé"}`, http.StatusBadRequest)
 		return
 	}
 
-	// redirection vers la page de login avec message de succès
-	http.Redirect(w, r, config.AppConfig.BaseURL+"/frontend-particuliers/index.html?verified=1", http.StatusFound)
+	database.DB.Exec(
+		`UPDATE utilisateur SET actif = 1, email_verifie = 1, email_token = NULL WHERE id_utilisateur = ?`, userID,
+	)
+
+	redirects := map[string]string{
+		"particulier":   "/frontend-particuliers/index.html?verified=1",
+		"professionnel": "/frontend-prestataires/index.html?verified=1",
+		"salarie":       "/frontend-salaries/index.html?verified=1",
+	}
+	path, ok := redirects[role]
+	if !ok {
+		path = "/index.html?verified=1"
+	}
+	http.Redirect(w, r, config.AppConfig.BaseURL+path, http.StatusFound)
 }

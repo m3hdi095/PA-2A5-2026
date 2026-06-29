@@ -58,6 +58,27 @@ func EmailResetPasswordBody(prenom, token, baseURL string) string {
 `, prenom, link)
 }
 
+func EmailDepotBody(prenom, codeOuverture, codeBarre string) string {
+	return fmt.Sprintf(`
+<p>Bonjour %s,</p>
+<p>Votre dépôt a bien été enregistré et est <strong>en attente de validation</strong>.</p>
+<table style="border-collapse:collapse;margin:20px 0">
+  <tr>
+    <td style="padding:10px 16px;background:#f0fdf4;border-radius:8px 0 0 8px;font-size:13px;color:#555">Code d'ouverture du conteneur</td>
+    <td style="padding:10px 20px;background:#0d9488;color:#fff;border-radius:0 8px 8px 0;font-size:22px;font-weight:700;letter-spacing:3px">%s</td>
+  </tr>
+</table>
+<table style="border-collapse:collapse;margin:20px 0">
+  <tr>
+    <td style="padding:10px 16px;background:#f0fdf4;border-radius:8px 0 0 8px;font-size:13px;color:#555">Code barre de retrait</td>
+    <td style="padding:10px 20px;background:#134e4a;color:#fff;border-radius:0 8px 8px 0;font-size:20px;font-weight:700;letter-spacing:2px;font-family:monospace">%s</td>
+  </tr>
+</table>
+<p style="color:#666;font-size:13px">Conservez ce code — il vous sera demandé pour récupérer votre objet.</p>
+<p>L'équipe UpcycleConnect</p>
+`, prenom, codeOuverture, codeBarre)
+}
+
 func EmailInscriptionEvenementBody(prenom, titreEvent, dateEvent string) string {
 	return fmt.Sprintf(`
 <p>Bonjour %s,</p>
