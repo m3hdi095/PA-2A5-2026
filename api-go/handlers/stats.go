@@ -16,6 +16,19 @@ import (
 
 var statsRepo = repositories.StatsRepository{}
 
+func PublicStats(w http.ResponseWriter, r *http.Request) {
+	var users, annonces, conteneurs int
+	database.DB.QueryRow(`SELECT COUNT(*) FROM utilisateur WHERE actif = 1`).Scan(&users)
+	database.DB.QueryRow(`SELECT COUNT(*) FROM annonce`).Scan(&annonces)
+	database.DB.QueryRow(`SELECT COUNT(*) FROM conteneur`).Scan(&conteneurs)
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]int{
+		"total_utilisateurs": users,
+		"total_annonces":     annonces,
+		"total_conteneurs":   conteneurs,
+	})
+}
+
 func GetAdminStats(w http.ResponseWriter, r *http.Request) {
 	stats, err := statsRepo.Get()
 	if err != nil {
