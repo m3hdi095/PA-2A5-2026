@@ -116,7 +116,21 @@
 <script src="js/auth.js"></script>
 <script>
 // Appliquer les traductions sur la page de login (initLayout n'est pas appelé ici)
-document.addEventListener('DOMContentLoaded', () => chargerTraductions().then(applyTranslations));
+document.addEventListener('DOMContentLoaded', () => {
+  chargerTraductions().then(applyTranslations);
+  fetch(`${apiBase}/public/stats`)
+    .then(r => r.ok ? r.json() : null)
+    .then(d => {
+      if (!d) return;
+      const u = document.getElementById('vs-users');
+      const a = document.getElementById('vs-annonces');
+      const c = document.getElementById('vs-conteneurs');
+      if (u) u.textContent = d.total_utilisateurs.toLocaleString('fr-FR');
+      if (a) a.textContent = d.total_annonces.toLocaleString('fr-FR');
+      if (c) c.textContent = d.total_conteneurs.toLocaleString('fr-FR');
+    })
+    .catch(() => {});
+});
 </script>
 </body>
 </html>

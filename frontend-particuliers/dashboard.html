@@ -2,6 +2,7 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8"/>
+  <link rel="icon" type="image/png" href="../brand_assets/Favicon.png"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Tableau de bord | Espace Particuliers</title>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=Montserrat:wght@400;500;600&display=swap" rel="stylesheet"/>
@@ -61,22 +62,22 @@
 
 <!-- Historique score upcycling -->
 <div class="card animate-in" id="score-card">
-  <div class="card-header" style="border-bottom:1px solid var(--border-color);padding-bottom:14px">
-    <div style="display:flex;align-items:center;gap:10px">
-      <div style="width:34px;height:34px;border-radius:50%;background:var(--teal-50);display:flex;align-items:center;justify-content:center">
-        <i class="fa-solid fa-seedling" style="color:var(--teal-600);font-size:15px"></i>
+  <div class="card-header dash-score-header">
+    <div class="dash-score-header-inner">
+      <div class="dash-score-icon">
+        <i class="fa-solid fa-seedling" aria-hidden="true"></i>
       </div>
-      <h2 style="margin:0;font-size:16px;font-weight:600">Historique des points</h2>
+      <h2 class="dash-score-title">Historique des points</h2>
     </div>
-    <span id="score-total-label" style="background:var(--teal-600);color:#fff;font-size:12px;font-weight:700;padding:4px 12px;border-radius:20px"></span>
+    <span id="score-total-label" class="dash-score-badge"></span>
   </div>
-  <div style="padding:0" id="score-historique-list">
-    <div style="text-align:center;padding:30px;color:var(--text-muted)"><i class="fa-solid fa-spinner fa-spin"></i></div>
+  <div class="dash-score-body" id="score-historique-list">
+    <div class="dash-score-loading"><i class="fa-solid fa-spinner fa-spin"></i></div>
   </div>
 </div>
 
 <!-- Grille principale -->
-<div style="display:grid;grid-template-columns:1fr 340px;gap:20px;align-items:start" class="animate-in">
+<div class="dash-main-grid animate-in">
 
   <!-- Annonces disponibles -->
   <div class="card">
@@ -84,8 +85,8 @@
       <h2><i class="fa-solid fa-bullhorn" aria-hidden="true"></i> <span data-i18n="dashboard_annonces_title">Annonces disponibles</span></h2>
       <a href="annonces.html" class="btn btn-outline btn-sm" data-i18n="btn_voir_tout">Voir tout</a>
     </div>
-    <div class="card-body" style="padding:16px">
-      <div id="annonces-recentes" class="annonces-grid" style="grid-template-columns:repeat(2,1fr);gap:12px"></div>
+    <div class="card-body dash-annonces-body">
+      <div id="annonces-recentes" class="annonces-grid annonces-grid-2col"></div>
     </div>
   </div>
 
@@ -95,7 +96,7 @@
       <h2><i class="fa-solid fa-calendar-days" aria-hidden="true"></i> <span data-i18n="dashboard_planning_title">Agenda</span></h2>
       <a href="planning.html" class="btn btn-ghost btn-sm" data-i18n="btn_voir_tout">Voir tout</a>
     </div>
-    <div class="card-body" style="padding:14px">
+    <div class="card-body dash-events-body">
       <div id="events-list" class="planning-list"></div>
     </div>
   </div>
@@ -107,22 +108,22 @@
   <div class="card-header">
     <h2><i class="fa-solid fa-bolt" aria-hidden="true"></i> <span data-i18n="dashboard_quick_title">Actions rapides</span></h2>
   </div>
-  <div class="card-body" style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px">
-    <a href="annonces.html" class="btn btn-outline" style="flex-direction:column;gap:6px;padding:16px;text-align:center;height:auto;justify-content:center">
-      <i class="fa-solid fa-plus" style="font-size:18px;color:var(--teal-700)" aria-hidden="true"></i>
-      <span style="font-size:12px" data-i18n="annonce_btn_new">Nouvelle annonce</span>
+  <div class="card-body dash-actions-grid">
+    <a href="annonces.html" class="btn btn-outline quick-action-btn">
+      <i class="fa-solid fa-plus" aria-hidden="true"></i>
+      <span data-i18n="annonce_btn_new">Nouvelle annonce</span>
     </a>
-    <a href="formations.html" class="btn btn-outline" style="flex-direction:column;gap:6px;padding:16px;text-align:center;height:auto;justify-content:center">
-      <i class="fa-solid fa-graduation-cap" style="font-size:18px;color:var(--teal-700)" aria-hidden="true"></i>
-      <span style="font-size:12px" data-i18n="nav_formations">Formations</span>
+    <a href="formations.html" class="btn btn-outline quick-action-btn">
+      <i class="fa-solid fa-graduation-cap" aria-hidden="true"></i>
+      <span data-i18n="nav_formations">Formations</span>
     </a>
-    <a href="depot.html" class="btn btn-outline" style="flex-direction:column;gap:6px;padding:16px;text-align:center;height:auto;justify-content:center">
-      <i class="fa-solid fa-box-archive" style="font-size:18px;color:var(--teal-700)" aria-hidden="true"></i>
-      <span style="font-size:12px" data-i18n="nav_depot">Dépôt conteneur</span>
+    <a href="depot.html" class="btn btn-outline quick-action-btn">
+      <i class="fa-solid fa-box-archive" aria-hidden="true"></i>
+      <span data-i18n="nav_depot">Dépôt conteneur</span>
     </a>
-    <a href="profil.html" class="btn btn-outline" style="flex-direction:column;gap:6px;padding:16px;text-align:center;height:auto;justify-content:center">
-      <i class="fa-solid fa-user" style="font-size:18px;color:var(--teal-700)" aria-hidden="true"></i>
-      <span style="font-size:12px" data-i18n="nav_profil">Mon profil</span>
+    <a href="profil.html" class="btn btn-outline quick-action-btn">
+      <i class="fa-solid fa-user" aria-hidden="true"></i>
+      <span data-i18n="nav_profil">Mon profil</span>
     </a>
   </div>
 </div>
