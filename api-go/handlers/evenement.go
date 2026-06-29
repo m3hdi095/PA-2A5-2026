@@ -134,7 +134,7 @@ func MesInscriptions(w http.ResponseWriter, r *http.Request) {
 	if page < 1 {
 		page = 1
 	}
-	inscriptions, err := evenementService.ListMesInscriptions(userID, page, 10)
+	inscriptions, err := evenementService.ListMesInscriptions(userID, page, 200)
 	if err != nil {
 		http.Error(w, `{"error":"Erreur interne"}`, http.StatusInternalServerError)
 		return

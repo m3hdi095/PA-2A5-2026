@@ -870,9 +870,16 @@ func (r *InscriptionRepository) CheckExists(userID, evenementID uint) (bool, err
 
 // inscriptions avec les details de l'evenement joint, le front a besoin du titre et de la date
 func (r *InscriptionRepository) ListByUserFull(userID uint, limit, offset int) ([]models.Inscription, error) {
+	// on joint l'événement pour avoir titre/date/lieu/type sans second appel côté front
+	// (y compris les événements passés que ListUpcoming ne retourne pas)
 	rows, err := database.DB.Query(
-		`SELECT id_inscription, date_inscription, statut, id_utilisateur, id_evenement, id_paiement
-         FROM inscription WHERE id_utilisateur = ? ORDER BY date_inscription DESC LIMIT ? OFFSET ?`,
+		`SELECT i.id_inscription, i.date_inscription, i.statut, i.id_utilisateur, i.id_evenement, i.id_paiement,
+		        COALESCE(e.titre,''), COALESCE(DATE_FORMAT(e.date_debut,'%Y-%m-%dT%H:%i:%sZ'),''),
+		        COALESCE(e.lieu,''), COALESCE(e.type,'evenement')
+		 FROM inscription i
+		 LEFT JOIN evenement e ON e.id_evenement = i.id_evenement
+		 WHERE i.id_utilisateur = ?
+		 ORDER BY e.date_debut DESC LIMIT ? OFFSET ?`,
 		userID, limit, offset,
 	)
 	if err != nil {
@@ -882,7 +889,10 @@ func (r *InscriptionRepository) ListByUserFull(userID uint, limit, offset int) (
 	inscriptions := make([]models.Inscription, 0)
 	for rows.Next() {
 		var i models.Inscription
-		if err := rows.Scan(&i.ID, &i.DateInscription, &i.Statut, &i.IDUtilisateur, &i.IDEvenement, &i.IDPaiement); err != nil {
+		if err := rows.Scan(
+			&i.ID, &i.DateInscription, &i.Statut, &i.IDUtilisateur, &i.IDEvenement, &i.IDPaiement,
+			&i.EvTitre, &i.EvDateDebut, &i.EvLieu, &i.EvType,
+		); err != nil {
 			return nil, err
 		}
 		inscriptions = append(inscriptions, i)
