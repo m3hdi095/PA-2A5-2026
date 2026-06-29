@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8"/>
+  <link rel="icon" type="image/png" href="../brand_assets/Favicon.png"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Questionnaires | Espace Salariés</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=Montserrat:wght@400;500;600&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="css/style.css"/>
+</head>
+<body>
+
+<div class="page-title-row animate-in">
+  <div>
+    <h1>
+      <div class="page-title-icon teal">
+        <i class="fa-solid fa-clipboard-question" aria-hidden="true"></i>
+      </div>
+      Questionnaires de satisfaction
+    </h1>
+    <p class="page-title-sub">Envoyez des questionnaires aux participants de vos formations et événements</p>
+  </div>
+</div>
+
+<!-- Mes événements -->
+<section class="card animate-in" style="animation-delay:.1s">
+  <div class="card-header">
+    <h2 class="card-title"><i class="fa-solid fa-calendar-days"></i> Mes formations &amp; événements</h2>
+    <p class="card-subtitle" style="margin:0;font-size:13px;color:var(--text-secondary)">Sélectionnez un événement pour gérer son questionnaire</p>
+  </div>
+  <div id="evenements-list"><div class="loading-skeleton" style="height:100px;border-radius:8px"></div></div>
+</section>
+
+<!-- Détail questionnaire -->
+<section id="section-questionnaire" class="card animate-in" style="display:none;animation-delay:.2s">
+  <div class="card-header">
+    <h2 class="card-title" id="q-event-titre"><i class="fa-solid fa-clipboard-list"></i> Questionnaire</h2>
+    <button class="btn btn-ghost btn-sm" id="btn-retour">
+      <i class="fa-solid fa-arrow-left"></i> Retour
+    </button>
+  </div>
+
+  <div id="questionnaire-detail">
+    <!-- Créer ou afficher -->
+    <div id="zone-creer" style="padding:16px">
+      <p class="empty-state-msg"><i class="fa-solid fa-info-circle"></i> Aucun questionnaire pour cet événement.</p>
+      <button class="btn btn-primary" id="btn-creer-q">
+        <i class="fa-solid fa-plus"></i> Créer un questionnaire
+      </button>
+    </div>
+
+    <div id="zone-questionnaire" style="display:none;padding:16px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;gap:1rem;flex-wrap:wrap">
+        <span id="q-statut-badge"></span>
+        <div style="display:flex;gap:8px">
+          <button class="btn btn-outline btn-sm" id="btn-voir-reponses">
+            <i class="fa-solid fa-chart-bar"></i> Voir les réponses
+          </button>
+          <button class="btn btn-primary btn-sm" id="btn-envoyer-q">
+            <i class="fa-solid fa-paper-plane"></i> Envoyer aux participants
+          </button>
+        </div>
+      </div>
+      <div id="q-questions-list" class="questions-list"></div>
+    </div>
+  </div>
+</section>
+
+<!-- Réponses -->
+<section id="section-reponses" class="card animate-in" style="display:none;animation-delay:.25s">
+  <div class="card-header">
+    <h2 class="card-title"><i class="fa-solid fa-chart-bar"></i> Réponses reçues</h2>
+    <button class="btn btn-ghost btn-sm" id="btn-retour-q">
+      <i class="fa-solid fa-arrow-left"></i> Questionnaire
+    </button>
+  </div>
+  <div id="reponses-list"><div class="loading-skeleton" style="height:80px;border-radius:8px"></div></div>
+</section>
+
+<!-- Modal créer questionnaire -->
+<div id="modal-creer-q" class="modal-overlay" style="display:none" role="dialog" aria-modal="true">
+  <div class="modal-content" style="max-width:520px">
+    <div class="modal-header">
+      <h3><i class="fa-solid fa-clipboard-question"></i> Nouveau questionnaire</h3>
+      <button class="modal-close" id="modal-q-close">&times;</button>
+    </div>
+    <div class="modal-body">
+      <p style="font-size:13px;color:var(--text-secondary);margin-bottom:1rem">
+        Ajoutez vos questions. Les participants pourront y répondre en ligne.
+      </p>
+      <div id="questions-builder">
+        <div class="question-item" data-index="0">
+          <div class="form-group">
+            <label class="form-label">Question 1</label>
+            <input type="text" class="form-control q-texte" placeholder="Votre question…"/>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Type de réponse</label>
+            <select class="form-control form-select q-type">
+              <option value="texte">Texte libre</option>
+              <option value="note">Note (1-5)</option>
+              <option value="oui_non">Oui / Non</option>
+            </select>
+          </div>
+        </div>
+      </div>
+      <button type="button" class="btn btn-ghost btn-sm" id="btn-ajouter-question" style="margin-top:8px">
+        <i class="fa-solid fa-plus"></i> Ajouter une question
+      </button>
+      <p id="q-modal-error" class="form-error" style="display:none"></p>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" id="btn-q-annuler">Annuler</button>
+      <button class="btn btn-primary" id="btn-q-sauvegarder">
+        <i class="fa-solid fa-floppy-disk"></i> Créer le questionnaire
+      </button>
+    </div>
+  </div>
+</div>
+
+<script src="js/layout.js"></script>
+<script>
+let _evenementActif = null;
+let _questionnaireActif = null;
+
+document.addEventListener('DOMContentLoaded', async () => {
+  const utilisateur = await initLayout('questionnaires');
+  if (!utilisateur) return;
+
+  chargerEvenements();
+
+  document.getElementById('btn-retour').addEventListener('click', () => {
+    document.getElementById('section-questionnaire').style.display = 'none';
+    document.getElementById('section-reponses').style.display = 'none';
+  });
+  document.getElementById('btn-retour-q').addEventListener('click', () => {
+    document.getElementById('section-reponses').style.display = 'none';
+    document.getElementById('section-questionnaire').style.display = '';
+  });
+  document.getElementById('btn-creer-q').addEventListener('click', () => ouvrirModalCreer());
+  document.getElementById('modal-q-close').addEventListener('click', fermerModal);
+  document.getElementById('btn-q-annuler').addEventListener('click', fermerModal);
+  document.getElementById('modal-creer-q').addEventListener('click', e => { if (e.target === e.currentTarget) fermerModal(); });
+  document.getElementById('btn-ajouter-question').addEventListener('click', ajouterQuestion);
+  document.getElementById('btn-q-sauvegarder').addEventListener('click', sauvegarderQuestionnaire);
+  document.getElementById('btn-voir-reponses').addEventListener('click', voirReponses);
+  document.getElementById('btn-envoyer-q').addEventListener('click', envoyerQuestionnaire);
+});
+
+async function chargerEvenements() {
+  const el = document.getElementById('evenements-list');
+  const res = await apiFetch('/evenements/mes-creations');
+  if (!res || !res.ok) {
+    el.innerHTML = '<p class="empty-state-msg"><i class="fa-solid fa-triangle-exclamation"></i> Impossible de charger vos événements.</p>';
+    return;
+  }
+  const evts = await res.json();
+  if (!evts || !evts.length) {
+    el.innerHTML = `<div class="empty-state"><i class="fa-solid fa-calendar-xmark"></i><p>Aucun événement créé</p><span>Créez d'abord des formations ou événements depuis la page Événements.</span></div>`;
+    return;
+  }
+  el.innerHTML = `
+    <table class="data-table">
+      <thead><tr><th>Titre</th><th>Type</th><th>Date</th><th>Places</th><th>Action</th></tr></thead>
+      <tbody>
+        ${evts.map(e => `
+          <tr>
+            <td><strong>${esc(e.titre)}</strong></td>
+            <td>${esc(e.type || '—')}</td>
+            <td>${e.date_debut ? new Date(e.date_debut).toLocaleDateString('fr-FR') : '—'}</td>
+            <td>${e.nb_places || '—'}</td>
+            <td><button class="btn btn-outline btn-sm" onclick="ouvrirQuestionnaire(${e.id},'${esc(e.titre)}')">
+              <i class="fa-solid fa-clipboard-question"></i> Questionnaire
+            </button></td>
+          </tr>`).join('')}
+      </tbody>
+    </table>`;
+}
+
+async function ouvrirQuestionnaire(eventId, titre) {
+  _evenementActif = eventId;
+  document.getElementById('q-event-titre').innerHTML = `<i class="fa-solid fa-clipboard-list"></i> ${esc(titre)}`;
+  document.getElementById('section-questionnaire').style.display = '';
+  document.getElementById('section-reponses').style.display = 'none';
+  document.getElementById('zone-creer').style.display = '';
+  document.getElementById('zone-questionnaire').style.display = 'none';
+  _questionnaireActif = null;
+
+  const res = await apiFetch(`/evenements/${eventId}/questionnaire`);
+  if (res && res.ok) {
+    const q = await res.json();
+    if (q && q.id) {
+      _questionnaireActif = q;
+      afficherQuestionnaire(q);
+      return;
+    }
+  }
+  document.getElementById('zone-creer').style.display = '';
+  document.getElementById('zone-questionnaire').style.display = 'none';
+}
+
+function afficherQuestionnaire(q) {
+  document.getElementById('zone-creer').style.display = 'none';
+  document.getElementById('zone-questionnaire').style.display = '';
+  const statutClass = { actif: 'badge-success', brouillon: 'badge-neutral', envoye: 'badge-info' };
+  document.getElementById('q-statut-badge').innerHTML = `<span class="badge ${statutClass[q.statut] || 'badge-neutral'}">${q.statut || 'brouillon'}</span>`;
+
+  let questions = [];
+  try { questions = JSON.parse(q.questions || '[]'); } catch {}
+
+  const listEl = document.getElementById('q-questions-list');
+  if (!questions.length) {
+    listEl.innerHTML = '<p class="empty-state-msg">Aucune question dans ce questionnaire.</p>';
+    return;
+  }
+  const typeLabel = { texte: 'Texte libre', note: 'Note 1–5', oui_non: 'Oui / Non' };
+  listEl.innerHTML = questions.map((q, i) => `
+    <div class="question-preview" style="padding:12px;border:1px solid var(--border-color);border-radius:8px;margin-bottom:8px">
+      <div style="font-weight:600;margin-bottom:4px">${i+1}. ${esc(q.question || q.texte || '')}</div>
+      <div style="font-size:12px;color:var(--text-secondary)"><i class="fa-solid fa-tag"></i> ${typeLabel[q.type] || q.type}</div>
+    </div>`).join('');
+}
+
+function ouvrirModalCreer() {
+  document.getElementById('modal-creer-q').style.display = 'flex';
+  reinitialiserBuilder();
+}
+function fermerModal() {
+  document.getElementById('modal-creer-q').style.display = 'none';
+}
+
+function reinitialiserBuilder() {
+  const builder = document.getElementById('questions-builder');
+  builder.innerHTML = creerItemQuestion(0);
+}
+
+let _qCount = 1;
+function creerItemQuestion(index) {
+  return `
+    <div class="question-item" style="padding:12px;border:1px solid var(--border-color);border-radius:8px;margin-bottom:8px" data-index="${index}">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+        <span style="font-weight:600;font-size:13px">Question ${index + 1}</span>
+        ${index > 0 ? `<button type="button" class="btn btn-ghost btn-sm" onclick="this.closest('.question-item').remove()" aria-label="Supprimer"><i class="fa-solid fa-trash"></i></button>` : ''}
+      </div>
+      <div class="form-group">
+        <input type="text" class="form-control q-texte" placeholder="Votre question…"/>
+      </div>
+      <div class="form-group" style="margin-bottom:0">
+        <select class="form-control form-select q-type">
+          <option value="texte">Texte libre</option>
+          <option value="note">Note (1-5)</option>
+          <option value="oui_non">Oui / Non</option>
+        </select>
+      </div>
+    </div>`;
+}
+
+function ajouterQuestion() {
+  const builder = document.getElementById('questions-builder');
+  const count = builder.querySelectorAll('.question-item').length;
+  builder.insertAdjacentHTML('beforeend', creerItemQuestion(count));
+}
+
+async function sauvegarderQuestionnaire() {
+  if (!_evenementActif) return;
+  const items = document.querySelectorAll('#questions-builder .question-item');
+  const questions = [];
+  let valide = true;
+  items.forEach(item => {
+    const texte = item.querySelector('.q-texte').value.trim();
+    const type  = item.querySelector('.q-type').value;
+    if (!texte) { valide = false; return; }
+    questions.push({ question: texte, type });
+  });
+  if (!valide || !questions.length) {
+    document.getElementById('q-modal-error').textContent = 'Remplissez toutes les questions.';
+    document.getElementById('q-modal-error').style.display = 'block';
+    return;
+  }
+  const btn = document.getElementById('btn-q-sauvegarder');
+  btn.disabled = true; btn.textContent = 'Sauvegarde…';
+  const res = await apiFetch(`/evenements/${_evenementActif}/questionnaire`, {
+    method: 'POST',
+    body: JSON.stringify({ questions: JSON.stringify(questions) }),
+  });
+  btn.disabled = false; btn.innerHTML = '<i class="fa-solid fa-floppy-disk"></i> Créer le questionnaire';
+  if (!res || !res.ok) {
+    document.getElementById('q-modal-error').textContent = 'Erreur lors de la sauvegarde.';
+    document.getElementById('q-modal-error').style.display = 'block';
+    return;
+  }
+  const q = await res.json();
+  fermerModal();
+  showToast('Questionnaire créé !', 'success');
+  await ouvrirQuestionnaire(_evenementActif, document.getElementById('q-event-titre').textContent);
+}
+
+async function envoyerQuestionnaire() {
+  if (!_questionnaireActif) return;
+  const btn = document.getElementById('btn-envoyer-q');
+  btn.disabled = true; btn.textContent = 'Envoi…';
+  const res = await apiFetch(`/questionnaires/${_questionnaireActif.id}/envoyer`, { method: 'POST' });
+  btn.disabled = false; btn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> Envoyer aux participants';
+  if (!res || !res.ok) { showToast('Erreur lors de l\'envoi', 'error'); return; }
+  showToast('Questionnaire envoyé aux participants !', 'success');
+}
+
+async function voirReponses() {
+  if (!_questionnaireActif) return;
+  document.getElementById('section-questionnaire').style.display = 'none';
+  document.getElementById('section-reponses').style.display = '';
+  const el = document.getElementById('reponses-list');
+  el.innerHTML = '<div class="loading-skeleton" style="height:80px;border-radius:8px"></div>';
+  const res = await apiFetch(`/questionnaires/${_questionnaireActif.id}/reponses`);
+  if (!res || !res.ok) {
+    el.innerHTML = '<p class="empty-state-msg"><i class="fa-solid fa-triangle-exclamation"></i> Erreur de chargement.</p>';
+    return;
+  }
+  const reponses = await res.json();
+  if (!reponses || !reponses.length) {
+    el.innerHTML = '<div class="empty-state"><i class="fa-solid fa-inbox"></i><p>Aucune réponse reçue pour le moment</p></div>';
+    return;
+  }
+  el.innerHTML = reponses.map(r => `
+    <div class="card" style="margin-bottom:8px">
+      <div style="padding:14px">
+        <div style="font-weight:600;margin-bottom:4px">${esc(r.participant || 'Anonyme')}</div>
+        <div style="font-size:12px;color:var(--text-secondary);margin-bottom:8px">${r.date ? new Date(r.date).toLocaleDateString('fr-FR') : '—'}</div>
+        <pre style="font-size:12px;white-space:pre-wrap;background:var(--bg-secondary);padding:8px;border-radius:6px">${esc(r.reponses || '')}</pre>
+      </div>
+    </div>`).join('');
+}
+
+function esc(s) {
+  return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+</script>
+</body>
+</html>

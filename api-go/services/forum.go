@@ -72,7 +72,7 @@ func (s *ForumService) PostMessage(msg *models.ForumMessage) error {
 	return nil
 }
 
-// Signaler masque le message, utilise par les moderateurs
+// masquer un message signalé, le statut passe a supprime
 func (s *ForumService) Signaler(messageID uint) error {
 	var exists int
 	database.DB.QueryRow(`SELECT COUNT(*) FROM message WHERE id_message = ?`, messageID).Scan(&exists)
@@ -83,13 +83,13 @@ func (s *ForumService) Signaler(messageID uint) error {
 	return err
 }
 
-// remet visible, appelé via TraiterSignalement avec action='restaurer'
+// remettre un message visible apres verification, inverse de Signaler
 func (s *ForumService) Restaurer(messageID uint) error {
 	_, err := database.DB.Exec(`UPDATE message SET statut = 'visible' WHERE id_message = ?`, messageID)
 	return err
 }
 
-// AddSignalement insère un signalement et masque le message
+// quelqu'un signale un message, on le cache en attendant que la modération regarde
 func (s *ForumService) AddSignalement(messageID, rapporteurID uint, raison string) error {
 	var exists int
 	database.DB.QueryRow(`SELECT COUNT(*) FROM message WHERE id_message = ?`, messageID).Scan(&exists)
@@ -107,7 +107,7 @@ func (s *ForumService) AddSignalement(messageID, rapporteurID uint, raison strin
 	return err
 }
 
-// ListSignalements retourne les messages non traités groupés par message
+// tous les signalements pas encore traités, groupés par message pour éviter les doublons
 func (s *ForumService) ListSignalements() ([]SignalementResult, error) {
 	rows, err := database.DB.Query(`
 		SELECT m.id_message,
@@ -163,7 +163,7 @@ func (s *ForumService) ListSignalements() ([]SignalementResult, error) {
 	return results, nil
 }
 
-// MarquerTraite clôt tous les signalements d'un message
+// ferme tous les signalements liés à un message, la modération est faite
 func (s *ForumService) MarquerTraite(messageID uint) error {
 	_, err := database.DB.Exec(`UPDATE signalement SET traite = 1 WHERE id_message = ?`, messageID)
 	return err

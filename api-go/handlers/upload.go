@@ -32,7 +32,7 @@ func UploadPhotosAnnonce(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// vérifier que l'annonce appartient à cet utilisateur
+	// on check que l'annonce est bien à toi avant d'accepter les photos
 	var ownerID uint
 	database.DB.QueryRow(`SELECT id_utilisateur FROM annonce WHERE id_annonce = ?`, annonceID).Scan(&ownerID)
 	if ownerID != userID {
@@ -40,7 +40,7 @@ func UploadPhotosAnnonce(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// vérifier le nombre de photos déjà existantes
+	// pour pas dépasser la limite de 10 photos par annonce
 	var nbExistantes int
 	database.DB.QueryRow(`SELECT COUNT(*) FROM photo_annonce WHERE id_annonce = ?`, annonceID).Scan(&nbExistantes)
 
@@ -66,7 +66,7 @@ func UploadPhotosAnnonce(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		// vérifier le type MIME
+		// on lit les premiers octets pour détecter le type réel, pas juste l'extension
 		f, err := fh.Open()
 		if err != nil {
 			continue
@@ -81,7 +81,7 @@ func UploadPhotosAnnonce(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		// extension à partir du nom original
+		// on garde l'extension du fichier original, .jpg par défaut si y'en a pas
 		ext := strings.ToLower(filepath.Ext(fh.Filename))
 		if ext == "" {
 			ext = ".jpg"
@@ -161,7 +161,7 @@ func DeletePhotoAnnonce(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// vérifier la propriété via JOIN
+	// on vérifie que la photo appartient bien à une annonce de cet user
 	var url string
 	var ownerID uint
 	err = database.DB.QueryRow(
@@ -176,7 +176,7 @@ func DeletePhotoAnnonce(w http.ResponseWriter, r *http.Request) {
 
 	database.DB.Exec(`DELETE FROM photo_annonce WHERE id_photo = ?`, photoID)
 
-	// supprimer le fichier physique
+	// on supprime aussi le fichier sur le disque, pas juste la ligne en DB
 	if url != "" {
 		os.Remove("." + url)
 	}

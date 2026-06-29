@@ -6,7 +6,7 @@
 .admin-layout { display: flex; min-height: 100vh; }
 
 /*  ADMIN LOGIN PAGE  */
-/* Admin uses .login-visual / .login-form-side (not shared .login-hero) */
+/* pas les mêmes classes que les autres espaces, on a gardé nos noms de la maquette */
 .login-visual {
   background:
     linear-gradient(160deg, var(--hero-overlay-start) 0%, var(--hero-overlay-end) 100%),

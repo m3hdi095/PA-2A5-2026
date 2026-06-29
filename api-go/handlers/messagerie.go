@@ -31,7 +31,7 @@ type ConversationResume struct {
 	NbNonLus     int       `json:"nb_non_lus"`
 }
 
-// GET /api/annonces/{id}/messages
+// tous les messages d'une annonce, avec la verification d'accès
 func GetMessagesAnnonce(w http.ResponseWriter, r *http.Request) {
 	userID := r.Context().Value(middleware.ContextUserID).(uint)
 	id, err := strconv.ParseUint(r.PathValue("id"), 10, 32)
@@ -44,7 +44,7 @@ func GetMessagesAnnonce(w http.ResponseWriter, r *http.Request) {
 	var ownerID uint
 	database.DB.QueryRow(`SELECT id_utilisateur FROM annonce WHERE id_annonce = ?`, annonceID).Scan(&ownerID)
 
-	// vérifier que l'utilisateur a accès : propriétaire ou a participé à la conversation
+	// on check si t'as le droit de voir cette conv (proprio ou participant)
 	if userID != ownerID {
 		var nb int
 		database.DB.QueryRow(`SELECT COUNT(*) FROM message_annonce WHERE id_annonce = ? AND id_expediteur = ?`, annonceID, userID).Scan(&nb)
@@ -54,7 +54,7 @@ func GetMessagesAnnonce(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	// charger tout le fil de discussion (acheteur + réponses vendeur)
+	// on charge tout le fil dans l'ordre chronologique
 	rows, err := database.DB.Query(`
 		SELECT m.id, m.id_annonce, m.id_expediteur, m.contenu, m.lu, m.date_envoi,
 		       CONCAT(COALESCE(u.prenom,''), ' ', COALESCE(u.nom,''))
@@ -82,7 +82,7 @@ func GetMessagesAnnonce(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(msgs)
 }
 
-// POST /api/annonces/{id}/messages
+// envoyer un message sur une annonce
 func SendMessageAnnonce(w http.ResponseWriter, r *http.Request) {
 	userID := r.Context().Value(middleware.ContextUserID).(uint)
 	id, err := strconv.ParseUint(r.PathValue("id"), 10, 32)
@@ -123,11 +123,11 @@ func SendMessageAnnonce(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(map[string]interface{}{"id": newID, "status": "envoyé"})
 }
 
-// GET /api/annonces/mes-conversations - inbox (propriétaire + acheteur)
+// inbox de l'utilisateur, que ce soit comme vendeur ou acheteur
 func MesConversations(w http.ResponseWriter, r *http.Request) {
 	userID := r.Context().Value(middleware.ContextUserID).(uint)
 
-	// toutes les annonces où l'utilisateur est soit propriétaire, soit a envoyé un message
+	// la requete SQL est un peu longue mais on a pas trouvé plus simple pour les deux rôles en meme temps
 	rows, err := database.DB.Query(`
 		SELECT
 		    a.id_annonce,
@@ -168,7 +168,7 @@ func MesConversations(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(convs)
 }
 
-// GET /api/annonces/mes-conversations/count - nb total de messages non-lus
+// juste le nombre de messages pas lus, pour le badge dans le menu
 func CountMessagesNonLus(w http.ResponseWriter, r *http.Request) {
 	userID := r.Context().Value(middleware.ContextUserID).(uint)
 	var count int
@@ -180,7 +180,7 @@ func CountMessagesNonLus(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(map[string]int{"count": count})
 }
 
-// POST /api/annonces/{id}/favori - toggle favori, retourne l'état
+// toggle favori, on insère ou on supprime selon si c'est déjà en favori
 func ToggleFavori(w http.ResponseWriter, r *http.Request) {
 	userID := r.Context().Value(middleware.ContextUserID).(uint)
 	id, err := strconv.ParseUint(r.PathValue("id"), 10, 32)

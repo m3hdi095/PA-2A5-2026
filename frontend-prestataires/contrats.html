@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8"/>
+  <link rel="icon" type="image/png" href="../brand_assets/Favicon.png"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Mes contrats | Espace Professionnel</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=Montserrat:wght@400;500;600&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="css/style.css"/>
+</head>
+<body>
+
+<div class="page-title-row animate-in">
+  <div>
+    <h1>
+      <div class="page-title-icon green">
+        <i class="fa-solid fa-file-contract" aria-hidden="true"></i>
+      </div>
+      Mes contrats
+    </h1>
+    <p class="page-title-sub">Consultez vos contrats avec UpcycleConnect</p>
+  </div>
+</div>
+
+<section class="card animate-in" style="animation-delay:.1s">
+  <div class="card-header">
+    <h2 class="card-title"><i class="fa-solid fa-list" aria-hidden="true"></i> Contrats actifs et historique</h2>
+  </div>
+  <div id="contrats-list"><div class="loading-skeleton" style="height:120px;border-radius:8px"></div></div>
+</section>
+
+<script src="js/layout.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', async () => {
+  const utilisateur = await initLayout('contrats');
+  if (!utilisateur) return;
+  chargerContrats();
+});
+
+async function chargerContrats() {
+  const el = document.getElementById('contrats-list');
+  const res = await apiFetch('/contrats/mon-contrat');
+  if (!res || !res.ok) {
+    el.innerHTML = '<p class="empty-state-msg"><i class="fa-solid fa-triangle-exclamation"></i> Impossible de charger vos contrats.</p>';
+    return;
+  }
+  const contrats = await res.json();
+  if (!contrats.length) {
+    el.innerHTML = `
+      <div class="empty-state">
+        <i class="fa-solid fa-file-circle-xmark"></i>
+        <p>Aucun contrat pour le moment</p>
+        <span>Vos contrats apparaîtront ici une fois établis avec l'équipe UpcycleConnect.</span>
+      </div>`;
+    return;
+  }
+  const statutClass = { actif: 'badge-success', termine: 'badge-neutral', resilie: 'badge-error' };
+  const statutLabel = { actif: 'Actif', termine: 'Terminé', resilie: 'Résilié' };
+  el.innerHTML = `
+    <table class="data-table">
+      <thead><tr>
+        <th>Type</th><th>Début</th><th>Fin</th><th>Montant</th><th>Statut</th><th>Document</th>
+      </tr></thead>
+      <tbody>
+        ${contrats.map(c => `
+          <tr>
+            <td><strong>${esc(c.type_contrat)}</strong></td>
+            <td>${c.date_debut}</td>
+            <td>${c.date_fin}</td>
+            <td>${Number(c.montant).toLocaleString('fr-FR',{style:'currency',currency:'EUR'})}</td>
+            <td><span class="badge ${statutClass[c.statut] || 'badge-neutral'}">${statutLabel[c.statut] || c.statut}</span></td>
+            <td>${c.fichier_pdf
+              ? `<a href="${esc(c.fichier_pdf)}" target="_blank" class="btn btn-ghost btn-sm"><i class="fa-solid fa-file-pdf"></i> Télécharger</a>`
+              : '<span class="text-muted">—</span>'}</td>
+          </tr>`).join('')}
+      </tbody>
+    </table>`;
+}
+
+function esc(s) {
+  return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+</script>
+</body>
+</html>

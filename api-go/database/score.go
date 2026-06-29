@@ -1,7 +1,7 @@
 package database
 
-// AddUpcyclingScore crédite des points à un particulier et log l'action dans score_log.
-// Les erreurs sont silencieuses : le score est un bonus, pas un blocant.
+// ajoute des points upcycling et log l'action en base
+// on ignore les erreurs ici, si le score plante c'est pas grave, c'est juste un bonus
 func AddUpcyclingScore(userID uint, points int, motif string) {
 	DB.Exec(
 		`INSERT INTO score_log (id_particulier, points, motif) VALUES (?, ?, ?)`,
