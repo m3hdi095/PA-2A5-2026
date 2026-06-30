@@ -159,16 +159,6 @@
 
 <script src="js/layout.js"></script>
 <script>
-const ADMIN_BASE = 'http://localhost:8080/api';
-
-async function authFetch(url, opts = {}) {
-  const token = localStorage.getItem('uc_admin_token');
-  return fetch(url, {
-    ...opts,
-    headers: { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}), ...(opts.headers || {}) },
-  });
-}
-
 let allPubs = [];
 let filtreStatut = '';
 let filtreType   = '';
@@ -197,7 +187,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 async function chargerPublicites() {
   try {
-    const res = await authFetch(`${ADMIN_BASE}/admin/publicites`);
+    const res = await apiFetch('/admin/publicites');
     if (!res.ok) throw new Error();
     const data = await res.json();
     allPubs = data.publicites || [];
@@ -261,7 +251,7 @@ function renderTable() {
 
 window.changerStatut = async (id, statut) => {
   try {
-    const res = await authFetch(`${ADMIN_BASE}/admin/publicites/${id}/statut`, {
+    const res = await apiFetch(`/admin/publicites/${id}/statut`, {
       method: 'PUT', body: JSON.stringify({ statut }),
     });
     if (res.ok) { await chargerPublicites(); showToast(`Statut mis à jour : ${statut}`, 'success'); }
@@ -272,7 +262,7 @@ window.changerStatut = async (id, statut) => {
 window.supprimerPub = async (id) => {
   if (!confirm('Supprimer cette campagne définitivement ?')) return;
   try {
-    const res = await authFetch(`${ADMIN_BASE}/admin/publicites/${id}`, { method: 'DELETE' });
+    const res = await apiFetch(`/admin/publicites/${id}`, { method: 'DELETE' });
     if (res.ok || res.status === 204) { await chargerPublicites(); showToast('Campagne supprimée', 'success'); }
     else showToast('Erreur lors de la suppression', 'error');
   } catch { showToast('Service indisponible', 'error'); }
@@ -292,7 +282,7 @@ async function soumettrePublicite(e) {
     showToast('Titre et dates sont obligatoires', 'warning'); return;
   }
   try {
-    const res = await authFetch(`${ADMIN_BASE}/admin/publicites`, { method: 'POST', body: JSON.stringify(payload) });
+    const res = await apiFetch('/admin/publicites', { method: 'POST', body: JSON.stringify(payload) });
     if (res.ok || res.status === 201) {
       fermerModal();
       await chargerPublicites();
