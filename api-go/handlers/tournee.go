@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"database/sql"
 	"encoding/json"
 	"net/http"
 	"strconv"
@@ -41,10 +42,21 @@ func CreateTournee(w http.ResponseWriter, r *http.Request) {
 }
 
 func ListTournees(w http.ResponseWriter, r *http.Request) {
-	rows, err := database.DB.Query(
-		`SELECT id_tournee, date_tournee, COALESCE(note,''), COALESCE(conteneurs,''), statut, date_creation
-		 FROM tournee ORDER BY date_tournee DESC LIMIT 50`,
-	)
+	statut := r.URL.Query().Get("statut")
+	var rows *sql.Rows
+	var err error
+	if statut != "" {
+		rows, err = database.DB.Query(
+			`SELECT id_tournee, date_tournee, COALESCE(note,''), COALESCE(conteneurs,''), statut, date_creation
+			 FROM tournee WHERE statut = ? ORDER BY date_tournee DESC LIMIT 50`,
+			statut,
+		)
+	} else {
+		rows, err = database.DB.Query(
+			`SELECT id_tournee, date_tournee, COALESCE(note,''), COALESCE(conteneurs,''), statut, date_creation
+			 FROM tournee ORDER BY date_tournee DESC LIMIT 50`,
+		)
+	}
 	if err != nil {
 		http.Error(w, `{"error":"Erreur interne"}`, http.StatusInternalServerError)
 		return
