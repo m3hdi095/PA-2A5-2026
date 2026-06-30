@@ -184,7 +184,8 @@ function fermerModal() {
 async function creerTournee(e) {
   e.preventDefault();
   const date      = document.getElementById('t-date').value;
-  const conteneurs = document.getElementById('t-conteneurs').value.trim();
+  const conteneurs = document.getElementById('t-conteneurs').value.trim()
+    .split(',').map(s => s.trim()).filter(Boolean);
   const note      = document.getElementById('t-note').value.trim();
 
   if (!date) { afficherErreur('La date est obligatoire.'); return; }

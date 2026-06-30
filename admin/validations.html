@@ -322,7 +322,7 @@ window.approve = async (id, tab) => {
     } else if (tab === 'commentaires') {
       res = await apiFetch(`/commentaires/${id}/moderer`, {
         method: 'PUT',
-        body: JSON.stringify({ action: 'approuver' }),
+        body: JSON.stringify({ decision: 'approuve' }),
       });
     }
     ok = res?.ok === true;
@@ -363,7 +363,7 @@ window.reject = async (id, tab) => {
     } else if (tab === 'commentaires') {
       res = await apiFetch(`/commentaires/${id}/moderer`, {
         method: 'PUT',
-        body: JSON.stringify({ action: 'refuser' }),
+        body: JSON.stringify({ decision: 'refuse' }),
       });
     }
     ok = res?.ok === true;
