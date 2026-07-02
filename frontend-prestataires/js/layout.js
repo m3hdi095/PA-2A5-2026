@@ -362,7 +362,107 @@ async function initLayout(nomPage) {
 
   chargerBadgeAnnonces();
   initNotifBell();
+
+  if (utilisateur.tutoriel_vu === false || utilisateur.tutoriel_vu === 0) {
+    lancerTutoriel();
+  }
+
   return utilisateur;
+}
+
+function lancerTutoriel() {
+  // charge GSAP à la demande, uniquement à la première connexion
+  if (!window.gsap) {
+    const s = document.createElement('script');
+    s.src = 'https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js';
+    s.onload = lancerTutoriel;
+    document.head.appendChild(s);
+    return;
+  }
+
+  const etapes = _lang === 'en' ? [
+    { titre: 'Welcome to UpcycleConnect !',   texte: 'Your professional space lets you access materials, manage containers and track your upcycling projects.', icone: 'fa-seedling'       },
+    { titre: 'Materials listings',            texte: 'Browse validated listings and buy or reserve materials for your projects.',                               icone: 'fa-box-open'       },
+    { titre: 'Containers',                    texte: 'Locate containers and collect deposited items nearby.',                                                   icone: 'fa-location-dot'   },
+    { titre: 'Projects',                      texte: 'Track and showcase your upcycling projects, from collection to finished creation.',                       icone: 'fa-diagram-project'},
+    { titre: 'Material alerts',               texte: 'Set up alerts to be notified as soon as materials matching your needs are available.',                   icone: 'fa-bell'           },
+  ] : [
+    { titre: 'Bienvenue sur UpcycleConnect !', texte: 'Votre espace professionnel vous permet d’accéder aux matériaux, gérer les conteneurs et suivre vos projets d’upcycling.', icone: 'fa-seedling'       },
+    { titre: 'Annonces matériaux',             texte: 'Parcourez les annonces validées et achetez ou réservez des matériaux pour vos projets.',                                  icone: 'fa-box-open'       },
+    { titre: 'Conteneurs',                     texte: 'Repérez les conteneurs et récupérez les objets déposés à proximité.',                                                     icone: 'fa-location-dot'   },
+    { titre: 'Projets',                        texte: 'Suivez et mettez en avant vos projets d’upcycling, de la collecte à la création finale.',                                 icone: 'fa-diagram-project'},
+    { titre: 'Alertes matériaux',              texte: 'Configurez des alertes pour être prévenu dès qu’un matériau correspondant à vos besoins est disponible.',                 icone: 'fa-bell'           },
+  ];
+
+  let etape = 0;
+
+  const overlay = document.createElement('div');
+  overlay.id = 'tuto-overlay';
+  overlay.style.cssText = 'position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,0)';
+
+  const card = document.createElement('div');
+  card.id = 'tuto-card';
+  card.style.cssText = 'background:#fff;border-radius:16px;padding:40px 36px;max-width:420px;width:90%;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.25);will-change:transform,opacity';
+  overlay.appendChild(card);
+  document.body.appendChild(overlay);
+
+  gsap.to(overlay, { background: 'rgba(0,0,0,0.58)', backdropFilter: 'blur(3px)', duration: 0.4, ease: 'power2.out' });
+
+  function renderContent() {
+    const e = etapes[etape];
+    card.innerHTML = `
+      <div style="width:64px;height:64px;border-radius:50%;background:#d1fae5;display:flex;align-items:center;justify-content:center;margin:0 auto 20px">
+        <i class="fa-solid ${e.icone}" style="font-size:28px;color:#15803d"></i>
+      </div>
+      <div style="font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--text-muted,#6b7280);margin-bottom:8px">${_lang === 'en' ? 'Step' : 'Étape'} ${etape + 1} / ${etapes.length}</div>
+      <h2 style="font-family:Poppins,sans-serif;font-size:20px;font-weight:700;margin:0 0 12px">${e.titre}</h2>
+      <p style="font-size:14px;color:var(--text-soft,#4b5563);line-height:1.65;margin:0 0 28px">${e.texte}</p>
+      <div style="display:flex;gap:10px;justify-content:center">
+        ${etape > 0 ? `<button id="tuto-prev" class="btn btn-outline" style="min-width:90px">${_lang === 'en' ? 'Previous' : 'Précédent'}</button>` : ''}
+        <button id="tuto-next" class="btn btn-primary" style="min-width:110px">${etape === etapes.length - 1 ? (_lang === 'en' ? 'Start !' : 'Commencer !') : (_lang === 'en' ? 'Next' : 'Suivant')}</button>
+      </div>
+      <div style="display:flex;justify-content:center;gap:6px;margin-top:20px">
+        ${etapes.map((_, i) => `<span style="width:8px;height:8px;border-radius:50%;background:${i === etape ? '#16a34a' : '#d1d5db'}"></span>`).join('')}
+      </div>`;
+
+    card.querySelector('#tuto-next')?.addEventListener('click', () => {
+      if (etape < etapes.length - 1) allerA(etape + 1, 1);
+      else fermer();
+    });
+    card.querySelector('#tuto-prev')?.addEventListener('click', () => allerA(etape - 1, -1));
+  }
+
+  function animerEntree(direction) {
+    gsap.fromTo(card,
+      { opacity: 0, x: direction * 50, scale: 0.95 },
+      { opacity: 1, x: 0, scale: 1, duration: 0.38, ease: 'back.out(1.5)' }
+    );
+  }
+
+  function allerA(nouvelleEtape, direction) {
+    gsap.to(card, {
+      opacity: 0, x: direction * -40, scale: 0.96, duration: 0.2, ease: 'power2.in',
+      onComplete: () => {
+        etape = nouvelleEtape;
+        renderContent();
+        animerEntree(direction);
+      },
+    });
+  }
+
+  async function fermer() {
+    gsap.to(card, { opacity: 0, y: -24, scale: 0.94, duration: 0.25, ease: 'power2.in' });
+    gsap.to(overlay, {
+      opacity: 0, duration: 0.4, delay: 0.15, ease: 'power2.in',
+      onComplete: async () => {
+        overlay.remove();
+        await apiFetch('/users/tutorial', { method: 'POST' });
+      },
+    });
+  }
+
+  renderContent();
+  animerEntree(1);
 }
 
 function initNotifBell() {
