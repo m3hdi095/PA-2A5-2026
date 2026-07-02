@@ -77,9 +77,9 @@ function applyTranslations() {
 function buildSidebarHTML() {
   return `
 <aside class="sidebar" id="sidebar">
-  <div class="sidebar-brand">
+  <a href="../index.html" class="sidebar-brand">
     <img src="../brand_assets/upcycleconnect_logo_font_blanc.png" alt="UpcycleConnect" class="sidebar-logo" onerror="this.style.display='none'"/>
-  </div>
+  </a>
 
   <nav class="sidebar-nav" aria-label="${_lang === 'en' ? 'Admin navigation' : 'Navigation admin'}">
     <div class="nav-section">
