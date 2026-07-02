@@ -34,6 +34,8 @@ services:
       DB_NAME: ${DB_NAME:-upcycleconnect}
       JWT_SECRET: ${JWT_SECRET:-upcycle_super_secret_key_2026_changez_moi_en_prod}
       STRIPE_SECRET_KEY: ${STRIPE_SECRET_KEY:-}
+      STRIPE_PUBLIC_KEY: ${STRIPE_PUBLIC_KEY:-}
+      STRIPE_WEBHOOK_SECRET: ${STRIPE_WEBHOOK_SECRET:-}
       ONESIGNAL_APP_ID: ${ONESIGNAL_APP_ID:-}
       ONESIGNAL_REST_API_KEY: ${ONESIGNAL_REST_API_KEY:-}
       SMTP_HOST: ${SMTP_HOST:-smtp.gmail.com}

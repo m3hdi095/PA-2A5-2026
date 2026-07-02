@@ -109,6 +109,7 @@ func InscrireEvenement(w http.ResponseWriter, r *http.Request) {
     }
     database.AddUpcyclingScore(userID, 3, "inscription_evenement")
     go envoyerEmailInscriptionEvenement(userID, req.EvenementID)
+    go creerFactureManuel(userID, "evenement")
     w.WriteHeader(http.StatusCreated)
     json.NewEncoder(w).Encode(map[string]string{"status": "inscrit"})
 }
