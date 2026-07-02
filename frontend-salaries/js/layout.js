@@ -67,12 +67,12 @@ const PAGE_NOMS_SAL = {
 function buildSidebarHTML() {
   return `
 <aside class="sidebar" id="sidebar">
-  <div class="sidebar-brand">
+  <a href="../index.html" class="sidebar-brand">
     <img src="../brand_assets/upcycleconnect_logo_font_blanc.png"
          alt="UpcycleConnect" class="sidebar-logo"
          onerror="this.style.display='none'"/>
     <span class="sidebar-brand-text">${_lang === 'en' ? 'Staff<br>Space' : 'Espace<br>Salariés'}</span>
-  </div>
+  </a>
 
   <nav class="sidebar-nav" aria-label="${_lang === 'en' ? 'Staff navigation' : 'Navigation salariés'}">
     <div class="nav-section">
