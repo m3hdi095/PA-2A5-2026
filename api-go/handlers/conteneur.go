@@ -132,6 +132,7 @@ func RecupererDepotParCode(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, `{"error":"Accès réservé aux professionnels"}`, http.StatusForbidden)
 		return
 	}
+	userID := r.Context().Value(middleware.ContextUserID).(uint)
 	var req struct {
 		CodeBarre string `json:"code_barre"`
 	}
@@ -144,6 +145,7 @@ func RecupererDepotParCode(w http.ResponseWriter, r *http.Request) {
 		jsonError(w, err.Error(), http.StatusBadRequest)
 		return
 	}
+	go creerFactureManuel(userID, "recuperation")
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(depot)
 }

@@ -44,6 +44,8 @@ func UpgradeAbonnement(w http.ResponseWriter, r *http.Request) {
 		jsonError(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
+	// Crée la facture immédiatement (le webhook Stripe ne peut pas atteindre localhost en dev)
+	go creerFactureManuel(userID, "abonnement")
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(map[string]string{"status": "premium activé"})
 }

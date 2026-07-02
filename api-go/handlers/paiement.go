@@ -27,6 +27,59 @@ func getPaiementService() *services.PaiementService {
 	return services.NewPaiementService()
 }
 
+// creerFactureManuel est appelé par les handlers métier (upgrade, inscription, récupération)
+// quand le webhook Stripe ne peut pas atteindre localhost en dev, ou arrive trop tard.
+// INSERT IGNORE sur numero_facture (UNIQUE) évite le doublon si le webhook tire quand même.
+func creerFactureManuel(userID uint, typePaiement string) {
+	var paiementID uint
+	var montant float64
+	err := database.DB.QueryRow(
+		`SELECT id_paiement, montant FROM paiement
+		 WHERE id_utilisateur = ? AND type_paiement = ?
+		 ORDER BY date_paiement DESC LIMIT 1`,
+		userID, typePaiement,
+	).Scan(&paiementID, &montant)
+	if err != nil || paiementID == 0 {
+		log.Printf("creerFactureManuel: pas de paiement '%s' trouvé pour user=%d", typePaiement, userID)
+		return
+	}
+
+	database.DB.Exec(`UPDATE paiement SET statut = 'paye' WHERE id_paiement = ?`, paiementID)
+
+	var nomClient string
+	database.DB.QueryRow(
+		`SELECT CONCAT(prenom, ' ', nom) FROM utilisateur WHERE id_utilisateur = ?`, userID,
+	).Scan(&nomClient)
+
+	montantHT := montant / 1.2
+	factureNum := fmt.Sprintf("UC-%05d", paiementID)
+	filename := fmt.Sprintf("uploads/factures/facture_%d.pdf", paiementID)
+	os.MkdirAll("uploads/factures", 0755)
+
+	pdfPath := ""
+	factureData := utils.FactureData{
+		Numero:     factureNum,
+		Date:       time.Now().Format("02/01/2006"),
+		NomClient:  nomClient,
+		MontantHT:  montantHT,
+		TVA:        20,
+		MontantTTC: montant,
+	}
+	if err := utils.GenerateInvoice(factureData, filename); err != nil {
+		log.Printf("creerFactureManuel: erreur PDF type=%s user=%d: %v", typePaiement, userID, err)
+	} else {
+		pdfPath = filename
+	}
+
+	if _, err := database.DB.Exec(
+		`INSERT IGNORE INTO facture (numero_facture, montant_ht, tva, statut, fichier_pdf, id_utilisateur, id_paiement)
+		 VALUES (?, ?, 20, 'payee', ?, ?, ?)`,
+		factureNum, montantHT, pdfPath, userID, paiementID,
+	); err != nil {
+		log.Printf("creerFactureManuel: erreur INSERT facture type=%s user=%d: %v", typePaiement, userID, err)
+	}
+}
+
 func CreatePaymentIntent(w http.ResponseWriter, r *http.Request) {
 	userID := r.Context().Value(middleware.ContextUserID).(uint)
 	var req struct {
