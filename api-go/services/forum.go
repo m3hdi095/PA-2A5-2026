@@ -30,13 +30,16 @@ func NewForumService() *ForumService {
 	return &ForumService{}
 }
 
-// messages visibles d'un forum, pagines par 30
+// messages visibles d'un forum, pagines par 30, avec nom de l'auteur
 func (s *ForumService) ListMessages(forumID uint, page, pageSize int) ([]models.ForumMessage, error) {
 	offset := (page - 1) * pageSize
 	rows, err := database.DB.Query(
-		`SELECT id_message, contenu, date_envoi, statut, id_utilisateur, id_forum, id_parent_message
-         FROM message WHERE id_forum = ? AND statut = 'visible'
-         ORDER BY date_envoi DESC LIMIT ? OFFSET ?`,
+		`SELECT m.id_message, m.contenu, m.date_envoi, m.statut, m.id_utilisateur, m.id_forum,
+		        m.id_parent_message, COALESCE(u.prenom,''), COALESCE(u.nom,'')
+         FROM message m
+         LEFT JOIN utilisateur u ON u.id_utilisateur = m.id_utilisateur
+         WHERE m.id_forum = ? AND m.statut = 'visible'
+         ORDER BY m.date_envoi ASC LIMIT ? OFFSET ?`,
 		forumID, pageSize, offset,
 	)
 	if err != nil {
@@ -47,7 +50,7 @@ func (s *ForumService) ListMessages(forumID uint, page, pageSize int) ([]models.
 	var messages []models.ForumMessage
 	for rows.Next() {
 		var m models.ForumMessage
-		rows.Scan(&m.ID, &m.Contenu, &m.DateEnvoi, &m.Statut, &m.IDUtilisateur, &m.IDForum, &m.IDParentMessage)
+		rows.Scan(&m.ID, &m.Contenu, &m.DateEnvoi, &m.Statut, &m.IDUtilisateur, &m.IDForum, &m.IDParentMessage, &m.AuteurPrenom, &m.AuteurNom)
 		messages = append(messages, m)
 	}
 	return messages, nil

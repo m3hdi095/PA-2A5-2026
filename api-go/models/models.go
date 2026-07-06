@@ -223,10 +223,12 @@ type ForumMessage struct {
 	ID              uint      `json:"id"`
 	Contenu         string    `json:"contenu"`
 	DateEnvoi       time.Time `json:"date_envoi"`
-	Statut          string    `json:"statut"` // visible, supprime
+	Statut          string    `json:"statut"`
 	IDUtilisateur   uint      `json:"id_utilisateur"`
 	IDForum         uint      `json:"id_forum"`
 	IDParentMessage *uint     `json:"id_parent_message,omitempty"`
+	AuteurPrenom    string    `json:"auteur_prenom"`
+	AuteurNom       string    `json:"auteur_nom"`
 }
 
 type Abonnement struct {
