@@ -73,6 +73,9 @@ async function chargerPlanning() {
     const maintenant = new Date();
     _allItems = items;
     const itemsFuturs = items.filter(i => i.dateHeure >= maintenant);
+    const itemsPasses = items.filter(i => i.dateHeure < maintenant);
+
+    renderHistorique(itemsPasses);
 
     if (!itemsFuturs.length) {
       container.innerHTML = `<div class="empty-state"><i class="fa-solid fa-calendar-xmark" aria-hidden="true"></i><p>Aucun événement à venir. <a href="formations.html" style="color:var(--teal-700);font-weight:600">Parcourir les événements</a></p></div>`;
@@ -135,6 +138,45 @@ function renderListeView(itemsFuturs) {
         }).join('')}
       </div>
     </div>`).join('');
+}
+
+function renderHistorique(itemsPasses) {
+  const container = document.getElementById('planning-historique');
+  if (!container) return;
+
+  if (!itemsPasses.length) {
+    container.innerHTML = `<p style="color:var(--text-muted);text-align:center;padding:20px 0">Aucun événement passé.</p>`;
+    return;
+  }
+
+  itemsPasses.sort((a, b) => b.dateHeure - a.dateHeure);
+  const locale = _lang === 'en' ? 'en-GB' : 'fr-FR';
+
+  container.innerHTML = `
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Titre</th>
+            <th>Type</th>
+            <th>Lieu</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${itemsPasses.map(e => {
+            const conf = TYPE_CONF[e.type] || TYPE_CONF.evenement;
+            return `
+              <tr>
+                <td>${e.dateHeure.toLocaleDateString(locale, { day: '2-digit', month: 'short', year: 'numeric' })}</td>
+                <td>${esc(e.titre)}</td>
+                <td><span class="badge ${conf.badge}"><i class="fa-solid ${conf.icone}" aria-hidden="true"></i> ${conf.label}</span></td>
+                <td>${esc(e.lieu) || '-'}</td>
+              </tr>`;
+          }).join('')}
+        </tbody>
+      </table>
+    </div>`;
 }
 
 window.basculerVue = function(vue) {

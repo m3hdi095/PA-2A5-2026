@@ -210,7 +210,7 @@ async function chargerEvenementsPassés() {
   } catch {}
 
   const maintenant = new Date();
-  const passes = inscrits.filter(e => new Date(e.date_debut || e.date || 0) < maintenant);
+  const passes = inscrits.filter(e => e.ev_date_debut && new Date(e.ev_date_debut) < maintenant);
   if (!passes.length) return;
 
   const locale = typeof _lang !== 'undefined' && _lang === 'en' ? 'en-GB' : 'fr-FR';
@@ -218,13 +218,13 @@ async function chargerEvenementsPassés() {
   if (!container) return;
 
   container.innerHTML = passes.map(e => {
-    const dateStr = new Date(e.date_debut || e.date).toLocaleDateString(locale, { day:'numeric', month:'short', year:'numeric' });
+    const dateStr = new Date(e.ev_date_debut).toLocaleDateString(locale, { day:'numeric', month:'short', year:'numeric' });
     return `<div style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px;background:var(--neutral-50);border-radius:var(--radius);border:1px solid var(--border)">
       <div>
-        <div style="font-weight:600;font-size:14px">${esc(e.titre)}</div>
-        <div style="font-size:12px;color:var(--text-muted);margin-top:2px"><i class="fa-solid fa-calendar-days"></i> ${dateStr}${e.lieu ? ` &nbsp;·&nbsp; <i class="fa-solid fa-location-dot"></i> ${esc(e.lieu)}` : ''}</div>
+        <div style="font-weight:600;font-size:14px">${esc(e.ev_titre)}</div>
+        <div style="font-size:12px;color:var(--text-muted);margin-top:2px"><i class="fa-solid fa-calendar-days"></i> ${dateStr}${e.ev_lieu ? ` &nbsp;·&nbsp; <i class="fa-solid fa-location-dot"></i> ${esc(e.ev_lieu)}` : ''}</div>
       </div>
-      <button class="btn btn-outline btn-sm" onclick="ouvrirQuestionnairePart(${e.id},'${esc(e.titre)}')">
+      <button class="btn btn-outline btn-sm" onclick="ouvrirQuestionnairePart(${e.id_evenement},'${esc(e.ev_titre)}')">
         <i class="fa-solid fa-star"></i> Questionnaire
       </button>
     </div>`;
