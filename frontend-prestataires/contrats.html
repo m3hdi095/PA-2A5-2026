@@ -16,15 +16,15 @@
       <div class="page-title-icon green">
         <i class="fa-solid fa-file-contract" aria-hidden="true"></i>
       </div>
-      Mes contrats
+      <span data-i18n="contrats_title">Mes contrats</span>
     </h1>
-    <p class="page-title-sub">Consultez vos contrats avec UpcycleConnect</p>
+    <p class="page-title-sub" data-i18n="contrats_subtitle">Consultez vos contrats avec UpcycleConnect</p>
   </div>
 </div>
 
 <section class="card animate-in" style="animation-delay:.1s">
   <div class="card-header">
-    <h2 class="card-title"><i class="fa-solid fa-list" aria-hidden="true"></i> Contrats actifs et historique</h2>
+    <h2 class="card-title"><i class="fa-solid fa-list" aria-hidden="true"></i> <span data-i18n="contrats_card_title">Contrats actifs et historique</span></h2>
   </div>
   <div id="contrats-list"><div class="loading-skeleton" style="height:120px;border-radius:8px"></div></div>
 </section>
@@ -41,7 +41,7 @@ async function chargerContrats() {
   const el = document.getElementById('contrats-list');
   const res = await apiFetch('/contrats/mon-contrat');
   if (!res || !res.ok) {
-    el.innerHTML = '<p class="empty-state-msg"><i class="fa-solid fa-triangle-exclamation"></i> Impossible de charger vos contrats.</p>';
+    el.innerHTML = `<p class="empty-state-msg"><i class="fa-solid fa-triangle-exclamation"></i> ${t('contrats_err_chargement')}</p>`;
     return;
   }
   const contrats = await res.json();
@@ -49,17 +49,17 @@ async function chargerContrats() {
     el.innerHTML = `
       <div class="empty-state">
         <i class="fa-solid fa-file-circle-xmark"></i>
-        <p>Aucun contrat pour le moment</p>
-        <span>Vos contrats apparaîtront ici une fois établis avec l'équipe UpcycleConnect.</span>
+        <p>${t('contrats_aucun')}</p>
+        <span>${t('contrats_aucun_sub')}</span>
       </div>`;
     return;
   }
   const statutClass = { actif: 'badge-success', termine: 'badge-neutral', resilie: 'badge-error' };
-  const statutLabel = { actif: 'Actif', termine: 'Terminé', resilie: 'Résilié' };
+  const statutLabel = { actif: t('contrats_statut_actif'), termine: t('contrats_statut_termine'), resilie: t('contrats_statut_resilie') };
   el.innerHTML = `
     <table class="data-table">
       <thead><tr>
-        <th>Type</th><th>Début</th><th>Fin</th><th>Montant</th><th>Statut</th><th>Document</th>
+        <th>${t('contrats_th_type')}</th><th>${t('contrats_th_debut')}</th><th>${t('contrats_th_fin')}</th><th>${t('contrats_th_montant')}</th><th>${t('contrats_th_statut')}</th><th>${t('contrats_th_document')}</th>
       </tr></thead>
       <tbody>
         ${contrats.map(c => `
@@ -70,7 +70,7 @@ async function chargerContrats() {
             <td>${Number(c.montant).toLocaleString('fr-FR',{style:'currency',currency:'EUR'})}</td>
             <td><span class="badge ${statutClass[c.statut] || 'badge-neutral'}">${statutLabel[c.statut] || c.statut}</span></td>
             <td>${c.fichier_pdf
-              ? `<a href="${esc(c.fichier_pdf)}" target="_blank" class="btn btn-ghost btn-sm"><i class="fa-solid fa-file-pdf"></i> Télécharger</a>`
+              ? `<a href="${esc(c.fichier_pdf)}" target="_blank" class="btn btn-ghost btn-sm"><i class="fa-solid fa-file-pdf"></i> ${t('facture_telecharger')}</a>`
               : '<span class="text-muted">—</span>'}</td>
           </tr>`).join('')}
       </tbody>
