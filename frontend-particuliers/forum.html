@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8"/>
+  <link rel="icon" type="image/png" href="../brand_assets/Favicon.png"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Forum communautaire | Espace Particuliers</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=Montserrat:wght@400;500;600&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" crossorigin="anonymous"/>
+  <link rel="stylesheet" href="css/style.css"/>
+</head>
+<body>
+
+<div class="page-title-row animate-in">
+  <div>
+    <h1>
+      <div class="page-title-icon green">
+        <i class="fa-solid fa-comments" aria-hidden="true"></i>
+      </div>
+      <span data-i18n="forum_title">Forum communautaire</span>
+    </h1>
+    <p class="page-title-sub" data-i18n="forum_subtitle">Échangez, partagez vos projets et posez vos questions à la communauté</p>
+  </div>
+</div>
+
+<!-- Onglets forums -->
+<div class="card animate-in" style="margin-bottom:16px">
+  <div style="display:flex;gap:8px;padding:16px 20px;border-bottom:1px solid var(--border)">
+    <button class="btn btn-primary btn-sm forum-tab active" data-forum="1" onclick="changerForum(1)">
+      <i class="fa-solid fa-seedling" aria-hidden="true"></i>
+      <span data-i18n="forum_tab1">Projets en cours</span>
+    </button>
+    <button class="btn btn-outline btn-sm forum-tab" data-forum="2" onclick="changerForum(2)">
+      <i class="fa-solid fa-circle-question" aria-hidden="true"></i>
+      <span data-i18n="forum_tab2">Questions & entraide</span>
+    </button>
+  </div>
+  <div id="forum-desc" class="card-body" style="padding:12px 20px;font-size:13px;color:var(--text-muted);background:var(--bg-light)"></div>
+</div>
+
+<!-- Messages -->
+<div class="card animate-in" id="messages-card">
+  <div class="card-header">
+    <h2><i class="fa-solid fa-list-ul" aria-hidden="true"></i> <span data-i18n="forum_messages">Messages</span></h2>
+    <span id="badge-count" class="badge badge-teal">0</span>
+  </div>
+  <div id="messages-list" class="card-body" style="display:flex;flex-direction:column;gap:12px;min-height:120px">
+    <div class="skeleton" style="height:70px;border-radius:var(--radius)"></div>
+    <div class="skeleton" style="height:70px;border-radius:var(--radius)"></div>
+  </div>
+</div>
+
+<!-- Nouveau message -->
+<div class="card animate-in" style="margin-top:16px">
+  <div class="card-header">
+    <h2><i class="fa-solid fa-pen-to-square" aria-hidden="true"></i> <span data-i18n="forum_nouveau">Nouveau message</span></h2>
+  </div>
+  <div class="card-body">
+    <div id="reply-banner" style="display:none;background:var(--green-50);border:1px solid var(--green-200);border-radius:8px;padding:10px 14px;margin-bottom:12px;font-size:13px;display:none;align-items:center;gap:10px">
+      <i class="fa-solid fa-reply" style="color:var(--green-700)"></i>
+      <span id="reply-label" style="flex:1;color:var(--green-900)"></span>
+      <button onclick="annulerReponse()" style="background:none;border:none;cursor:pointer;color:var(--green-700);font-size:16px">&times;</button>
+    </div>
+    <textarea id="msg-contenu" class="form-control" rows="4"
+      data-i18n-placeholder="forum_placeholder"
+      placeholder="Votre message… Partagez votre projet, posez une question ou répondez à la communauté."
+      style="resize:vertical;font-size:14px"></textarea>
+    <p id="msg-error" style="color:var(--danger,#ef5350);font-size:13px;margin-top:6px;display:none"></p>
+    <div style="display:flex;justify-content:flex-end;margin-top:12px">
+      <button class="btn btn-primary" id="btn-envoyer" onclick="envoyerMessage()">
+        <i class="fa-solid fa-paper-plane" aria-hidden="true"></i>
+        <span data-i18n="forum_btn_envoyer">Envoyer</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal signalement -->
+<div class="modal-overlay" id="modal-signal">
+  <div class="modal-box" style="max-width:420px">
+    <div class="modal-header">
+      <div class="modal-title"><i class="fa-solid fa-flag"></i> <span data-i18n="forum_signaler_titre">Signaler ce message</span></div>
+      <button class="modal-close" onclick="fermerSignal()">&times;</button>
+    </div>
+    <div class="modal-body">
+      <p style="font-size:13px;color:var(--text-muted);margin-bottom:16px" data-i18n="forum_signaler_desc">Le message sera masqué temporairement et examiné par notre équipe de modération.</p>
+      <select id="signal-raison" class="form-control">
+        <option value="inapproprie" data-i18n="forum_signal_inapp">Contenu inapproprié</option>
+        <option value="spam" data-i18n="forum_signal_spam">Spam</option>
+        <option value="harcèlement" data-i18n="forum_signal_harc">Harcèlement</option>
+        <option value="autre" data-i18n="forum_signal_autre">Autre</option>
+      </select>
+    </div>
+    <div class="form-actions" style="padding:16px 22px;border-top:1px solid var(--border)">
+      <button class="btn btn-outline" onclick="fermerSignal()" data-i18n="btn_cancel">Annuler</button>
+      <button class="btn btn-danger" onclick="confirmerSignal()">
+        <i class="fa-solid fa-flag"></i>
+        <span data-i18n="forum_btn_signaler">Signaler</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<script src="js/layout.js" data-page="forum"></script>
+<script>
+let forumActuel = 1;
+let messagesActuels = [];
+let replyID = null;
+let signalMsgID = null;
+
+const FORUM_META = {
+  1: { titre: 'Projets en cours — partagez vos créations', desc: 'Espace de partage pour montrer vos projets d\'upcycling en cours ou terminés. Photos et conseils bienvenus.' },
+  2: { titre: 'Questions & entraide upcycling',             desc: 'Posez vos questions techniques sur les matériaux, les outils ou les techniques. La communauté vous répond.' },
+};
+
+document.addEventListener('DOMContentLoaded', async () => {
+  await initLayout('forum');
+  await chargerMessages(1);
+
+  document.getElementById('modal-signal').addEventListener('click', e => {
+    if (e.target === document.getElementById('modal-signal')) fermerSignal();
+  });
+});
+
+function changerForum(id) {
+  forumActuel = id;
+  document.querySelectorAll('.forum-tab').forEach(btn => {
+    const actif = parseInt(btn.dataset.forum) === id;
+    btn.classList.toggle('btn-primary', actif);
+    btn.classList.toggle('btn-outline', !actif);
+    btn.classList.toggle('active', actif);
+  });
+  annulerReponse();
+  chargerMessages(id);
+}
+
+async function chargerMessages(forumID) {
+  const list = document.getElementById('messages-list');
+  const descEl = document.getElementById('forum-desc');
+  list.innerHTML = '<div class="skeleton" style="height:70px;border-radius:var(--radius)"></div><div class="skeleton" style="height:70px;border-radius:var(--radius);margin-top:12px"></div>';
+
+  const meta = FORUM_META[forumID];
+  if (descEl && meta) descEl.textContent = meta.desc;
+
+  try {
+    const res = await apiFetch(`/forum?forum_id=${forumID}&page=1`);
+    if (res?.ok) {
+      const data = await res.json();
+      messagesActuels = Array.isArray(data) ? data : [];
+    } else {
+      messagesActuels = [];
+    }
+  } catch { messagesActuels = []; }
+
+  renderMessages();
+}
+
+function renderMessages() {
+  const list = document.getElementById('messages-list');
+  const badge = document.getElementById('badge-count');
+  badge.textContent = messagesActuels.length;
+
+  const locale = _lang === 'en' ? 'en-GB' : 'fr-FR';
+
+  if (!messagesActuels.length) {
+    list.innerHTML = `<div class="empty-state" style="padding:40px 0">
+      <i class="fa-solid fa-comments" aria-hidden="true"></i>
+      <p>${t('forum_vide')}</p>
+    </div>`;
+    return;
+  }
+
+  list.innerHTML = messagesActuels.map(m => {
+    const auteur = [m.auteur_prenom, m.auteur_nom].filter(Boolean).join(' ') || t('forum_anonyme');
+    const initiale = auteur.charAt(0).toUpperCase();
+    const date = new Date(m.date_envoi).toLocaleDateString(locale, { day:'numeric', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' });
+    const isReply = m.id_parent_message != null;
+
+    return `<div class="forum-msg${isReply ? ' forum-msg-reply' : ''}" style="${isReply ? 'margin-left:32px;border-left:3px solid var(--green-200);' : ''}background:var(--bg-light);border-radius:var(--radius);padding:14px 18px;position:relative">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
+        <div style="width:32px;height:32px;border-radius:50%;background:var(--green-600);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;flex-shrink:0">${esc(initiale)}</div>
+        <div style="flex:1">
+          <span style="font-weight:600;font-size:13px;color:var(--text)">${esc(auteur)}</span>
+          <span style="font-size:11px;color:var(--text-muted);margin-left:8px">${date}</span>
+        </div>
+        <div style="display:flex;gap:6px">
+          <button class="btn btn-ghost btn-sm" onclick="preparerReponse(${m.id}, '${esc(auteur)}')" title="${t('forum_repondre')}" style="font-size:12px">
+            <i class="fa-solid fa-reply" aria-hidden="true"></i>
+          </button>
+          <button class="btn btn-ghost btn-sm" onclick="ouvrirSignal(${m.id})" title="${t('forum_signaler')}" style="font-size:12px;color:var(--text-muted)">
+            <i class="fa-solid fa-flag" aria-hidden="true"></i>
+          </button>
+        </div>
+      </div>
+      <p style="margin:0;font-size:14px;color:var(--text);line-height:1.6;white-space:pre-wrap">${esc(m.contenu)}</p>
+    </div>`;
+  }).join('');
+}
+
+function preparerReponse(msgID, auteur) {
+  replyID = msgID;
+  const banner = document.getElementById('reply-banner');
+  document.getElementById('reply-label').textContent = `${t('forum_reponse_a')} ${auteur}`;
+  banner.style.display = 'flex';
+  document.getElementById('msg-contenu').focus();
+  document.getElementById('msg-contenu').scrollIntoView({ behavior:'smooth', block:'center' });
+}
+
+function annulerReponse() {
+  replyID = null;
+  const banner = document.getElementById('reply-banner');
+  banner.style.display = 'none';
+}
+
+async function envoyerMessage() {
+  const contenu = document.getElementById('msg-contenu').value.trim();
+  const errEl = document.getElementById('msg-error');
+  errEl.style.display = 'none';
+
+  if (!contenu) {
+    errEl.textContent = t('forum_err_vide');
+    errEl.style.display = 'block';
+    return;
+  }
+
+  const btn = document.getElementById('btn-envoyer');
+  btn.disabled = true;
+
+  try {
+    const body = { contenu, id_forum: forumActuel };
+    if (replyID) body.id_parent_message = replyID;
+
+    const res = await apiFetch('/forum/messages', { method:'POST', body: JSON.stringify(body) });
+    if (res?.ok) {
+      document.getElementById('msg-contenu').value = '';
+      annulerReponse();
+      showToast(t('forum_msg_envoye'), 'success');
+      await chargerMessages(forumActuel);
+    } else {
+      const err = await res?.json().catch(() => ({}));
+      errEl.textContent = err?.error || t('forum_err_envoi');
+      errEl.style.display = 'block';
+    }
+  } catch {
+    errEl.textContent = t('forum_err_reseau');
+    errEl.style.display = 'block';
+  }
+
+  btn.disabled = false;
+}
+
+function ouvrirSignal(msgID) {
+  signalMsgID = msgID;
+  document.getElementById('modal-signal').classList.add('open');
+}
+function fermerSignal() {
+  signalMsgID = null;
+  document.getElementById('modal-signal').classList.remove('open');
+}
+
+async function confirmerSignal() {
+  if (!signalMsgID) return;
+  const raison = document.getElementById('signal-raison').value;
+  try {
+    const res = await apiFetch('/forum/signalements', {
+      method: 'POST',
+      body: JSON.stringify({ id_message: signalMsgID, raison }),
+    });
+    if (res?.ok) {
+      showToast(t('forum_signal_ok'), 'success');
+      fermerSignal();
+      await chargerMessages(forumActuel);
+    } else {
+      showToast(t('forum_err_envoi'), 'error');
+    }
+  } catch {
+    showToast(t('forum_err_reseau'), 'error');
+  }
+}
+
+function esc(str) {
+  return String(str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+</script>
+</body>
+</html>
