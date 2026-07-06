@@ -65,6 +65,7 @@ const PAGE_NOMS = {
   planning:   'Planning',
   depot:      'Dépôt en conteneur',
   conseils:   'Espace conseil',
+  forum:      'Forum communautaire',
   profil:     'Mon profil',
 };
 
@@ -72,12 +73,12 @@ const PAGE_NOMS = {
 function buildSidebarHTML() {
   return `
 <aside class="sidebar" id="sidebar">
-  <a href="../index.html" class="sidebar-brand">
+  <div class="sidebar-brand">
     <img src="../brand_assets/upcycleconnect_logo_font_blanc.png"
          alt="UpcycleConnect" class="sidebar-logo"
          onerror="this.style.display='none'"/>
     <span class="sidebar-brand-text">Espace<br>Particuliers</span>
-  </a>
+  </div>
 
   <nav class="sidebar-nav" aria-label="Navigation particuliers">
     <div class="nav-section">
@@ -112,6 +113,11 @@ function buildSidebarHTML() {
       <a href="conseils.html" class="nav-link" data-page="conseils">
         <i class="fa-solid fa-lightbulb" aria-hidden="true"></i>
         ${_lang === 'en' ? 'Tips & advice' : 'Espace conseil'}
+      </a>
+      <a href="forum.html" class="nav-link" data-page="forum">
+        <i class="fa-solid fa-comments" aria-hidden="true"></i>
+        ${t('nav_forum')}
+        <span class="nav-badge" id="badge-forum" style="display:none"></span>
       </a>
     </div>
     <div class="nav-section">
