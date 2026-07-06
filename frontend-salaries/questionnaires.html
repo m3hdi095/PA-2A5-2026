@@ -16,17 +16,17 @@
       <div class="page-title-icon teal">
         <i class="fa-solid fa-clipboard-question" aria-hidden="true"></i>
       </div>
-      Questionnaires de satisfaction
+      <span data-i18n="q_title">Questionnaires de satisfaction</span>
     </h1>
-    <p class="page-title-sub">Envoyez des questionnaires aux participants de vos formations et événements</p>
+    <p class="page-title-sub" data-i18n="q_subtitle">Envoyez des questionnaires aux participants de vos formations et événements</p>
   </div>
 </div>
 
 <!-- Mes événements -->
 <section class="card animate-in" style="animation-delay:.1s">
   <div class="card-header">
-    <h2 class="card-title"><i class="fa-solid fa-calendar-days"></i> Mes formations &amp; événements</h2>
-    <p class="card-subtitle" style="margin:0;font-size:13px;color:var(--text-secondary)">Sélectionnez un événement pour gérer son questionnaire</p>
+    <h2 class="card-title"><i class="fa-solid fa-calendar-days"></i> <span data-i18n="q_mes_evenements">Mes formations &amp; événements</span></h2>
+    <p class="card-subtitle" style="margin:0;font-size:13px;color:var(--text-secondary)" data-i18n="q_select_event">Sélectionnez un événement pour gérer son questionnaire</p>
   </div>
   <div id="evenements-list"><div class="loading-skeleton" style="height:100px;border-radius:8px"></div></div>
 </section>
@@ -36,16 +36,16 @@
   <div class="card-header">
     <h2 class="card-title" id="q-event-titre"><i class="fa-solid fa-clipboard-list"></i> Questionnaire</h2>
     <button class="btn btn-ghost btn-sm" id="btn-retour">
-      <i class="fa-solid fa-arrow-left"></i> Retour
+      <i class="fa-solid fa-arrow-left"></i> <span data-i18n="q_btn_retour">Retour</span>
     </button>
   </div>
 
   <div id="questionnaire-detail">
     <!-- Créer ou afficher -->
     <div id="zone-creer" style="padding:16px">
-      <p class="empty-state-msg"><i class="fa-solid fa-info-circle"></i> Aucun questionnaire pour cet événement.</p>
+      <p class="empty-state-msg"><i class="fa-solid fa-info-circle"></i> <span data-i18n="q_aucun_questionnaire">Aucun questionnaire pour cet événement.</span></p>
       <button class="btn btn-primary" id="btn-creer-q">
-        <i class="fa-solid fa-plus"></i> Créer un questionnaire
+        <i class="fa-solid fa-plus"></i> <span data-i18n="q_btn_creer_un">Créer un questionnaire</span>
       </button>
     </div>
 
@@ -54,10 +54,10 @@
         <span id="q-statut-badge"></span>
         <div style="display:flex;gap:8px">
           <button class="btn btn-outline btn-sm" id="btn-voir-reponses">
-            <i class="fa-solid fa-chart-bar"></i> Voir les réponses
+            <i class="fa-solid fa-chart-bar"></i> <span data-i18n="q_btn_voir_reponses">Voir les réponses</span>
           </button>
           <button class="btn btn-primary btn-sm" id="btn-envoyer-q">
-            <i class="fa-solid fa-paper-plane"></i> Envoyer aux participants
+            <i class="fa-solid fa-paper-plane"></i> <span data-i18n="q_btn_envoyer">Envoyer aux participants</span>
           </button>
         </div>
       </div>
@@ -69,9 +69,9 @@
 <!-- Réponses -->
 <section id="section-reponses" class="card animate-in" style="display:none;animation-delay:.25s">
   <div class="card-header">
-    <h2 class="card-title"><i class="fa-solid fa-chart-bar"></i> Réponses reçues</h2>
+    <h2 class="card-title"><i class="fa-solid fa-chart-bar"></i> <span data-i18n="q_reponses_recues">Réponses reçues</span></h2>
     <button class="btn btn-ghost btn-sm" id="btn-retour-q">
-      <i class="fa-solid fa-arrow-left"></i> Questionnaire
+      <i class="fa-solid fa-arrow-left"></i> <span data-i18n="q_btn_retour_q">Questionnaire</span>
     </button>
   </div>
   <div id="reponses-list"><div class="loading-skeleton" style="height:80px;border-radius:8px"></div></div>
@@ -81,38 +81,38 @@
 <div id="modal-creer-q" class="modal-overlay" style="display:none" role="dialog" aria-modal="true">
   <div class="modal-content" style="max-width:520px">
     <div class="modal-header">
-      <h3><i class="fa-solid fa-clipboard-question"></i> Nouveau questionnaire</h3>
+      <h3><i class="fa-solid fa-clipboard-question"></i> <span data-i18n="q_modal_titre">Nouveau questionnaire</span></h3>
       <button class="modal-close" id="modal-q-close">&times;</button>
     </div>
     <div class="modal-body">
-      <p style="font-size:13px;color:var(--text-secondary);margin-bottom:1rem">
+      <p style="font-size:13px;color:var(--text-secondary);margin-bottom:1rem" data-i18n="q_modal_intro">
         Ajoutez vos questions. Les participants pourront y répondre en ligne.
       </p>
       <div id="questions-builder">
         <div class="question-item" data-index="0">
           <div class="form-group">
             <label class="form-label">Question 1</label>
-            <input type="text" class="form-control q-texte" placeholder="Votre question…"/>
+            <input type="text" class="form-control q-texte" data-i18n-placeholder="q_placeholder_question" placeholder="Votre question…"/>
           </div>
           <div class="form-group">
-            <label class="form-label">Type de réponse</label>
+            <label class="form-label" data-i18n="q_label_type_reponse">Type de réponse</label>
             <select class="form-control form-select q-type">
-              <option value="texte">Texte libre</option>
-              <option value="note">Note (1-5)</option>
-              <option value="oui_non">Oui / Non</option>
+              <option value="texte" data-i18n="q_opt_texte_libre">Texte libre</option>
+              <option value="note" data-i18n="q_opt_note">Note (1-5)</option>
+              <option value="oui_non" data-i18n="q_opt_oui_non">Oui / Non</option>
             </select>
           </div>
         </div>
       </div>
       <button type="button" class="btn btn-ghost btn-sm" id="btn-ajouter-question" style="margin-top:8px">
-        <i class="fa-solid fa-plus"></i> Ajouter une question
+        <i class="fa-solid fa-plus"></i> <span data-i18n="q_btn_ajouter_question">Ajouter une question</span>
       </button>
       <p id="q-modal-error" class="form-error" style="display:none"></p>
     </div>
     <div class="modal-footer">
-      <button class="btn btn-outline" id="btn-q-annuler">Annuler</button>
+      <button class="btn btn-outline" id="btn-q-annuler" data-i18n="q_btn_annuler">Annuler</button>
       <button class="btn btn-primary" id="btn-q-sauvegarder">
-        <i class="fa-solid fa-floppy-disk"></i> Créer le questionnaire
+        <i class="fa-solid fa-floppy-disk"></i> <span data-i18n="q_btn_creer_le">Créer le questionnaire</span>
       </button>
     </div>
   </div>
@@ -151,26 +151,27 @@ async function chargerEvenements() {
   const el = document.getElementById('evenements-list');
   const res = await apiFetch('/evenements/mes-creations');
   if (!res || !res.ok) {
-    el.innerHTML = '<p class="empty-state-msg"><i class="fa-solid fa-triangle-exclamation"></i> Impossible de charger vos événements.</p>';
+    el.innerHTML = `<p class="empty-state-msg"><i class="fa-solid fa-triangle-exclamation"></i> ${t('q_err_chargement_evts')}</p>`;
     return;
   }
   const evts = await res.json();
   if (!evts || !evts.length) {
-    el.innerHTML = `<div class="empty-state"><i class="fa-solid fa-calendar-xmark"></i><p>Aucun événement créé</p><span>Créez d'abord des formations ou événements depuis la page Événements.</span></div>`;
+    el.innerHTML = `<div class="empty-state"><i class="fa-solid fa-calendar-xmark"></i><p>${t('q_aucun_evenement')}</p><span>${t('q_aucun_evenement_sub')}</span></div>`;
     return;
   }
+  const locale = _lang === 'en' ? 'en-GB' : 'fr-FR';
   el.innerHTML = `
     <table class="data-table">
-      <thead><tr><th>Titre</th><th>Type</th><th>Date</th><th>Places</th><th>Action</th></tr></thead>
+      <thead><tr><th>${t('q_th_titre')}</th><th>${t('q_th_type')}</th><th>${t('q_th_date')}</th><th>${t('q_th_places')}</th><th>${t('q_th_action')}</th></tr></thead>
       <tbody>
         ${evts.map(e => `
           <tr>
             <td><strong>${esc(e.titre)}</strong></td>
             <td>${esc(e.type || '—')}</td>
-            <td>${e.date_debut ? new Date(e.date_debut).toLocaleDateString('fr-FR') : '—'}</td>
+            <td>${e.date_debut ? new Date(e.date_debut).toLocaleDateString(locale) : '—'}</td>
             <td>${e.nb_places || '—'}</td>
             <td><button class="btn btn-outline btn-sm" onclick="ouvrirQuestionnaire(${e.id},'${esc(e.titre)}')">
-              <i class="fa-solid fa-clipboard-question"></i> Questionnaire
+              <i class="fa-solid fa-clipboard-question"></i> ${t('q_btn_retour_q')}
             </button></td>
           </tr>`).join('')}
       </tbody>
@@ -203,17 +204,18 @@ function afficherQuestionnaire(q) {
   document.getElementById('zone-creer').style.display = 'none';
   document.getElementById('zone-questionnaire').style.display = '';
   const statutClass = { actif: 'badge-success', brouillon: 'badge-neutral', envoye: 'badge-info' };
-  document.getElementById('q-statut-badge').innerHTML = `<span class="badge ${statutClass[q.statut] || 'badge-neutral'}">${q.statut || 'brouillon'}</span>`;
+  const statutLabel = { actif: t('q_statut_actif'), brouillon: t('q_statut_brouillon'), envoye: t('q_statut_envoye') };
+  document.getElementById('q-statut-badge').innerHTML = `<span class="badge ${statutClass[q.statut] || 'badge-neutral'}">${statutLabel[q.statut] || statutLabel.brouillon}</span>`;
 
   let questions = [];
   try { questions = JSON.parse(q.questions || '[]'); } catch {}
 
   const listEl = document.getElementById('q-questions-list');
   if (!questions.length) {
-    listEl.innerHTML = '<p class="empty-state-msg">Aucune question dans ce questionnaire.</p>';
+    listEl.innerHTML = `<p class="empty-state-msg">${t('q_aucune_question')}</p>`;
     return;
   }
-  const typeLabel = { texte: 'Texte libre', note: 'Note 1–5', oui_non: 'Oui / Non' };
+  const typeLabel = { texte: t('q_opt_texte_libre'), note: t('q_type_note_court'), oui_non: t('q_opt_oui_non') };
   listEl.innerHTML = questions.map((q, i) => `
     <div class="question-preview" style="padding:12px;border:1px solid var(--border-color);border-radius:8px;margin-bottom:8px">
       <div style="font-weight:600;margin-bottom:4px">${i+1}. ${esc(q.question || q.texte || '')}</div>
@@ -239,17 +241,17 @@ function creerItemQuestion(index) {
   return `
     <div class="question-item" style="padding:12px;border:1px solid var(--border-color);border-radius:8px;margin-bottom:8px" data-index="${index}">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
-        <span style="font-weight:600;font-size:13px">Question ${index + 1}</span>
-        ${index > 0 ? `<button type="button" class="btn btn-ghost btn-sm" onclick="this.closest('.question-item').remove()" aria-label="Supprimer"><i class="fa-solid fa-trash"></i></button>` : ''}
+        <span style="font-weight:600;font-size:13px">${t('q_question_label')} ${index + 1}</span>
+        ${index > 0 ? `<button type="button" class="btn btn-ghost btn-sm" onclick="this.closest('.question-item').remove()" aria-label="${t('q_supprimer')}"><i class="fa-solid fa-trash"></i></button>` : ''}
       </div>
       <div class="form-group">
-        <input type="text" class="form-control q-texte" placeholder="Votre question…"/>
+        <input type="text" class="form-control q-texte" placeholder="${t('q_placeholder_question')}"/>
       </div>
       <div class="form-group" style="margin-bottom:0">
         <select class="form-control form-select q-type">
-          <option value="texte">Texte libre</option>
-          <option value="note">Note (1-5)</option>
-          <option value="oui_non">Oui / Non</option>
+          <option value="texte">${t('q_opt_texte_libre')}</option>
+          <option value="note">${t('q_opt_note')}</option>
+          <option value="oui_non">${t('q_opt_oui_non')}</option>
         </select>
       </div>
     </div>`;
@@ -273,36 +275,36 @@ async function sauvegarderQuestionnaire() {
     questions.push({ question: texte, type });
   });
   if (!valide || !questions.length) {
-    document.getElementById('q-modal-error').textContent = 'Remplissez toutes les questions.';
+    document.getElementById('q-modal-error').textContent = t('q_err_remplir');
     document.getElementById('q-modal-error').style.display = 'block';
     return;
   }
   const btn = document.getElementById('btn-q-sauvegarder');
-  btn.disabled = true; btn.textContent = 'Sauvegarde…';
+  btn.disabled = true; btn.textContent = t('q_sauvegarde_en_cours');
   const res = await apiFetch(`/evenements/${_evenementActif}/questionnaire`, {
     method: 'POST',
     body: JSON.stringify({ questions: JSON.stringify(questions) }),
   });
-  btn.disabled = false; btn.innerHTML = '<i class="fa-solid fa-floppy-disk"></i> Créer le questionnaire';
+  btn.disabled = false; btn.innerHTML = `<i class="fa-solid fa-floppy-disk"></i> ${t('q_btn_creer_le')}`;
   if (!res || !res.ok) {
-    document.getElementById('q-modal-error').textContent = 'Erreur lors de la sauvegarde.';
+    document.getElementById('q-modal-error').textContent = t('q_err_sauvegarde');
     document.getElementById('q-modal-error').style.display = 'block';
     return;
   }
   const q = await res.json();
   fermerModal();
-  showToast('Questionnaire créé !', 'success');
+  showToast(t('q_succes_cree'), 'success');
   await ouvrirQuestionnaire(_evenementActif, document.getElementById('q-event-titre').textContent);
 }
 
 async function envoyerQuestionnaire() {
   if (!_questionnaireActif) return;
   const btn = document.getElementById('btn-envoyer-q');
-  btn.disabled = true; btn.textContent = 'Envoi…';
+  btn.disabled = true; btn.textContent = t('q_envoi_en_cours');
   const res = await apiFetch(`/questionnaires/${_questionnaireActif.id}/envoyer`, { method: 'POST' });
-  btn.disabled = false; btn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> Envoyer aux participants';
-  if (!res || !res.ok) { showToast('Erreur lors de l\'envoi', 'error'); return; }
-  showToast('Questionnaire envoyé aux participants !', 'success');
+  btn.disabled = false; btn.innerHTML = `<i class="fa-solid fa-paper-plane"></i> ${t('q_btn_envoyer')}`;
+  if (!res || !res.ok) { showToast(t('q_err_envoi'), 'error'); return; }
+  showToast(t('q_succes_envoye'), 'success');
 }
 
 async function voirReponses() {
@@ -313,19 +315,20 @@ async function voirReponses() {
   el.innerHTML = '<div class="loading-skeleton" style="height:80px;border-radius:8px"></div>';
   const res = await apiFetch(`/questionnaires/${_questionnaireActif.id}/reponses`);
   if (!res || !res.ok) {
-    el.innerHTML = '<p class="empty-state-msg"><i class="fa-solid fa-triangle-exclamation"></i> Erreur de chargement.</p>';
+    el.innerHTML = `<p class="empty-state-msg"><i class="fa-solid fa-triangle-exclamation"></i> ${t('q_err_chargement')}</p>`;
     return;
   }
   const reponses = await res.json();
   if (!reponses || !reponses.length) {
-    el.innerHTML = '<div class="empty-state"><i class="fa-solid fa-inbox"></i><p>Aucune réponse reçue pour le moment</p></div>';
+    el.innerHTML = `<div class="empty-state"><i class="fa-solid fa-inbox"></i><p>${t('q_aucune_reponse')}</p></div>`;
     return;
   }
+  const locale = _lang === 'en' ? 'en-GB' : 'fr-FR';
   el.innerHTML = reponses.map(r => `
     <div class="card" style="margin-bottom:8px">
       <div style="padding:14px">
-        <div style="font-weight:600;margin-bottom:4px">${esc(r.participant || 'Anonyme')}</div>
-        <div style="font-size:12px;color:var(--text-secondary);margin-bottom:8px">${r.date ? new Date(r.date).toLocaleDateString('fr-FR') : '—'}</div>
+        <div style="font-weight:600;margin-bottom:4px">${esc(r.participant || t('q_anonyme'))}</div>
+        <div style="font-size:12px;color:var(--text-secondary);margin-bottom:8px">${r.date ? new Date(r.date).toLocaleDateString(locale) : '—'}</div>
         <pre style="font-size:12px;white-space:pre-wrap;background:var(--bg-secondary);padding:8px;border-radius:6px">${esc(r.reponses || '')}</pre>
       </div>
     </div>`).join('');
