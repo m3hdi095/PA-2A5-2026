@@ -37,24 +37,24 @@
       <!-- Likes + vues -->
       <div style="display:flex;gap:16px;align-items:center;padding:12px 0;border-top:1px solid var(--border);border-bottom:1px solid var(--border);margin-bottom:20px">
         <button id="mc-like-btn" class="btn btn-outline btn-sm" onclick="toggleLike()">
-          <i class="fa-regular fa-heart"></i> <span id="mc-nb-likes">0</span> j'aime
+          <i class="fa-regular fa-heart"></i> <span id="mc-nb-likes">0</span> <span data-i18n="conseils_likes">j'aime</span>
         </button>
         <span style="font-size:12px;color:var(--text-muted)">
-          <i class="fa-solid fa-eye"></i> <span id="mc-nb-vues">-</span> vues
+          <i class="fa-solid fa-eye"></i> <span id="mc-nb-vues">-</span> <span data-i18n="conseils_vues">vues</span>
         </span>
       </div>
 
       <!-- Commentaires -->
       <h4 style="font-size:13px;font-weight:700;margin-bottom:12px;color:var(--text)">
-        <i class="fa-solid fa-comments" style="color:var(--teal-500)"></i> Commentaires
+        <i class="fa-solid fa-comments" style="color:var(--teal-500)"></i> <span data-i18n="conseils_comments_title">Commentaires</span>
       </h4>
       <div id="mc-commentaires" style="display:flex;flex-direction:column;gap:10px;margin-bottom:16px"></div>
 
       <!-- Formulaire nouveau commentaire -->
       <form id="form-commentaire" style="display:flex;flex-direction:column;gap:8px">
-        <textarea id="comment-input" class="form-control" rows="3" placeholder="Laisser un commentaire... (soumis à modération)" style="resize:vertical"></textarea>
+        <textarea id="comment-input" class="form-control" rows="3" data-i18n-placeholder="conseils_comment_placeholder" placeholder="Laisser un commentaire... (soumis à modération)" style="resize:vertical"></textarea>
         <button type="submit" class="btn btn-primary btn-sm" style="align-self:flex-end">
-          <i class="fa-solid fa-paper-plane"></i> Envoyer
+          <i class="fa-solid fa-paper-plane"></i> <span data-i18n="conseils_btn_envoyer">Envoyer</span>
         </button>
       </form>
     </div>
@@ -98,7 +98,7 @@ async function chargerConseils() {
   } catch {}
   const grid = document.getElementById('conseils-grid');
   if (!conseilsData.length) {
-    grid.innerHTML = '<p style="text-align:center;color:var(--text-muted);padding:40px;grid-column:1/-1">Aucun article disponible pour le moment.</p>';
+    grid.innerHTML = `<p style="text-align:center;color:var(--text-muted);padding:40px;grid-column:1/-1">${t('conseils_aucun_article')}</p>`;
     return;
   }
   grid.innerHTML = conseilsData.map((c, i) => rendreCarte(c, i)).join('');
@@ -113,7 +113,7 @@ window.ouvrirConseil = async (id) => {
   document.getElementById('mc-contenu').innerHTML = esc(c.contenu || '').replace(/\n/g, '<br>');
   document.getElementById('mc-nb-likes').textContent = c.nb_likes || 0;
   document.getElementById('mc-nb-vues').textContent = c.nb_vues || 0;
-  document.getElementById('mc-commentaires').innerHTML = '<p style="color:var(--text-muted);font-size:13px">Chargement...</p>';
+  document.getElementById('mc-commentaires').innerHTML = `<p style="color:var(--text-muted);font-size:13px">${t('conseils_chargement')}</p>`;
   document.getElementById('mc-like-btn').classList.remove('btn-primary');
   document.getElementById('mc-like-btn').classList.add('btn-outline');
   document.getElementById('modal-conseil').classList.add('open');
@@ -131,7 +131,7 @@ async function chargerCommentaires(id) {
     const res = await apiFetch(`/conseils/${id}/commentaires`);
     const list = res?.ok ? await res.json() : [];
     if (!Array.isArray(list) || !list.length) {
-      wrap.innerHTML = '<p style="color:var(--text-muted);font-size:13px;text-align:center;padding:8px">Aucun commentaire pour l\'instant. Soyez le premier !</p>';
+      wrap.innerHTML = `<p style="color:var(--text-muted);font-size:13px;text-align:center;padding:8px">${t('conseils_aucun_commentaire')}</p>`;
       return;
     }
     wrap.innerHTML = list.map(cm => `
@@ -143,7 +143,7 @@ async function chargerCommentaires(id) {
         <div style="font-size:11px;color:var(--text-muted);margin-top:6px">${cm.date_envoi ? new Date(cm.date_envoi).toLocaleString('fr-FR',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'}) : ''}</div>
       </div>`).join('');
   } catch {
-    wrap.innerHTML = '<p style="color:var(--danger-text);font-size:13px">Impossible de charger les commentaires.</p>';
+    wrap.innerHTML = `<p style="color:var(--danger-text);font-size:13px">${t('conseils_erreur_commentaires')}</p>`;
   }
 }
 
@@ -196,12 +196,12 @@ document.addEventListener('DOMContentLoaded', async () => {
       });
       if (res?.ok) {
         input.value = '';
-        showToast('Commentaire soumis à modération', 'success');
+        showToast(t('conseils_commentaire_soumis'), 'success');
       } else {
         const d = res ? await res.json().catch(() => ({})) : {};
-        showToast(d.error || 'Erreur', 'error');
+        showToast(d.error || t('conseils_erreur_generique'), 'error');
       }
-    } catch { showToast('Service indisponible', 'error'); }
+    } catch { showToast(t('conseils_service_indisponible'), 'error'); }
     if (btn) btn.disabled = false;
   });
 });
