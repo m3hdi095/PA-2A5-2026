@@ -148,17 +148,17 @@ function afficherHistoriqueScore(total, historique) {
   if (!list) return;
 
   if (!historique.length) {
-    list.innerHTML = '<p style="text-align:center;padding:28px;color:var(--text-muted);font-size:13px">Aucune action enregistrée pour le moment.</p>';
+    list.innerHTML = `<p style="text-align:center;padding:28px;color:var(--text-muted);font-size:13px">${t('score_aucune_action')}</p>`;
     return;
   }
 
   const motifs = {
-    depot_conteneur:        { label: 'Dépôt en conteneur',                     icon: 'fa-box',              color: '#0d9488' },
-    creation_projet:        { label: 'Projet upcycling créé',                  icon: 'fa-screwdriver-wrench',color: '#7c3aed' },
-    annonce_validee:        { label: 'Annonce validée',                         icon: 'fa-circle-check',     color: '#16a34a' },
-    inscription_evenement:  { label: 'Inscription à un événement',              icon: 'fa-calendar-check',   color: '#0284c7' },
-    questionnaire_complete: { label: 'Questionnaire de satisfaction rempli',    icon: 'fa-clipboard-check',  color: '#d97706' },
-    projet_partage:         { label: 'Projet partagé avec la communauté',       icon: 'fa-share-nodes',      color: '#db2777' },
+    depot_conteneur:        { label: t('motif_depot_conteneur'),        icon: 'fa-box',               color: '#0d9488' },
+    creation_projet:        { label: t('motif_creation_projet'),        icon: 'fa-screwdriver-wrench', color: '#7c3aed' },
+    annonce_validee:        { label: t('motif_annonce_validee'),        icon: 'fa-circle-check',      color: '#16a34a' },
+    inscription_evenement:  { label: t('motif_inscription_evenement'),  icon: 'fa-calendar-check',    color: '#0284c7' },
+    questionnaire_complete: { label: t('motif_questionnaire_complete'), icon: 'fa-clipboard-check',   color: '#d97706' },
+    projet_partage:         { label: t('motif_projet_partage'),         icon: 'fa-share-nodes',       color: '#db2777' },
   };
   const locale = typeof _lang !== 'undefined' && _lang === 'en' ? 'en-GB' : 'fr-FR';
 

@@ -95,6 +95,16 @@
   "filter_plus_recent":     "Most recent",
   "filter_prix_asc":        "Price: low to high",
   "filter_prix_desc":       "Price: high to low",
+  "filter_tous_projets":    "All projects",
+  "filter_proj_meuble":     "Furniture",
+  "filter_proj_vetement":   "Clothing",
+  "filter_proj_decoration": "Decoration",
+  "filter_proj_art":        "Art & Craft",
+  "filter_proj_jardin":     "Garden",
+  "filter_proj_construction": "Construction",
+  "filter_proj_autre":      "Other project",
+  "annonce_projet_potentiel": "Potential project",
+  "annonce_proj_aucun":     "Not specified",
 
   "btn_contacter":          "Contact the donor",
   "btn_sinscrire":          "Register",
@@ -148,5 +158,26 @@
   "dashboard_activity_sub":     "here is your activity today",
   "annonce_btn_voir":           "View",
   "formation_no_filter":        "No training sessions match this filter.",
-  "formation_inscription_sim":  "Registration recorded (simulation)."
+  "formation_inscription_sim":  "Registration recorded (simulation).",
+
+  "score_aucune_action":          "No actions recorded yet.",
+  "motif_depot_conteneur":        "Container drop-off",
+  "motif_creation_projet":        "Upcycling project created",
+  "motif_annonce_validee":        "Listing approved",
+  "motif_inscription_evenement":  "Event registration",
+  "motif_questionnaire_complete": "Satisfaction survey completed",
+  "motif_projet_partage":         "Project shared with the community",
+
+  "ann_chargement":       "Loading…",
+  "ann_mes_annonces":     "My listings",
+  "ann_toutes":           "All listings",
+  "ann_aucune_publiee":   "You haven't published any listing yet.",
+  "ann_btn_publier":      "Post a listing",
+  "ann_aucune_favori":    "No favourites yet",
+  "ann_aucun_critere":    "No listings match your search criteria",
+  "ann_aucune_conv":      "No conversations",
+  "ann_aucun_message":    "No messages yet. Be the first to contact the seller!",
+
+  "conseil_valide_jusqu": "Valid until",
+  "nav_forum":            "Forum"
 }
