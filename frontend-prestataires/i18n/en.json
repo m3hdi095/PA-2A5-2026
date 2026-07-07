@@ -44,6 +44,17 @@
   "filter_cat_plastique": "Plastic",
   "filter_cat_electronique": "Electronics",
   "filter_cat_autre": "Other",
+  "filter_tous_projets":    "All projects",
+  "filter_proj_meuble":     "Furniture",
+  "filter_proj_vetement":   "Clothing",
+  "filter_proj_decoration": "Decoration",
+  "filter_proj_art":        "Art & Craft",
+  "filter_proj_jardin":     "Garden",
+  "filter_proj_construction": "Construction",
+  "filter_proj_autre":      "Other project",
+  "filter_plus_recent":     "Most recent",
+  "filter_prix_asc":        "Price: low to high",
+  "filter_prix_desc":       "Price: high to low",
   "btn_reserver": "Reserve",
   "btn_voir_detail": "View details",
   "btn_voir_map": "Map",
@@ -212,5 +223,7 @@
   "profil_adresse_pro":       "Business address",
   "profil_entreprise_nom":    "Company name",
   "profil_pwd_actuel":        "Current password",
-  "profil_pwd_nouveau":       "New password"
+  "profil_pwd_nouveau":       "New password",
+
+  "nav_forum":                "Forum"
 }

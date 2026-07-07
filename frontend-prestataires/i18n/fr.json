@@ -44,6 +44,17 @@
   "filter_cat_plastique": "Plastique",
   "filter_cat_electronique": "Électronique",
   "filter_cat_autre": "Autre",
+  "filter_tous_projets":    "Tous projets",
+  "filter_proj_meuble":     "Meubles",
+  "filter_proj_vetement":   "Vêtements",
+  "filter_proj_decoration": "Décoration",
+  "filter_proj_art":        "Art & Création",
+  "filter_proj_jardin":     "Jardin",
+  "filter_proj_construction": "Construction",
+  "filter_proj_autre":      "Autre projet",
+  "filter_plus_recent":     "Plus récents",
+  "filter_prix_asc":        "Prix croissant",
+  "filter_prix_desc":       "Prix décroissant",
   "btn_reserver": "Réserver",
   "btn_voir_detail": "Voir détail",
   "btn_voir_map": "Carte",
@@ -212,5 +223,7 @@
   "profil_adresse_pro":       "Adresse professionnelle",
   "profil_entreprise_nom":    "Nom de l'entreprise",
   "profil_pwd_actuel":        "Mot de passe actuel",
-  "profil_pwd_nouveau":       "Nouveau mot de passe"
+  "profil_pwd_nouveau":       "Nouveau mot de passe",
+
+  "nav_forum":                "Forum"
 }

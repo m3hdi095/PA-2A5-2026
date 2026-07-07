@@ -75,6 +75,7 @@ function ouvrirModalConseil(id) {
     document.getElementById('c-titre').value     = c.titre;
     document.getElementById('c-categorie').value = c.categorie;
     document.getElementById('c-statut').value    = c.statut;
+    document.getElementById('c-date-fin').value  = c.date_fin ? c.date_fin.substring(0, 10) : '';
     if (_quill) _quill.clipboard.dangerouslyPasteHTML(c.contenu || '');
   } else {
     document.getElementById('modal-titre-label').innerHTML = '<i class="fa-solid fa-plus"></i> Nouveau conseil';
@@ -158,11 +159,13 @@ document.addEventListener('DOMContentLoaded', async () => {
     e.preventDefault();
     const id   = document.getElementById('c-id').value;
     const rawHtml = _quill ? _quill.root.innerHTML : '';
+    const dateFin = document.getElementById('c-date-fin').value;
     const data = {
       titre:     document.getElementById('c-titre').value.trim(),
       categorie: document.getElementById('c-categorie').value,
       statut:    document.getElementById('c-statut').value,
       contenu:   rawHtml === '<p><br></p>' ? '' : rawHtml,
+      date_fin:  dateFin || null,
     };
     if (!data.titre) { showToast('Le titre est obligatoire', 'warning'); return; }
 

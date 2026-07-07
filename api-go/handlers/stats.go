@@ -6,6 +6,7 @@ import (
 	"upcycleconnect/api/middleware"
 	"encoding/json"
 	"fmt"
+	"math"
 	"net/http"
 	"strconv"
 
@@ -171,6 +172,36 @@ func GetAdminAlertes(w http.ResponseWriter, r *http.Request) {
 	}
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(alertes)
+}
+
+// stats consolidées pour le dashboard prestataire : kg, co2, dépôts, projets
+func StatsPro(w http.ResponseWriter, r *http.Request) {
+	userID := r.Context().Value(middleware.ContextUserID).(uint)
+
+	var kgRecycles float64
+	database.DB.QueryRow(
+		`SELECT COALESCE(SUM(kg_dechets_evites),0) FROM projet_upcycling WHERE id_utilisateur = ?`, userID,
+	).Scan(&kgRecycles)
+
+	var nbDepotsTotal, nbDepotsRecuperes int
+	database.DB.QueryRow(
+		`SELECT COUNT(*), COALESCE(SUM(statut='recupere'),0) FROM depot WHERE id_particulier = ?`, userID,
+	).Scan(&nbDepotsTotal, &nbDepotsRecuperes)
+
+	var nbProjetsTotal, nbProjetsTermines int
+	database.DB.QueryRow(
+		`SELECT COUNT(*), COALESCE(SUM(statut='termine'),0) FROM projet_upcycling WHERE id_utilisateur = ?`, userID,
+	).Scan(&nbProjetsTotal, &nbProjetsTermines)
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]interface{}{
+		"kg_recycles":         math.Round(kgRecycles),
+		"co2_economise":       math.Round(kgRecycles * 0.9),
+		"nb_depots_total":     nbDepotsTotal,
+		"nb_depots_recuperes": nbDepotsRecuperes,
+		"nb_projets_total":    nbProjetsTotal,
+		"nb_projets_termines": nbProjetsTermines,
+	})
 }
 
 // depots en attente de confirmation, pour le panel admin
