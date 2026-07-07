@@ -180,6 +180,9 @@ function renderEvents() {
         <button class="btn btn-outline btn-sm" onclick="ouvrirModal(${ev.id})">
           <i class="fa-solid fa-pen" aria-hidden="true"></i> ${t('ev_btn_modifier')}
         </button>
+        ${ev.statut === 'valide' ? `<button class="btn btn-danger btn-sm" onclick="annulerEvent(${ev.id}, '${esc(ev.titre)}')">
+          <i class="fa-solid fa-ban" aria-hidden="true"></i> ${t('ev_btn_annuler_event')}
+        </button>` : ''}
       </div>
     </div>`;
   }).join('');
@@ -255,6 +258,18 @@ async function sauvegarderEvent() {
 
 function esc(str) {
   return String(str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+async function annulerEvent(id, titre) {
+  if (!confirm(t('ev_confirm_annuler').replace('{titre}', titre))) return;
+  const res = await apiFetch(`/evenements/${id}/annuler`, { method: 'PUT' });
+  if (res?.ok) {
+    showToast(t('ev_succes_annule'), 'success');
+    await chargerMesEvents();
+  } else {
+    const err = await res?.json().catch(() => ({}));
+    showToast(err?.error || t('ev_err_annuler'), 'error');
+  }
 }
 </script>
 </body>

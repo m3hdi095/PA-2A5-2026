@@ -173,5 +173,83 @@ func (s *EvenementService) ValidateEvenement(id uint, adminID uint, decision str
     if err != nil {
         return err
     }
-    return s.evenementRepo.UpdateStatus(id, decision)
+    if err := s.evenementRepo.UpdateStatus(id, decision); err != nil {
+        return err
+    }
+    // planning auto-rempli pour le salarié créateur
+    if decision == "valide" {
+        var titre string
+        var dateDebut time.Time
+        var idSalarie *uint
+        database.DB.QueryRow(
+            `SELECT titre, date_debut, id_salarie_createur FROM evenement WHERE id_evenement = ?`, id,
+        ).Scan(&titre, &dateDebut, &idSalarie)
+        if idSalarie != nil {
+            var idUser uint
+            database.DB.QueryRow(`SELECT id_utilisateur FROM salarie WHERE id_salarie = ?`, *idSalarie).Scan(&idUser)
+            if idUser > 0 {
+                database.DB.Exec(
+                    `INSERT IGNORE INTO planning (titre, date_heure, type_entree, id_utilisateur, id_evenement)
+                     VALUES (?, ?, 'evenement', ?, ?)`,
+                    titre, dateDebut, idUser, id,
+                )
+            }
+        }
+    }
+    return nil
+}
+
+func (s *EvenementService) AnnulerEvenementSalarie(eventID, userID uint) error {
+    var titreEvt string
+    var dateDebut time.Time
+    err := database.DB.QueryRow(
+        `SELECT e.titre, e.date_debut
+         FROM evenement e
+         JOIN salarie sal ON sal.id_salarie = e.id_salarie_createur
+         WHERE e.id_evenement = ? AND sal.id_utilisateur = ?`,
+        eventID, userID,
+    ).Scan(&titreEvt, &dateDebut)
+    if err != nil {
+        return errors.New("événement introuvable ou non autorisé")
+    }
+
+    if _, err = database.DB.Exec(`UPDATE evenement SET statut = 'annule' WHERE id_evenement = ?`, eventID); err != nil {
+        return err
+    }
+
+    rows, err := database.DB.Query(
+        `SELECT i.id_inscription, i.id_utilisateur, i.id_paiement, u.email, COALESCE(u.prenom,'')
+         FROM inscription i
+         JOIN utilisateur u ON u.id_utilisateur = i.id_utilisateur
+         WHERE i.id_evenement = ? AND i.statut IN ('paye','non_paye')`, eventID)
+    if err != nil {
+        return nil
+    }
+    defer rows.Close()
+
+    stripe.Key = config.AppConfig.StripeKey
+    dateStr := dateDebut.Format("02/01/2006")
+    for rows.Next() {
+        var inscID, inscrUserID uint
+        var idPaiement *uint
+        var email, prenom string
+        if err := rows.Scan(&inscID, &inscrUserID, &idPaiement, &email, &prenom); err != nil {
+            continue
+        }
+        if idPaiement != nil {
+            var refStripe string
+            database.DB.QueryRow(`SELECT ref_stripe FROM paiement WHERE id_paiement = ?`, *idPaiement).Scan(&refStripe)
+            if refStripe != "" {
+                _, _ = stripeRefund.New(&stripe.RefundParams{PaymentIntent: stripe.String(refStripe)})
+                database.DB.Exec(`UPDATE paiement SET statut = 'rembourse' WHERE id_paiement = ?`, *idPaiement)
+            }
+        }
+        database.DB.Exec(`UPDATE inscription SET statut = 'annule' WHERE id_inscription = ?`, inscID)
+        corps := fmt.Sprintf(`<p>Bonjour %s,</p>
+<p>L'événement <strong>%s</strong> prévu le <strong>%s</strong> a été annulé.</p>
+<p>Si vous aviez payé, votre remboursement sera effectué sous 5 à 10 jours ouvrés.</p>
+<p>L'équipe UpcycleConnect</p>`, prenom, titreEvt, dateStr)
+        _ = utils.SendEmail(email, "Annulation : "+titreEvt, corps)
+    }
+    return nil
 }

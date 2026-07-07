@@ -80,6 +80,7 @@
   "form_titre":                "Titre",
   "form_categorie":            "Catégorie",
   "form_statut":               "Statut",
+  "form_date_fin":             "Date de fin (optionnel)",
   "form_contenu":              "Contenu",
   "opt_brouillon":             "Brouillon",
   "opt_publie":                "Publié",
@@ -251,5 +252,10 @@
   "q_succes_envoye":            "Questionnaire envoyé aux participants !",
   "q_err_chargement":           "Erreur de chargement.",
   "q_aucune_reponse":           "Aucune réponse reçue pour le moment",
-  "q_anonyme":                  "Anonyme"
+  "q_anonyme":                  "Anonyme",
+
+  "ev_btn_annuler_event":  "Annuler l'événement",
+  "ev_confirm_annuler":    "Annuler l'événement « {titre} » ? Tous les inscrits seront remboursés et notifiés par email.",
+  "ev_succes_annule":      "Événement annulé. Les participants ont été remboursés et informés.",
+  "ev_err_annuler":        "Impossible d'annuler cet événement."
 }
