@@ -58,6 +58,16 @@
         <option value="prix_asc" data-i18n="filter_prix_asc">Prix croissant</option>
         <option value="prix_desc" data-i18n="filter_prix_desc">Prix décroissant</option>
       </select>
+      <select id="f-projet" class="filter-select">
+        <option value="" data-i18n="filter_tous_projets">Tous projets</option>
+        <option value="meuble" data-i18n="filter_proj_meuble">Meubles</option>
+        <option value="vetement" data-i18n="filter_proj_vetement">Vêtements</option>
+        <option value="decoration" data-i18n="filter_proj_decoration">Décoration</option>
+        <option value="art" data-i18n="filter_proj_art">Art & Création</option>
+        <option value="jardin" data-i18n="filter_proj_jardin">Jardin</option>
+        <option value="construction" data-i18n="filter_proj_construction">Construction</option>
+        <option value="autre" data-i18n="filter_proj_autre">Autre projet</option>
+      </select>
       <button id="btn-gps" class="btn btn-outline btn-sm" onclick="toggleGPS()" title="Filtrer par localisation" style="flex-shrink:0;white-space:nowrap">
         <i class="fa-solid fa-location-crosshairs" aria-hidden="true"></i>
         <span data-i18n="filter_proximite">Proximité</span>
@@ -165,6 +175,19 @@
           <label class="form-label" data-i18n="annonce_type">Catégorie</label>
           <select id="a-categorie" class="form-control">
             <option value="">Chargement...</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label" data-i18n="annonce_projet_potentiel">Projet potentiel</label>
+          <select id="a-projet" class="form-control">
+            <option value="" data-i18n="annonce_proj_aucun">Non spécifié</option>
+            <option value="meuble" data-i18n="filter_proj_meuble">Meubles</option>
+            <option value="vetement" data-i18n="filter_proj_vetement">Vêtements</option>
+            <option value="decoration" data-i18n="filter_proj_decoration">Décoration</option>
+            <option value="art" data-i18n="filter_proj_art">Art & Création</option>
+            <option value="jardin" data-i18n="filter_proj_jardin">Jardin</option>
+            <option value="construction" data-i18n="filter_proj_construction">Construction</option>
+            <option value="autre" data-i18n="filter_proj_autre">Autre projet</option>
           </select>
         </div>
         <div class="form-group">

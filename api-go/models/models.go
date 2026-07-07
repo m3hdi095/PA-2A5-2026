@@ -72,6 +72,7 @@ type Annonce struct {
 	Latitude        *float64   `json:"latitude,omitempty"`
 	Longitude       *float64   `json:"longitude,omitempty"`
 	PhotoPrincipale string     `json:"photo_principale,omitempty"`
+	ProjetPotentiel string     `json:"projet_potentiel,omitempty"`
 }
 
 type Conteneur struct {
@@ -209,14 +210,15 @@ type Categorie struct {
 }
 
 type ArticleConseil struct {
-	ID                 uint      `json:"id"`
-	Titre              string    `json:"titre"`
-	Contenu            string    `json:"contenu"`
-	Statut             string    `json:"statut"` // en_attente, publie, refuse
-	DatePublication    time.Time `json:"date_publication"`
-	IDSalarieRedacteur uint      `json:"id_salarie_redacteur"`
-	IDAdminValidation  *uint     `json:"id_admin_validation,omitempty"`
-	Auteur             string    `json:"auteur,omitempty"`
+	ID                 uint       `json:"id"`
+	Titre              string     `json:"titre"`
+	Contenu            string     `json:"contenu"`
+	Statut             string     `json:"statut"` // en_attente, publie, refuse
+	DatePublication    time.Time  `json:"date_publication"`
+	DateFin            *time.Time `json:"date_fin,omitempty"`
+	IDSalarieRedacteur uint       `json:"id_salarie_redacteur"`
+	IDAdminValidation  *uint      `json:"id_admin_validation,omitempty"`
+	Auteur             string     `json:"auteur,omitempty"`
 }
 
 type ForumMessage struct {

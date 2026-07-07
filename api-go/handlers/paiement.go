@@ -239,3 +239,44 @@ func handlePaymentSucceeded(pi stripe.PaymentIntent) {
 		log.Printf("Erreur INSERT facture (paiement=%d, user=%d, stripe=%s): %v", paiementID, userID, pi.ID, err)
 	}
 }
+
+func MesFactures(w http.ResponseWriter, r *http.Request) {
+	userID := r.Context().Value(middleware.ContextUserID).(uint)
+	rows, err := database.DB.Query(
+		`SELECT numero_facture, date_emission, montant_ht, tva, montant_ttc, statut, COALESCE(fichier_pdf, '')
+		 FROM facture
+		 WHERE id_utilisateur = ?
+		 ORDER BY date_emission DESC`,
+		userID,
+	)
+	if err != nil {
+		http.Error(w, `{"error":"Erreur interne"}`, http.StatusInternalServerError)
+		return
+	}
+	defer rows.Close()
+	type FactureItem struct {
+		Numero     string  `json:"numero"`
+		Date       string  `json:"date"`
+		MontantHT  float64 `json:"montant_ht"`
+		TVA        float64 `json:"tva"`
+		MontantTTC float64 `json:"montant_ttc"`
+		Statut     string  `json:"statut"`
+		PDF        string  `json:"pdf_url,omitempty"`
+	}
+	result := make([]FactureItem, 0)
+	for rows.Next() {
+		var f FactureItem
+		var dateRaw time.Time
+		var pdf string
+		if err := rows.Scan(&f.Numero, &dateRaw, &f.MontantHT, &f.TVA, &f.MontantTTC, &f.Statut, &pdf); err != nil {
+			continue
+		}
+		f.Date = dateRaw.Format("02/01/2006")
+		if pdf != "" {
+			f.PDF = "/" + pdf
+		}
+		result = append(result, f)
+	}
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(result)
+}
