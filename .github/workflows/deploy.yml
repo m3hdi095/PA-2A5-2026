@@ -1,0 +1,30 @@
+name: Deploy
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  deploy:
+    runs-on: self-hosted
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          # Le workspace du runner est persistant : ne pas nettoyer les fichiers
+          # non trackés (api-go/.env, api-go/uploads/*) ou ils seraient perdus
+          # à chaque déploiement.
+          clean: false
+
+      - name: Sync frontend statique vers le docroot nginx
+        run: |
+          rsync -a --delete \
+            --exclude='.git' \
+            --exclude='.github' \
+            --exclude='api-go' \
+            ./ /var/www/upcycleconnect/
+
+      - name: Build & (re)démarrage de l'API Go
+        working-directory: api-go
+        run: |
+          docker compose up -d --build api
