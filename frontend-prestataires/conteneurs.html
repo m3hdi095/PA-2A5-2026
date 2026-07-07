@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8"/>
+  <link rel="icon" type="image/png" href="../brand_assets/Favicon.png"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Conteneurs | Espace Professionnel</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=Montserrat:wght@400;500;600&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+  <link rel="stylesheet" href="css/style.css"/>
+  <style>
+    /* Surcharges Leaflet pour s'intégrer dans le thème */
+    .leaflet-popup-content-wrapper {
+      border-radius: 12px;
+      box-shadow: 0 4px 20px rgba(45,102,79,0.2);
+      font-family: 'Montserrat', sans-serif;
+    }
+    .leaflet-popup-tip { display: none; }
+    #detail-conteneur { display: none; }
+  </style>
+</head>
+<body>
+
+<div class="page-title-row animate-in">
+  <div>
+    <h1>
+      <div class="page-title-icon teal">
+        <i class="fa-solid fa-location-dot" aria-hidden="true"></i>
+      </div>
+      <span data-i18n="conteneurs_title">Carte des conteneurs</span>
+    </h1>
+    <p class="page-title-sub" data-i18n="conteneurs_subtitle">Points de collecte actifs à proximité de Paris</p>
+  </div>
+  <div class="page-title-actions">
+    <a href="annonces.html" class="btn btn-outline btn-sm">
+      <i class="fa-solid fa-box-open" aria-hidden="true"></i>
+      <span data-i18n="btn_voir_annonces">Voir les annonces</span>
+    </a>
+  </div>
+</div>
+
+<!-- Carte + liste -->
+<div class="conteneurs-layout animate-in">
+
+  <!-- Panneau gauche -->
+  <div style="display:flex;flex-direction:column;gap:12px">
+
+    <div class="conteneurs-list" style="flex:1">
+      <div class="conteneur-list-header">
+        <i class="fa-solid fa-location-dot" style="margin-right:6px;color:var(--green-700)" aria-hidden="true"></i>
+        6 conteneurs actifs
+      </div>
+      <div class="conteneur-items" id="liste-conteneurs"></div>
+    </div>
+
+    <!-- Détail conteneur sélectionné -->
+    <div class="card" id="detail-conteneur">
+      <div id="detail-conteneur-content"></div>
+    </div>
+
+  </div>
+
+  <!-- Carte Leaflet -->
+  <div class="map-container">
+    <div id="leaflet-map"></div>
+  </div>
+
+</div>
+
+<!-- Historique des récupérations -->
+<div class="card animate-in">
+  <div class="card-header">
+    <h2>
+      <i class="fa-solid fa-clock-rotate-left" aria-hidden="true"></i>
+      <span data-i18n="historique_title">Historique de mes récupérations</span>
+    </h2>
+  </div>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th data-i18n="th_date">Date</th>
+          <th data-i18n="th_objet">Objet récupéré</th>
+          <th data-i18n="historique_conteneur">Conteneur</th>
+          <th data-i18n="th_statut">Statut</th>
+        </tr>
+      </thead>
+      <tbody id="historique-body">
+        <tr>
+          <td colspan="4" style="text-align:center;padding:40px;color:var(--text-muted)">Chargement...</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Modal scan code barre -->
+<div class="modal-overlay" id="modal-scan" onclick="if(event.target===this)fermerModalScan()">
+  <div class="modal-card" style="max-width:420px">
+    <div class="modal-header">
+      <span style="font-family:Poppins,sans-serif;font-weight:700;font-size:15px">
+        <i class="fa-solid fa-qrcode"></i> Récupération par code barre
+      </span>
+      <button class="modal-close" onclick="fermerModalScan()">&times;</button>
+    </div>
+    <div class="modal-body" style="padding:20px;display:flex;flex-direction:column;gap:14px">
+      <p style="font-size:13px;color:var(--text-soft)">Saisissez ou scannez le code barre imprimé sur l'objet à récupérer.</p>
+      <input id="scan-code-input" type="text" class="input" placeholder="Ex: UC-a3f8d21c4b9e" autocomplete="off"
+             onkeydown="if(event.key==='Enter')confirmerScan()"
+             style="font-family:monospace;font-size:13px;letter-spacing:.05em">
+      <p id="scan-result" style="color:var(--danger-text);font-size:12.5px;min-height:18px"></p>
+      <div style="display:flex;gap:10px">
+        <button class="btn btn-outline" onclick="fermerModalScan()" style="flex:1">Annuler</button>
+        <button id="btn-confirmer-scan" class="btn btn-primary" onclick="confirmerScan()" style="flex:2">
+          Confirmer la récupération
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="js/layout.js"></script>
+<script src="js/conteneurs.js"></script>
+<script>
+window.selectConteneur = function(id) {
+  const c = conteneursData.find(x => x.id === id);
+  if (!c || !carteLeaflet) return;
+
+  document.querySelectorAll('.conteneur-item').forEach(el => el.classList.remove('active'));
+  const el = document.getElementById('citem-' + id);
+  if (el) { el.classList.add('active'); el.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); }
+
+  carteLeaflet.flyTo([c.latitude, c.longitude], 15, { duration: 0.8 });
+  markeurs[id]?.openPopup();
+
+  const panel = document.getElementById('detail-conteneur-content');
+  const wrapper = document.getElementById('detail-conteneur');
+  if (!panel) return;
+
+  const taux      = tauxRemplissage(c);
+  const nom       = nomConteneur(c);
+  const fillClass = taux >= 85 ? 'fill-high' : taux >= 60 ? 'fill-medium' : 'fill-low';
+  const statuts   = { actif:'<span class="badge badge-green">Actif</span>', maintenance:'<span class="badge badge-orange">Maintenance</span>', sature:'<span class="badge badge-red">Saturé</span>' };
+
+  panel.innerHTML = `
+    <div style="padding:14px 18px;border-bottom:1px solid var(--border);background:var(--green-50)">
+      <div style="display:flex;align-items:center;justify-content:space-between">
+        <span style="font-family:Poppins,sans-serif;font-size:13px;font-weight:700">${nom}</span>
+        ${statuts[c.statut] || ''}
+      </div>
+      <div style="font-size:12px;color:var(--text-muted);margin-top:2px">${c.adresse || ''}</div>
+    </div>
+    <div style="padding:16px 18px;display:flex;flex-direction:column;gap:14px">
+      <div>
+        <div style="display:flex;justify-content:space-between;font-size:11px;font-weight:700;color:var(--text-muted);margin-bottom:6px">
+          <span>Taux de remplissage</span><span style="color:var(--green-700)">${taux}%</span>
+        </div>
+        <div class="conteneur-fill-bar" style="height:8px">
+          <div class="conteneur-fill-value ${fillClass}" style="width:${taux}%"></div>
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+        <div style="background:var(--green-25);border-radius:8px;padding:12px">
+          <div style="font-size:10px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:3px">Capacité</div>
+          <div style="font-family:Poppins,sans-serif;font-size:18px;font-weight:800">${c.capacite} obj.</div>
+        </div>
+        <div style="background:var(--green-25);border-radius:8px;padding:12px">
+          <div style="font-size:10px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:3px">Objets présents</div>
+          <div style="font-family:Poppins,sans-serif;font-size:18px;font-weight:800">${c.nb_objets}</div>
+        </div>
+      </div>
+      ${c.statut !== 'maintenance' ? `
+      <button class="btn btn-primary" onclick="simulerScan(${c.id})" style="width:100%">
+        <i class="fa-solid fa-qrcode" aria-hidden="true"></i>
+        Scanner : Récupérer un objet
+      </button>` : `
+      <div style="background:var(--warning-bg);border-radius:8px;padding:12px;font-size:12.5px;color:var(--warning-text);text-align:center;font-weight:600">
+        <i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i>
+        Conteneur en maintenance
+      </div>`}
+    </div>`;
+  wrapper.style.display = 'block';
+};
+
+window.simulerScan = function(id) {
+  conteneurActif = id;
+  ouvrirModalScan();
+};
+</script>
+
+<!-- Modal paiement récupération objet payant -->
+<div class="modal-overlay" id="modal-paiement-scan" onclick="if(event.target===this)document.getElementById('modal-paiement-scan').classList.remove('open')">
+  <div class="modal-card" style="max-width:420px">
+    <div class="modal-header">
+      <span style="font-family:Poppins,sans-serif;font-weight:700;font-size:15px">
+        <i class="fa-brands fa-stripe-s"></i> Paiement requis
+      </span>
+      <button class="modal-close" onclick="document.getElementById('modal-paiement-scan').classList.remove('open')">&times;</button>
+    </div>
+    <div class="modal-body" style="padding:20px;display:flex;flex-direction:column;gap:14px">
+      <p id="scan-objet-titre" style="font-size:13px;font-weight:600;color:var(--green-700)"></p>
+      <p id="scan-objet-prix" style="font-size:22px;font-weight:800;font-family:Poppins,sans-serif;color:var(--text);margin:0"></p>
+      <div id="card-element-scan" style="padding:12px;border:1.5px solid var(--border);border-radius:var(--radius);background:#fff"></div>
+      <p id="scan-paiement-error" style="color:var(--danger-text);font-size:12.5px;min-height:16px"></p>
+      <div style="display:flex;gap:10px">
+        <button class="btn btn-outline" onclick="document.getElementById('modal-paiement-scan').classList.remove('open')" style="flex:1">Annuler</button>
+        <button id="btn-payer-scan" class="btn btn-primary" onclick="confirmerPaiementScan()" style="flex:2">
+          <i class="fa-brands fa-stripe-s"></i> Payer et récupérer
+        </button>
+      </div>
+      <p style="font-size:11px;color:var(--text-muted);text-align:center">Paiement sécurisé par Stripe · Non remboursable après récupération</p>
+    </div>
+  </div>
+</div>
+
+<script src="https://js.stripe.com/v3/"></script>
+
+</body>
+</html>

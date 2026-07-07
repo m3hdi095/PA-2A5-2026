@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8"/>
+  <link rel="icon" type="image/png" href="../brand_assets/Favicon.png"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Utilisateurs | UpcycleConnect Admin</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&family=Montserrat:wght@300;400;500;600;700&family=Roboto:wght@300;400;500&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="css/style.css"/>
+</head>
+<body>
+
+<div class="page-title-row">
+  <div>
+    <h1>
+      <div class="page-title-icon green">
+        <i class="fa-solid fa-users" aria-hidden="true"></i>
+      </div>
+      <span data-i18n="nav_users">Utilisateurs</span>
+    </h1>
+    <p class="page-title-sub" data-i18n="users_page_subtitle">Gérer les comptes particuliers, professionnels et salariés</p>
+  </div>
+  <div class="page-title-actions">
+    <a href="validations.html" class="btn btn-outline btn-sm">
+      <i class="fa-solid fa-circle-check" aria-hidden="true"></i>
+      <span data-i18n="btn_validations">Validations</span>
+    </a>
+    <button class="btn btn-primary" id="btnAdd">
+      <i class="fa-solid fa-plus" aria-hidden="true"></i>
+      <span data-i18n="btn_add">Ajouter</span>
+    </button>
+  </div>
+</div>
+
+<!-- FILTERS -->
+<div class="filters-bar">
+  <div class="filter-wrap">
+    <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
+    <input type="text" class="filter-input" id="searchInput" data-i18n-placeholder="users_search" placeholder="Rechercher nom ou email..."/>
+  </div>
+  <select class="filter-select" id="roleFilter">
+    <option value="" data-i18n="user_role_all">Tous les rôles</option>
+    <option value="particulier" data-i18n="users_role_particulier">Particulier</option>
+    <option value="professionnel" data-i18n="users_role_professionnel">Professionnel</option>
+    <option value="salarie" data-i18n="users_role_salarie">Salarié</option>
+    <option value="admin" data-i18n="users_role_admin">Admin</option>
+  </select>
+  <select class="filter-select" id="statusFilter">
+    <option value="" data-i18n="users_status_all">Tous les statuts</option>
+    <option value="actif" data-i18n="user_actif">Actif</option>
+    <option value="inactif" data-i18n="users_status_inactif">Inactif</option>
+  </select>
+  <button class="btn btn-outline btn-sm" id="exportBtn">
+    <i class="fa-solid fa-download" aria-hidden="true"></i>
+    <span data-i18n="btn_export">Exporter</span>
+  </button>
+</div>
+
+<!-- TABLE -->
+<div class="card">
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th data-i18n="users_th_id">#</th>
+          <th data-i18n="users_th_user">Utilisateur</th>
+          <th data-i18n="users_th_role">Rôle</th>
+          <th data-i18n="users_th_status">Statut</th>
+          <th data-i18n="users_th_score">Score UC</th>
+          <th data-i18n="users_th_date">Inscrit le</th>
+          <th style="text-align:right" data-i18n="users_th_actions">Actions</th>
+        </tr>
+      </thead>
+      <tbody id="usersBody">
+        <tr><td colspan="7" style="text-align:center;padding:40px;color:var(--neutral-300)" data-i18n="loading">Chargement...</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="pagination" id="pagination">
+    <span class="page-info" id="pageInfo"></span>
+  </div>
+</div>
+
+<!-- MODAL -->
+<div class="modal-overlay" id="userModal">
+  <div class="modal-box">
+    <div class="modal-header">
+      <div class="modal-title" id="modalTitle">
+        <i class="fa-solid fa-user" aria-hidden="true"></i>
+        <span data-i18n="modal_add_user">Ajouter un utilisateur</span>
+      </div>
+      <button class="modal-close" id="modalClose">&times;</button>
+    </div>
+    <div class="modal-body">
+      <form id="userForm" novalidate>
+        <input type="hidden" id="userId"/>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Prénom <span class="form-required">*</span></label>
+            <input type="text" id="prenom" class="form-control" placeholder="Jean" required/>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Nom <span class="form-required">*</span></label>
+            <input type="text" id="nom" class="form-control" placeholder="Dupont" required/>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label"><span data-i18n="form_email">Email</span> <span class="form-required">*</span></label>
+          <input type="email" id="email" class="form-control" placeholder="jean@mail.fr" required/>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label"><span data-i18n="form_role">Rôle</span> <span class="form-required">*</span></label>
+            <select id="role" class="form-control">
+              <option value="particulier" data-i18n="users_role_particulier">Particulier</option>
+              <option value="professionnel" data-i18n="users_role_professionnel">Professionnel</option>
+              <option value="salarie" data-i18n="users_role_salarie">Salarié</option>
+              <option value="admin" data-i18n="users_role_admin">Admin</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label" data-i18n="form_statut">Statut</label>
+            <select id="statut" class="form-control">
+              <option value="actif" data-i18n="user_actif">Actif</option>
+              <option value="inactif" data-i18n="users_status_inactif">Inactif</option>
+              <option value="suspendu" data-i18n="user_suspendu">Suspendu</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label" data-i18n="form_telephone">Téléphone</label>
+            <input type="tel" id="telephone" class="form-control" placeholder="06 00 00 00 00"/>
+          </div>
+          <div class="form-group" id="passGroup">
+            <label class="form-label"><span data-i18n="form_password">Mot de passe</span> <span class="form-required">*</span></label>
+            <input type="password" id="password" class="form-control" placeholder="••••••••"/>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label" data-i18n="form_adresse">Adresse</label>
+          <input type="text" id="adresse" class="form-control" placeholder="1 rue de la Paix, Paris"/>
+        </div>
+        <div class="form-actions">
+          <button type="button" class="btn btn-outline" id="cancelBtn" data-i18n="btn_cancel">Annuler</button>
+          <button type="submit" class="btn btn-primary" id="submitBtn">
+            <i class="fa-solid fa-check" aria-hidden="true"></i>
+            <span data-i18n="btn_save">Enregistrer</span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script src="js/layout.js" data-page="users"></script>
+<script src="js/users.js"></script>
+
+</body>
+</html>

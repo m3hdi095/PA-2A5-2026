@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8"/>
+  <link rel="icon" type="image/png" href="../brand_assets/Favicon.png"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Planning | Espace Particuliers</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=Montserrat:wght@400;500;600&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="css/style.css"/>
+  <style>
+    #fc-wrap { padding: 4px 0 }
+    .fc { font-family: Poppins, sans-serif; font-size: 13px }
+    .fc-event { cursor: pointer; border-radius: 4px !important; border: none !important; font-size: 12px; padding: 1px 4px }
+    .fc-event-inscrit { background: var(--teal-500) !important }
+    .fc-event-autre  { background: var(--teal-700) !important }
+    .view-toggle { display: flex; gap: 6px }
+    .view-toggle .btn.active { background: var(--teal-500); color: white; border-color: var(--teal-500) }
+  </style>
+</head>
+<body>
+
+<div class="page-title-row animate-in">
+  <div>
+    <h1>
+      <div class="page-title-icon teal">
+        <i class="fa-solid fa-calendar-days" aria-hidden="true"></i>
+      </div>
+      <span data-i18n="planning_title">Mon planning</span>
+    </h1>
+    <p class="page-title-sub" data-i18n="planning_subtitle">Événements, ateliers et formations à venir dans votre agenda</p>
+  </div>
+  <div class="page-title-actions">
+    <a href="formations.html" class="btn btn-outline btn-sm">
+      <i class="fa-solid fa-graduation-cap" aria-hidden="true"></i>
+      <span data-i18n="planning_btn_atelier">Trouver un atelier</span>
+    </a>
+    <button class="btn btn-outline btn-sm" onclick="exporterIcal()">
+      <i class="fa-solid fa-calendar-arrow-down"></i> Exporter (.ics)
+    </button>
+  </div>
+</div>
+
+<div class="card animate-in">
+  <div class="card-header">
+    <h2><i class="fa-solid fa-calendar-days" aria-hidden="true"></i> <span data-i18n="planning_events_title">Événements à venir</span></h2>
+    <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+      <div class="view-toggle">
+        <button class="btn btn-outline btn-sm active" id="btn-vue-liste" onclick="basculerVue('liste')">
+          <i class="fa-solid fa-list"></i> Liste
+        </button>
+        <button class="btn btn-outline btn-sm" id="btn-vue-cal" onclick="basculerVue('calendrier')">
+          <i class="fa-solid fa-calendar"></i> Calendrier
+        </button>
+      </div>
+      <div style="display:flex;gap:6px">
+        <span class="badge badge-green"><i class="fa-solid fa-circle-check"></i> <span data-i18n="planning_badge_inscrit">Inscrit</span></span>
+        <span class="badge badge-formation">Formation</span>
+        <span class="badge badge-atelier">Atelier</span>
+        <span class="badge badge-evenement">Événement</span>
+      </div>
+    </div>
+  </div>
+  <div class="card-body">
+    <!-- Vue liste -->
+    <div id="planning-container"></div>
+    <!-- Vue calendrier FullCalendar -->
+    <div id="fc-wrap" style="display:none">
+      <div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap">
+        <button class="btn btn-outline btn-sm" id="fc-month" onclick="changerVueFC('dayGridMonth')">Mois</button>
+        <button class="btn btn-outline btn-sm" id="fc-week"  onclick="changerVueFC('timeGridWeek')">Semaine</button>
+        <button class="btn btn-outline btn-sm" id="fc-day"   onclick="changerVueFC('timeGridDay')">Jour</button>
+      </div>
+      <div id="fullcalendar"></div>
+    </div>
+  </div>
+</div>
+
+<!-- Historique des événements passés -->
+<div class="card animate-in">
+  <div class="card-header">
+    <h2><i class="fa-solid fa-clock-rotate-left" aria-hidden="true"></i> <span data-i18n="planning_historique_title">Historique</span></h2>
+  </div>
+  <div class="card-body">
+    <div id="planning-historique"></div>
+  </div>
+</div>
+
+<script src="js/layout.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js"></script>
+<script src="js/planning.js"></script>
+<script>
+function exporterIcal() {
+  const token = localStorage.getItem('uc_part_token') || localStorage.getItem('uc_sal_token');
+  const a = document.createElement('a');
+  a.href = `${apiBase}/planning/export.ics${token ? '?token='+encodeURIComponent(token) : ''}`;
+  a.download = 'planning-upcycleconnect.ics';
+  a.click();
+}
+</script>
+
+</body>
+</html>

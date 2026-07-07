@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8"/>
+  <link rel="icon" type="image/png" href="../brand_assets/Favicon.png"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Tableau de bord | Espace Particuliers</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=Montserrat:wght@400;500;600&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" crossorigin="anonymous"/>
+  <link rel="stylesheet" href="css/style.css"/>
+</head>
+<body>
+
+<!-- Bannière de bienvenue -->
+<div class="dashboard-hero">
+  <img src="../brand_assets/image_tri_recyclage.jpg" alt="" aria-hidden="true"
+       class="dashboard-hero-img" style="object-position:center 40%">
+  <div class="dashboard-hero-overlay"></div>
+  <div class="dashboard-hero-body">
+    <div>
+      <p class="dashboard-hero-label">Bienvenue</p>
+      <h2 class="dashboard-hero-title" id="banner-name">Votre espace particulier</h2>
+    </div>
+    <a href="annonces.html" class="dashboard-hero-btn">
+      <i class="fa-solid fa-plus" aria-hidden="true"></i>
+      Nouvelle annonce
+    </a>
+  </div>
+</div>
+
+<!-- Stats -->
+<div class="stats-grid">
+  <div class="stat-card animate-in" style="--accent:var(--teal-700);--icon-bg:var(--teal-50);animation-delay:.04s">
+    <div class="stat-icon-wrap"><i class="fa-solid fa-leaf" aria-hidden="true"></i></div>
+    <div class="stat-info">
+      <div class="stat-value" id="stat-score">-</div>
+      <div class="stat-label" data-i18n="dashboard_score_label">Upcycling Score</div>
+    </div>
+  </div>
+  <div class="stat-card animate-in" style="--accent:var(--warning);--icon-bg:var(--warning-bg);animation-delay:.08s">
+    <div class="stat-icon-wrap" style="background:var(--warning-bg);color:var(--warning-text)"><i class="fa-solid fa-bullhorn" aria-hidden="true"></i></div>
+    <div class="stat-info">
+      <div class="stat-value" id="stat-annonces">-</div>
+      <div class="stat-label" data-i18n="stat_annonces_actives">Annonces actives</div>
+    </div>
+  </div>
+  <div class="stat-card animate-in" style="--accent:var(--success);--icon-bg:var(--success-bg);animation-delay:.12s">
+    <div class="stat-icon-wrap" style="background:var(--success-bg);color:var(--success-text)"><i class="fa-solid fa-recycle" aria-hidden="true"></i></div>
+    <div class="stat-info">
+      <div class="stat-value" id="stat-kg">-</div>
+      <div class="stat-label" data-i18n="stat_kg_recycles">Kg recyclés</div>
+    </div>
+  </div>
+  <div class="stat-card animate-in" style="--accent:var(--green-600);--icon-bg:var(--green-50);animation-delay:.16s">
+    <div class="stat-icon-wrap"><i class="fa-solid fa-calendar-days" aria-hidden="true"></i></div>
+    <div class="stat-info">
+      <div class="stat-value" id="stat-events">-</div>
+      <div class="stat-label" data-i18n="stat_events">Événements à venir</div>
+    </div>
+  </div>
+</div>
+
+<!-- Historique score upcycling -->
+<div class="card animate-in" id="score-card">
+  <div class="card-header dash-score-header">
+    <div class="dash-score-header-inner">
+      <div class="dash-score-icon">
+        <i class="fa-solid fa-seedling" aria-hidden="true"></i>
+      </div>
+      <h2 class="dash-score-title">Historique des points</h2>
+    </div>
+    <span id="score-total-label" class="dash-score-badge"></span>
+  </div>
+  <div class="dash-score-body" id="score-historique-list">
+    <div class="dash-score-loading"><i class="fa-solid fa-spinner fa-spin"></i></div>
+  </div>
+</div>
+
+<!-- Grille principale -->
+<div class="dash-main-grid animate-in">
+
+  <!-- Annonces disponibles -->
+  <div class="card">
+    <div class="card-header">
+      <h2><i class="fa-solid fa-bullhorn" aria-hidden="true"></i> <span data-i18n="dashboard_annonces_title">Annonces disponibles</span></h2>
+      <a href="annonces.html" class="btn btn-outline btn-sm" data-i18n="btn_voir_tout">Voir tout</a>
+    </div>
+    <div class="card-body dash-annonces-body">
+      <div id="annonces-recentes" class="annonces-grid annonces-grid-2col"></div>
+    </div>
+  </div>
+
+  <!-- Prochains événements -->
+  <div class="card">
+    <div class="card-header">
+      <h2><i class="fa-solid fa-calendar-days" aria-hidden="true"></i> <span data-i18n="dashboard_planning_title">Agenda</span></h2>
+      <a href="planning.html" class="btn btn-ghost btn-sm" data-i18n="btn_voir_tout">Voir tout</a>
+    </div>
+    <div class="card-body dash-events-body">
+      <div id="events-list" class="planning-list"></div>
+    </div>
+  </div>
+
+</div>
+
+<!-- Actions rapides -->
+<div class="card animate-in">
+  <div class="card-header">
+    <h2><i class="fa-solid fa-bolt" aria-hidden="true"></i> <span data-i18n="dashboard_quick_title">Actions rapides</span></h2>
+  </div>
+  <div class="card-body dash-actions-grid">
+    <a href="annonces.html" class="btn btn-outline quick-action-btn">
+      <i class="fa-solid fa-plus" aria-hidden="true"></i>
+      <span data-i18n="annonce_btn_new">Nouvelle annonce</span>
+    </a>
+    <a href="formations.html" class="btn btn-outline quick-action-btn">
+      <i class="fa-solid fa-graduation-cap" aria-hidden="true"></i>
+      <span data-i18n="nav_formations">Formations</span>
+    </a>
+    <a href="depot.html" class="btn btn-outline quick-action-btn">
+      <i class="fa-solid fa-box-archive" aria-hidden="true"></i>
+      <span data-i18n="nav_depot">Dépôt conteneur</span>
+    </a>
+    <a href="profil.html" class="btn btn-outline quick-action-btn">
+      <i class="fa-solid fa-user" aria-hidden="true"></i>
+      <span data-i18n="nav_profil">Mon profil</span>
+    </a>
+  </div>
+</div>
+
+<script src="js/layout.js"></script>
+<script src="js/dashboard.js"></script>
+
+</body>
+</html>

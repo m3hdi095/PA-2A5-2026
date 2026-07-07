@@ -1,0 +1,198 @@
+@base = http://localhost:8080
+@token = {{login.response.body.token}}
+
+### Inscription
+# @name register
+POST {{base}}/api/register
+Content-Type: application/json
+
+{
+  "email": "alice@example.com",
+  "password": "secret123",
+  "nom": "Dupont",
+  "prenom": "Alice",
+  "role": "particulier"
+}
+
+### Connexion
+# @name login
+POST {{base}}/api/login
+Content-Type: application/json
+
+{
+  "email": "alice@example.com",
+  "password": "secret123"
+}
+
+### Profil courant
+GET {{base}}/api/users/me
+Authorization: Bearer {{token}}
+
+### Modifier profil
+PUT {{base}}/api/users/me
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "nom": "Dupont",
+  "prenom": "Alice",
+  "ville": "Paris",
+  "langue_preferee": "fr"
+}
+
+### Marquer tutoriel vu
+POST {{base}}/api/users/tutorial
+Authorization: Bearer {{token}}
+
+### Lister annonces (public)
+GET {{base}}/api/annonces?page=1
+
+### Créer annonce
+POST {{base}}/api/annonces
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "titre": "Chaise en bois à donner",
+  "description": "Bonne état, récupérée d'un grenier",
+  "type_annonce": "don",
+  "prix": 0,
+  "id_objet": 1
+}
+
+### Modifier annonce
+PUT {{base}}/api/annonces/1
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "titre": "Chaise en bois (mis à jour)",
+  "description": "Très bon état",
+  "type_annonce": "don",
+  "prix": 0
+}
+
+### Supprimer annonce
+DELETE {{base}}/api/annonces/1
+Authorization: Bearer {{token}}
+
+### Lister conteneurs (public)
+GET {{base}}/api/conteneurs
+
+### Créer dépôt
+POST {{base}}/api/depots
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "conteneur_id": 1,
+  "objet_id": 2
+}
+
+### Mes dépôts
+GET {{base}}/api/depots
+Authorization: Bearer {{token}}
+
+### Récupérer un dépôt (professionnel)
+POST {{base}}/api/depots/1/recuperer
+Authorization: Bearer {{token}}
+
+### Lister événements (public)
+GET {{base}}/api/evenements?page=1
+
+### S'inscrire à un événement
+POST {{base}}/api/evenements/inscription
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "evenement_id": 1
+}
+
+### Mes inscriptions
+GET {{base}}/api/evenements/mes-inscriptions
+Authorization: Bearer {{token}}
+
+### Créer projet
+POST {{base}}/api/projets
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "titre": "Lampe en palette",
+  "description": "Récupération d'une palette pour créer une lampe",
+  "date_debut": "2026-04-20T10:00:00Z",
+  "date_fin": "2026-05-01T18:00:00Z"
+}
+
+### Mes projets
+GET {{base}}/api/projets/mes-projets
+Authorization: Bearer {{token}}
+
+### Ajouter étape à un projet
+POST {{base}}/api/projets/1/etapes
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "projet_id": 1,
+  "titre": "Ponçage",
+  "description": "Ponçage de la palette",
+  "ordre": 1,
+  "date_etape": "2026-04-21T10:00:00Z"
+}
+
+### Mes notifications
+GET {{base}}/api/notifications
+Authorization: Bearer {{token}}
+
+### Marquer notification lue
+PUT {{base}}/api/notifications/1/read
+Authorization: Bearer {{token}}
+
+### Créer intention de paiement
+POST {{base}}/api/create-payment-intent
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "montant": 29.99,
+  "currency": "eur"
+}
+
+###  ADMIN : 
+
+### Lister utilisateurs
+GET {{base}}/api/admin/users?page=1
+Authorization: Bearer {{token}}
+
+### Activer/désactiver utilisateur
+PUT {{base}}/api/admin/users/2/activate
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "user_id": 2,
+  "actif": false
+}
+
+### Valider une annonce
+POST {{base}}/api/admin/annonces/validate
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "annonce_id": 1,
+  "decision": "valide",
+  "commentaire": ""
+}
+
+### Valider un événement
+POST {{base}}/api/admin/evenements/validate
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "evenement_id": 1,
+  "decision": "valide"
+}

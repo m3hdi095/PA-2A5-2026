@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8"/>
+  <link rel="icon" type="image/png" href="../brand_assets/Favicon.png"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Formations & Ateliers | Espace Particuliers</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=Montserrat:wght@400;500;600&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="css/style.css"/>
+</head>
+<body>
+
+<div class="page-title-row animate-in">
+  <div>
+    <h1>
+      <div class="page-title-icon teal">
+        <i class="fa-solid fa-graduation-cap" aria-hidden="true"></i>
+      </div>
+      <span data-i18n="page_formations_title">Formations &amp; Ateliers</span>
+    </h1>
+    <p class="page-title-sub" data-i18n="formation_no_events" style="--placeholder:''">Apprenez, créez et participez aux événements upcycling de votre communauté</p>
+  </div>
+  <div class="page-title-actions">
+    <a href="planning.html" class="btn btn-outline btn-sm">
+      <i class="fa-solid fa-calendar-days" aria-hidden="true"></i>
+      <span data-i18n="nav_planning">Planning</span>
+    </a>
+  </div>
+</div>
+
+<!-- Filtre type -->
+<div class="animate-in" style="display:flex;gap:4px;background:white;border:1.5px solid var(--border);border-radius:var(--radius-lg);padding:4px;width:fit-content">
+  <button class="filtre-tab active" data-val="" onclick="setFiltre(this,'')">
+    <span data-i18n="filter_tous_types">Tout</span> <span class="tab-count">8</span>
+  </button>
+  <button class="filtre-tab" data-val="formation" onclick="setFiltre(this,'formation')">
+    <span data-i18n="formation_type_formation">Formations</span> <span class="tab-count">3</span>
+  </button>
+  <button class="filtre-tab" data-val="atelier" onclick="setFiltre(this,'atelier')">
+    <span data-i18n="formation_type_atelier">Ateliers</span> <span class="tab-count">3</span>
+  </button>
+  <button class="filtre-tab" data-val="evenement" onclick="setFiltre(this,'evenement')">
+    <span data-i18n="formation_type_evenement">Événements</span> <span class="tab-count">2</span>
+  </button>
+</div>
+
+<div id="formations-container" class="formations-grid"></div>
+
+<!-- Événements passés auxquels l'utilisateur a participé -->
+<div id="section-passes" style="display:none;margin-top:32px">
+  <div class="card animate-in">
+    <div class="card-header">
+      <h2><i class="fa-solid fa-clock-rotate-left"></i> Mes événements passés</h2>
+    </div>
+    <div id="passes-container" style="padding:16px;display:flex;flex-direction:column;gap:10px"></div>
+  </div>
+</div>
+
+<!-- Modal paiement formation -->
+<div class="modal-overlay" id="modal-paiement-formation">
+  <div class="modal-box" style="max-width:460px">
+    <div class="modal-header">
+      <div class="modal-title"><i class="fa-brands fa-stripe-s"></i> Paiement sécurisé</div>
+      <button class="modal-close" onclick="document.getElementById('modal-paiement-formation').classList.remove('open')">&times;</button>
+    </div>
+    <div class="modal-body" style="display:flex;flex-direction:column;gap:16px">
+      <p id="paiement-event-titre" style="font-size:13px;font-weight:600;color:var(--teal-700)"></p>
+      <p id="paiement-montant" style="font-size:22px;font-weight:800;font-family:Poppins,sans-serif;color:var(--text);margin:0"></p>
+      <div id="card-element" style="padding:12px;border:1.5px solid var(--border);border-radius:var(--radius);background:#fff"></div>
+      <p id="paiement-error" style="color:var(--danger-text);font-size:12.5px;min-height:18px"></p>
+      <div class="form-actions">
+        <button type="button" class="btn btn-outline" onclick="document.getElementById('modal-paiement-formation').classList.remove('open')">Annuler</button>
+        <button type="button" class="btn btn-primary" id="btn-payer" onclick="confirmerPaiementFormation()">
+          <i class="fa-brands fa-stripe-s"></i> Payer
+        </button>
+      </div>
+      <p style="font-size:11px;color:var(--text-muted);text-align:center">Paiement sécurisé par Stripe · Annulable jusqu'à 48h avant l'événement</p>
+    </div>
+  </div>
+</div>
+
+<!-- Modal questionnaire satisfaction -->
+<div class="modal-overlay" id="modal-questionnaire-part">
+  <div class="modal-box" style="max-width:520px">
+    <div class="modal-header">
+      <div class="modal-title"><i class="fa-solid fa-star"></i> Questionnaire de satisfaction</div>
+      <button class="modal-close" onclick="document.getElementById('modal-questionnaire-part').classList.remove('open')">&times;</button>
+    </div>
+    <div class="modal-body">
+      <p id="q-event-titre" style="font-size:13px;font-weight:600;color:var(--teal-700);margin-bottom:16px"></p>
+      <div id="q-questions-container" style="display:flex;flex-direction:column;gap:14px"></div>
+      <div class="form-actions" style="margin-top:20px">
+        <button type="button" class="btn btn-outline" onclick="document.getElementById('modal-questionnaire-part').classList.remove('open')">Annuler</button>
+        <button type="button" class="btn btn-primary" onclick="soumettreQuestionnairePart()">
+          <i class="fa-solid fa-paper-plane"></i> Envoyer mes réponses
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://js.stripe.com/v3/"></script>
+<script src="js/layout.js"></script>
+<script src="js/formations.js"></script>
+<script>
+function setFiltre(btn, val) {
+  document.querySelectorAll('.filtre-tab').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  filtreType = val;
+  renderFormations();
+}
+</script>
+
+</body>
+</html>

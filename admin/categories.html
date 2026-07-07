@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8"/>
+  <link rel="icon" type="image/png" href="../brand_assets/Favicon.png"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Catégories | UpcycleConnect Admin</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&family=Montserrat:wght@300;400;500;600;700&family=Roboto:wght@300;400;500&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="css/style.css"/>
+</head>
+<body>
+
+<div class="page-title-row">
+  <div>
+    <h1>
+      <div class="page-title-icon orange">
+        <i class="fa-solid fa-tags" aria-hidden="true"></i>
+      </div>
+      <span data-i18n="cat_title">Catégories</span>
+    </h1>
+    <p class="page-title-sub" data-i18n="cat_subtitle">Organiser les objets et prestations par catégories</p>
+  </div>
+  <div class="page-title-actions">
+    <a href="prestations.html" class="btn btn-outline btn-sm">
+      <i class="fa-solid fa-calendar-days" aria-hidden="true"></i>
+      <span data-i18n="cat_btn_prestations">Voir prestations</span>
+    </a>
+    <button class="btn btn-primary" id="btnAdd">
+      <i class="fa-solid fa-plus" aria-hidden="true"></i>
+      <span data-i18n="btn_add">Ajouter</span>
+    </button>
+  </div>
+</div>
+
+<!-- FILTERS -->
+<div class="filters-bar">
+  <div class="filter-wrap">
+    <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
+    <input type="text" class="filter-input" id="searchInput" data-i18n-placeholder="cat_search" placeholder="Rechercher une catégorie..."/>
+  </div>
+  <select class="filter-select" id="parentFilter">
+    <option value="" data-i18n="cat_filter_all">Toutes (racine + sous-catégories)</option>
+    <option value="root" data-i18n="cat_filter_root">Racine uniquement</option>
+    <option value="child" data-i18n="cat_filter_child">Sous-catégories uniquement</option>
+  </select>
+</div>
+
+<div style="display:grid;grid-template-columns:1fr 340px;gap:20px;align-items:start">
+
+  <!-- TABLE -->
+  <div class="card">
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th data-i18n="users_th_id">#</th>
+            <th data-i18n="cat_th_nom">Nom</th>
+            <th data-i18n="cat_th_parent">Catégorie parente</th>
+            <th data-i18n="cat_th_nb">Nb objets</th>
+            <th style="text-align:right" data-i18n="cat_th_actions">Actions</th>
+          </tr>
+        </thead>
+        <tbody id="categoriesBody"></tbody>
+      </table>
+    </div>
+    <div class="pagination" id="pagination">
+      <span class="page-info" id="pageInfo"></span>
+    </div>
+  </div>
+
+  <!-- TREE VIEW -->
+  <div class="card">
+    <div class="card-header">
+      <h2>
+        <i class="fa-solid fa-sitemap" aria-hidden="true"></i>
+        <span data-i18n="cat_tree_title">Arborescence</span>
+      </h2>
+    </div>
+    <div class="card-body">
+      <div id="treeView" style="font-size:13px;line-height:1.8"></div>
+    </div>
+  </div>
+
+</div>
+
+<!-- MODAL -->
+<div class="modal-overlay" id="catModal">
+  <div class="modal-box">
+    <div class="modal-header">
+      <div class="modal-title" id="modalTitle">
+        <i class="fa-solid fa-tag" aria-hidden="true"></i>
+        <span data-i18n="cat_modal_add">Ajouter une catégorie</span>
+      </div>
+      <button class="modal-close" id="modalClose">&times;</button>
+    </div>
+    <div class="modal-body">
+      <form id="catForm" novalidate>
+        <input type="hidden" id="catId"/>
+        <div class="form-group">
+          <label class="form-label"><span data-i18n="form_nom">Nom</span> <span class="form-required">*</span></label>
+          <input type="text" id="nom" class="form-control" placeholder="Ex: Mobilier, Textile..." required/>
+        </div>
+        <div class="form-group">
+          <label class="form-label" data-i18n="form_description">Description</label>
+          <textarea id="description" class="form-control" rows="2" placeholder="Description optionnelle..."></textarea>
+        </div>
+        <div class="form-group">
+          <label class="form-label" data-i18n="form_parent">Catégorie parente</label>
+          <select id="parent_id" class="form-control">
+            <option value="" data-i18n="form_none_parent">Aucune (catégorie racine)</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label" data-i18n="form_icone">Icône FA (ex: fa-leaf)</label>
+          <input type="text" id="icone" class="form-control" placeholder="fa-leaf" maxlength="40"/>
+        </div>
+        <div class="form-actions">
+          <button type="button" class="btn btn-outline" id="cancelBtn" data-i18n="btn_cancel">Annuler</button>
+          <button type="submit" class="btn btn-primary">
+            <i class="fa-solid fa-check" aria-hidden="true"></i>
+            <span data-i18n="btn_save">Enregistrer</span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script src="js/layout.js" data-page="categories"></script>
+<script src="js/categories.js"></script>
+
+</body>
+</html>

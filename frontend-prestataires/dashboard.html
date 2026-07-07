@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8"/>
+  <link rel="icon" type="image/png" href="../brand_assets/Favicon.png"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Tableau de bord | Espace Professionnel</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=Montserrat:wght@400;500;600&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" crossorigin="anonymous"/>
+  <link rel="stylesheet" href="css/style.css"/>
+</head>
+<body>
+
+<!-- Bannière de bienvenue -->
+<div class="dashboard-hero">
+  <img src="../brand_assets/img_tri_recyclage2.jpg" alt="" aria-hidden="true"
+       class="dashboard-hero-img" style="object-position:center 55%">
+  <div class="dashboard-hero-overlay"></div>
+  <div class="dashboard-hero-body">
+    <div>
+      <p class="dashboard-hero-label">Espace Professionnel · <span id="date-now" style="font-weight:500;text-transform:none;letter-spacing:0"></span></p>
+      <h2 class="dashboard-hero-title">Tableau de bord</h2>
+    </div>
+    <a href="annonces.html" class="dashboard-hero-btn">
+      <i class="fa-solid fa-box-open" aria-hidden="true"></i>
+      Parcourir les annonces
+    </a>
+  </div>
+</div>
+
+<!-- Bandeau plan Free / Premium -->
+<div id="plan-banner" style="display:none;align-items:center;gap:14px;padding:14px 20px;margin-bottom:16px;border-radius:var(--radius-lg);border:1.5px solid var(--border)">
+  <i id="plan-banner-icon" class="fa-solid" aria-hidden="true" style="font-size:18px;flex-shrink:0"></i>
+  <div style="flex:1">
+    <strong id="plan-banner-title" style="font-size:14px"></strong>
+    <p id="plan-banner-sub" style="font-size:12px;margin:2px 0 0;opacity:.8"></p>
+  </div>
+  <a id="plan-banner-cta" href="abonnement.html" class="btn btn-sm" style="flex-shrink:0"></a>
+</div>
+
+<!-- Cartes statistiques -->
+<div class="stats-grid">
+  <div class="stat-card animate-in" style="--accent:var(--green-700);--icon-bg:var(--green-50)">
+    <div class="stat-icon"><i class="fa-solid fa-box-open" aria-hidden="true"></i></div>
+    <div class="stat-info">
+      <div class="stat-value" id="stat-annonces">-</div>
+      <div class="stat-label" data-i18n="stat_annonces">Annonces disponibles</div>
+    </div>
+    <span class="stat-trend trend-up" data-i18n="stat_trend_today">Aujourd'hui</span>
+  </div>
+
+  <div class="stat-card animate-in" style="--accent:#6BA870;--icon-bg:var(--green-100)">
+    <div class="stat-icon" style="background:var(--green-100);color:#6BA870"><i class="fa-solid fa-hand-holding-box" aria-hidden="true"></i></div>
+    <div class="stat-info">
+      <div class="stat-value" id="stat-recuperations">-</div>
+      <div class="stat-label" data-i18n="stat_recuperations">Récupérations ce mois</div>
+    </div>
+    <span class="stat-trend trend-up">+2</span>
+  </div>
+
+  <div class="stat-card animate-in" style="--accent:#3d7a60;--icon-bg:#e8f5ee">
+    <div class="stat-icon" style="background:#e8f5ee;color:#3d7a60"><i class="fa-solid fa-diagram-project" aria-hidden="true"></i></div>
+    <div class="stat-info">
+      <div class="stat-value" id="stat-projets">-</div>
+      <div class="stat-label" data-i18n="stat_projets">Projets actifs</div>
+    </div>
+    <span class="stat-trend trend-neu" data-i18n="stat_trend_en_cours">En cours</span>
+  </div>
+
+  <div class="stat-card animate-in" style="--accent:#1e4535;--icon-bg:#d4eee3">
+    <div class="stat-icon" style="background:#d4eee3;color:#1e4535"><i class="fa-solid fa-leaf" aria-hidden="true"></i></div>
+    <div class="stat-info">
+      <div class="stat-value" id="stat-impact">-</div>
+      <div class="stat-label" data-i18n="stat_impact">Kg CO₂ économisés</div>
+    </div>
+    <span class="stat-trend trend-up">+12%</span>
+  </div>
+</div>
+
+<!-- Grille principale -->
+<div class="dashboard-grid">
+
+  <!-- Bloc gauche -->
+  <div style="display:flex;flex-direction:column;gap:16px">
+
+    <!-- Graphique activité -->
+    <div class="card animate-in">
+      <div class="card-header">
+        <h2><i class="fa-solid fa-chart-bar" aria-hidden="true"></i> <span data-i18n="dashboard_chart_recuperations">Récupérations (6 mois)</span></h2>
+        <a href="annonces.html" class="card-action" data-i18n="btn_voir_tout">Voir les annonces →</a>
+      </div>
+      <div class="card-body">
+        <canvas id="chart-activite" height="180"></canvas>
+      </div>
+    </div>
+
+    <!-- Annonces récentes -->
+    <div class="card animate-in">
+      <div class="card-header">
+        <h2><i class="fa-solid fa-box-open" aria-hidden="true"></i> <span data-i18n="annonces_title">Annonces disponibles</span></h2>
+        <a href="annonces.html" class="card-action" data-i18n="btn_voir_tout">Voir tout →</a>
+      </div>
+      <div class="card-body" style="padding-top:8px">
+        <div id="annonces-recentes" class="activity-list">
+          <div style="text-align:center;padding:20px;color:var(--text-muted)">Chargement...</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Bloc droit -->
+  <div style="display:flex;flex-direction:column;gap:16px">
+
+    <!-- Actions rapides -->
+    <div class="card animate-in">
+      <div class="card-header">
+        <h2><i class="fa-solid fa-bolt" aria-hidden="true"></i> <span data-i18n="dashboard_quick_title">Actions rapides</span></h2>
+      </div>
+      <div class="card-body">
+        <div class="quick-actions-grid">
+          <a href="annonces.html" class="quick-action">
+            <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
+            <span data-i18n="quick_browse_matieres">Parcourir matériaux</span>
+          </a>
+          <a href="conteneurs.html" class="quick-action">
+            <i class="fa-solid fa-location-dot" aria-hidden="true"></i>
+            <span data-i18n="quick_voir_conteneurs">Voir conteneurs</span>
+          </a>
+          <a href="projets.html" class="quick-action">
+            <i class="fa-solid fa-diagram-project" aria-hidden="true"></i>
+            <span data-i18n="nav_projets">Mes projets</span>
+          </a>
+          <a href="abonnement.html" class="quick-action">
+            <i class="fa-solid fa-crown" aria-hidden="true"></i>
+            <span data-i18n="nav_abonnement">Mon abonnement</span>
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Alertes matériaux -->
+    <div class="card animate-in">
+      <div class="card-header">
+        <h2><i class="fa-solid fa-bell" aria-hidden="true"></i> <span data-i18n="dashboard_alertes_title">Alertes récentes</span></h2>
+        <a href="alertes.html" class="card-action" data-i18n="btn_voir_tout">Voir tout →</a>
+      </div>
+      <div class="card-body" style="padding-top:8px">
+        <div id="alertes-list"></div>
+      </div>
+    </div>
+
+    <!-- Mes projets -->
+    <div class="card animate-in">
+      <div class="card-header">
+        <h2><i class="fa-solid fa-diagram-project" aria-hidden="true"></i> <span data-i18n="dashboard_projets_title">Mes projets</span></h2>
+        <a href="projets.html" class="card-action" data-i18n="btn_voir_tout">Voir tout →</a>
+      </div>
+      <div class="card-body" style="padding-top:8px">
+        <div id="mes-projets" class="activity-list">
+          <div style="text-align:center;padding:20px;color:var(--text-muted)">Chargement...</div>
+        </div>
+      </div>
+      <div style="padding:12px 22px;border-top:1px solid var(--border)">
+        <a href="projets.html" class="btn btn-outline" style="width:100%;justify-content:center">
+          <i class="fa-solid fa-plus" aria-hidden="true"></i>
+          <span data-i18n="btn_nouveau_projet">Nouveau projet</span>
+        </a>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script src="js/layout.js"></script>
+<script src="js/dashboard.js"></script>
+
+</body>
+</html>

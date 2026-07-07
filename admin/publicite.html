@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8"/>
+  <link rel="icon" type="image/png" href="../brand_assets/Favicon.png"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Publicité & Partenariats | UpcycleConnect Admin</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&family=Montserrat:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="css/style.css"/>
+</head>
+<body>
+
+<div class="page-title-row">
+  <div>
+    <h1>
+      <div class="page-title-icon green">
+        <i class="fa-solid fa-rectangle-ad" aria-hidden="true"></i>
+      </div>
+      Publicité & Partenariats
+    </h1>
+    <p class="page-title-sub">Gestion des campagnes publicitaires et accords de partenariat</p>
+  </div>
+  <div class="page-title-actions">
+    <button class="btn btn-primary" id="btn-nouvelle-pub">
+      <i class="fa-solid fa-plus" aria-hidden="true"></i>
+      Nouvelle campagne
+    </button>
+  </div>
+</div>
+
+<!-- KPI cards -->
+<div class="stats-grid" style="grid-template-columns:repeat(3,1fr);margin-bottom:24px">
+  <div class="stat-card">
+    <div class="stat-icon" style="background:var(--green-100);color:var(--green-700)">
+      <i class="fa-solid fa-circle-check" aria-hidden="true"></i>
+    </div>
+    <div class="stat-info">
+      <div class="stat-value" id="stat-actif">-</div>
+      <div class="stat-label">Campagnes actives</div>
+    </div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon" style="background:var(--warning-bg,#fef3c7);color:var(--warning-text,#92400e)">
+      <i class="fa-solid fa-clock" aria-hidden="true"></i>
+    </div>
+    <div class="stat-info">
+      <div class="stat-value" id="stat-attente">-</div>
+      <div class="stat-label">À venir</div>
+    </div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon" style="background:var(--teal-50);color:var(--teal-700)">
+      <i class="fa-solid fa-euro-sign" aria-hidden="true"></i>
+    </div>
+    <div class="stat-info">
+      <div class="stat-value" id="stat-revenu">-</div>
+      <div class="stat-label">Revenus pub / mois</div>
+    </div>
+  </div>
+</div>
+
+<!-- Filtres -->
+<div class="card" style="margin-bottom:20px">
+  <div class="card-body" style="padding:12px 18px;display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+    <select id="f-statut" class="filter-select" style="min-width:160px">
+      <option value="">Tous les statuts</option>
+      <option value="actif">Actif</option>
+      <option value="expire">Expiré</option>
+      <option value="refuse">Refusé</option>
+    </select>
+    <select id="f-type" class="filter-select" style="min-width:160px">
+      <option value="">Tous les types</option>
+      <option value="banniere">Bannière</option>
+      <option value="sponsoring">Sponsoring</option>
+      <option value="partenariat">Partenariat</option>
+    </select>
+  </div>
+</div>
+
+<!-- Table -->
+<div class="card">
+  <div class="card-body" style="padding:0">
+    <div class="table-wrap">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Campagne</th>
+            <th>Type</th>
+            <th>Entreprise</th>
+            <th>Période</th>
+            <th>Budget/mois</th>
+            <th>Statut</th>
+            <th style="text-align:right">Actions</th>
+          </tr>
+        </thead>
+        <tbody id="pub-tbody">
+          <tr><td colspan="7" style="text-align:center;padding:40px;color:var(--text-muted)">Chargement...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- Modal nouvelle campagne -->
+<div class="modal-overlay" id="modal-pub">
+  <div class="modal-box" style="max-width:500px">
+    <div class="modal-header">
+      <div class="modal-title">
+        <i class="fa-solid fa-rectangle-ad" aria-hidden="true"></i>
+        <span id="modal-pub-title">Nouvelle campagne</span>
+      </div>
+      <button class="modal-close" id="modal-pub-close">&times;</button>
+    </div>
+    <div class="modal-body">
+      <form id="form-pub" style="display:flex;flex-direction:column;gap:14px">
+        <div class="form-group">
+          <label class="form-label">Titre <span class="form-required">*</span></label>
+          <input type="text" id="pub-titre" class="form-control" placeholder="Ex: Bannière accueil - Atelier Dupont" required/>
+        </div>
+        <div class="form-row" style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+          <div class="form-group">
+            <label class="form-label">Type</label>
+            <select id="pub-type" class="form-control">
+              <option value="banniere">Bannière</option>
+              <option value="sponsoring">Sponsoring</option>
+              <option value="partenariat">Partenariat</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Budget mensuel (€)</label>
+            <input type="number" id="pub-budget" class="form-control" value="0" min="0" step="10"/>
+          </div>
+        </div>
+        <div class="form-row" style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+          <div class="form-group">
+            <label class="form-label">Date de début</label>
+            <input type="date" id="pub-debut" class="form-control"/>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Date de fin</label>
+            <input type="date" id="pub-fin" class="form-control"/>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">ID Professionnel partenaire</label>
+          <input type="number" id="pub-pro-id" class="form-control" placeholder="ID utilisateur professionnel" min="1"/>
+        </div>
+        <div class="form-actions" style="display:flex;justify-content:flex-end;gap:10px;margin-top:4px">
+          <button type="button" class="btn btn-outline" id="btn-annuler-pub">Annuler</button>
+          <button type="submit" class="btn btn-primary">
+            <i class="fa-solid fa-check" aria-hidden="true"></i>
+            Enregistrer
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script src="js/layout.js"></script>
+<script>
+let allPubs = [];
+let filtreStatut = '';
+let filtreType   = '';
+
+document.addEventListener('DOMContentLoaded', async () => {
+  await initLayout('publicite');
+  await chargerPublicites();
+
+  document.getElementById('f-statut')?.addEventListener('change', e => { filtreStatut = e.target.value; renderTable(); });
+  document.getElementById('f-type')?.addEventListener('change',   e => { filtreType   = e.target.value; renderTable(); });
+
+  document.getElementById('btn-nouvelle-pub')?.addEventListener('click', () => {
+    document.getElementById('form-pub').reset();
+    document.getElementById('modal-pub-title').textContent = 'Nouvelle campagne';
+    // pré-remplir la date de début à aujourd'hui
+    document.getElementById('pub-debut').value = new Date().toISOString().slice(0, 10);
+    document.getElementById('modal-pub').classList.add('open');
+  });
+  document.getElementById('modal-pub-close')?.addEventListener('click', fermerModal);
+  document.getElementById('btn-annuler-pub')?.addEventListener('click', fermerModal);
+  document.getElementById('modal-pub')?.addEventListener('click', e => {
+    if (e.target === document.getElementById('modal-pub')) fermerModal();
+  });
+  document.getElementById('form-pub')?.addEventListener('submit', soumettrePublicite);
+});
+
+async function chargerPublicites() {
+  try {
+    const res = await apiFetch('/admin/publicites');
+    if (!res.ok) throw new Error();
+    const data = await res.json();
+    allPubs = data.publicites || [];
+    const stats = data.stats || {};
+    const sa = document.getElementById('stat-actif');
+    const sw = document.getElementById('stat-attente');
+    const sr = document.getElementById('stat-revenu');
+    if (sa) sa.textContent = stats.total_actif ?? 0;
+    if (sw) sw.textContent = stats.total_en_attente ?? 0;
+    if (sr) sr.textContent = (stats.revenu_mensuel ?? 0).toLocaleString('fr-FR', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 });
+    renderTable();
+  } catch {
+    document.getElementById('pub-tbody').innerHTML = '<tr><td colspan="7" style="text-align:center;padding:40px;color:var(--danger-text)">Impossible de charger les campagnes.</td></tr>';
+  }
+}
+
+function renderTable() {
+  let list = [...allPubs];
+  if (filtreStatut) list = list.filter(p => p.statut === filtreStatut);
+  if (filtreType)   list = list.filter(p => p.type_pub === filtreType);
+
+  const tbody = document.getElementById('pub-tbody');
+  if (!tbody) return;
+
+  if (!list.length) {
+    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:40px;color:var(--text-muted)">Aucune campagne trouvée.</td></tr>';
+    return;
+  }
+
+  const typeLabel  = { banniere: 'Bannière', sponsoring: 'Sponsoring', partenariat: 'Partenariat' };
+  const statutBadge = {
+    actif:    '<span class="badge badge-green">Actif</span>',
+    expire:   '<span class="badge badge-gray">Expiré</span>',
+    refuse:   '<span class="badge badge-red">Refusé</span>',
+  };
+  const typeIcon = { banniere: 'fa-image', sponsoring: 'fa-handshake', partenariat: 'fa-link' };
+
+  tbody.innerHTML = list.map(p => `
+    <tr>
+      <td class="td-primary">${esc(p.titre)}</td>
+      <td>
+        <span style="display:flex;align-items:center;gap:6px;font-size:12.5px">
+          <i class="fa-solid ${typeIcon[p.type_pub] || 'fa-tag'}" style="color:var(--teal-500)" aria-hidden="true"></i>
+          ${typeLabel[p.type_pub] || p.type_pub}
+        </span>
+      </td>
+      <td style="font-size:12.5px;color:var(--text-soft)">${esc(p.nom_entreprise || `Pro #${p.id_professionnel}`)}</td>
+      <td style="font-size:12px;color:var(--text-muted)">${p.date_debut} → ${p.date_fin}</td>
+      <td style="font-weight:700;color:var(--teal-700)">${Number(p.budget_mensuel).toLocaleString('fr-FR', { style:'currency', currency:'EUR', maximumFractionDigits:0 })}</td>
+      <td>${statutBadge[p.statut] || p.statut}</td>
+      <td style="text-align:right">
+        <div style="display:flex;gap:6px;justify-content:flex-end">
+          ${p.statut !== 'actif'   ? `<button class="btn btn-outline btn-sm" onclick="changerStatut(${p.id},'actif')" title="Activer"><i class="fa-solid fa-circle-check"></i></button>` : ''}
+          ${p.statut !== 'expire'  ? `<button class="btn btn-outline btn-sm" onclick="changerStatut(${p.id},'expire')" title="Marquer expiré"><i class="fa-solid fa-clock"></i></button>` : ''}
+          ${p.statut !== 'refuse'  ? `<button class="btn btn-outline btn-sm" onclick="changerStatut(${p.id},'refuse')" title="Refuser" style="color:var(--danger)"><i class="fa-solid fa-ban"></i></button>` : ''}
+          <button class="btn btn-outline btn-sm" onclick="supprimerPub(${p.id})" title="Supprimer" style="color:var(--danger)"><i class="fa-solid fa-trash"></i></button>
+        </div>
+      </td>
+    </tr>`).join('');
+}
+
+window.changerStatut = async (id, statut) => {
+  try {
+    const res = await apiFetch(`/admin/publicites/${id}/statut`, {
+      method: 'PUT', body: JSON.stringify({ statut }),
+    });
+    if (res.ok) { await chargerPublicites(); showToast(`Statut mis à jour : ${statut}`, 'success'); }
+    else showToast('Erreur lors de la mise à jour', 'error');
+  } catch { showToast('Service indisponible', 'error'); }
+};
+
+window.supprimerPub = async (id) => {
+  if (!confirm('Supprimer cette campagne définitivement ?')) return;
+  try {
+    const res = await apiFetch(`/admin/publicites/${id}`, { method: 'DELETE' });
+    if (res.ok || res.status === 204) { await chargerPublicites(); showToast('Campagne supprimée', 'success'); }
+    else showToast('Erreur lors de la suppression', 'error');
+  } catch { showToast('Service indisponible', 'error'); }
+};
+
+async function soumettrePublicite(e) {
+  e.preventDefault();
+  const payload = {
+    titre:            document.getElementById('pub-titre').value.trim(),
+    type_pub:         document.getElementById('pub-type').value,
+    budget_mensuel:   parseFloat(document.getElementById('pub-budget').value) || 0,
+    date_debut:       document.getElementById('pub-debut').value,
+    date_fin:         document.getElementById('pub-fin').value,
+    id_professionnel: parseInt(document.getElementById('pub-pro-id').value) || 0,
+  };
+  if (!payload.titre || !payload.date_debut || !payload.date_fin) {
+    showToast('Titre et dates sont obligatoires', 'warning'); return;
+  }
+  try {
+    const res = await apiFetch('/admin/publicites', { method: 'POST', body: JSON.stringify(payload) });
+    if (res.ok || res.status === 201) {
+      fermerModal();
+      await chargerPublicites();
+      showToast('Campagne créée avec succès', 'success');
+    } else {
+      const d = await res.json().catch(() => ({}));
+      showToast(d.error || 'Erreur lors de la création', 'error');
+    }
+  } catch { showToast('Service indisponible', 'error'); }
+}
+
+function fermerModal() { document.getElementById('modal-pub').classList.remove('open'); }
+function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+</script>
+
+</body>
+</html>

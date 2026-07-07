@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8"/>
+  <link rel="icon" type="image/png" href="../brand_assets/Favicon.png"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Gestion des formations | Espace Salariés</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=Montserrat:wght@400;500;600&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" crossorigin="anonymous"/>
+  <link rel="stylesheet" href="css/style.css"/>
+</head>
+<body>
+
+<div class="page-title-row animate-in">
+  <div>
+    <h1>
+      <div class="page-title-icon teal"><i class="fa-solid fa-graduation-cap"></i></div>
+      <span data-i18n="formations_title">Gestion des formations et événements</span>
+    </h1>
+    <p class="page-title-sub" data-i18n="formations_subtitle">Créez et gérez les formations proposées aux particuliers</p>
+  </div>
+  <div class="page-title-actions">
+    <button class="btn btn-primary" id="btn-nouvelle">
+      <i class="fa-solid fa-plus"></i>
+      <span data-i18n="formation_btn_new">Nouvelle formation</span>
+    </button>
+  </div>
+</div>
+
+<div class="card animate-in">
+  <div class="card-header">
+    <h2><i class="fa-solid fa-list"></i> <span data-i18n="formations_current">Formations en cours</span></h2>
+    <span class="badge badge-success" id="badge-count">0 actives</span>
+  </div>
+  <div style="overflow-x:auto">
+    <table class="table">
+      <thead>
+        <tr>
+          <th data-i18n="formations_th_titre">Titre</th>
+          <th data-i18n="formations_th_type">Type</th>
+          <th data-i18n="formations_th_date">Date</th>
+          <th data-i18n="formations_th_lieu">Lieu</th>
+          <th data-i18n="formations_th_places">Places</th>
+          <th data-i18n="formations_th_statut">Statut</th>
+          <th data-i18n="formations_th_actions">Actions</th>
+        </tr>
+      </thead>
+      <tbody id="formations-tbody"></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Modal création / modification -->
+<div class="modal-overlay" id="modal-formation">
+  <div class="modal-box">
+    <div class="modal-header">
+      <div class="modal-title" id="modal-titre-label">
+        <i class="fa-solid fa-graduation-cap"></i>
+        <span data-i18n="formation_btn_new">Nouvelle formation</span>
+      </div>
+      <button class="modal-close" id="modal-close">&times;</button>
+    </div>
+    <div class="modal-body">
+      <form id="form-formation">
+        <input type="hidden" id="f-id"/>
+        <div class="form-group">
+          <label class="form-label"><span data-i18n="form_titre">Titre</span> <span class="form-required">*</span></label>
+          <input type="text" id="f-titre" class="form-control" placeholder="Ex : Atelier mosaïque verre" required/>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label"><span data-i18n="formations_th_type">Type</span> <span class="form-required">*</span></label>
+            <select id="f-type" class="form-control">
+              <option value="atelier" data-i18n="opt_atelier">Atelier</option>
+              <option value="formation" data-i18n="opt_formation">Formation</option>
+              <option value="evenement" data-i18n="opt_evenement">Événement</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label" data-i18n="form_statut">Statut</label>
+            <select id="f-statut" class="form-control">
+              <option value="en_attente" data-i18n="opt_en_attente">En attente</option>
+              <option value="valide" data-i18n="opt_valide">Validé</option>
+              <option value="annule" data-i18n="opt_annule">Annulé</option>
+              <option value="cloture" data-i18n="opt_cloture">Clôturé</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label"><span data-i18n="form_date_debut">Date début</span> <span class="form-required">*</span></label>
+            <input type="datetime-local" id="f-date" class="form-control" required/>
+          </div>
+          <div class="form-group">
+            <label class="form-label" data-i18n="form_date_fin">Date fin</label>
+            <input type="datetime-local" id="f-date-fin" class="form-control"/>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label" data-i18n="form_nb_places">Nb de places</label>
+            <input type="number" id="f-places" class="form-control" min="1" placeholder="12"/>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label" data-i18n="form_lieu">Lieu</label>
+          <input type="text" id="f-lieu" class="form-control" placeholder="Paris 11e, Montreuil..."/>
+        </div>
+        <div class="form-group">
+          <label class="form-label" data-i18n="form_description">Description</label>
+          <textarea id="f-description" class="form-control" rows="3" placeholder="Décrivez le contenu de la formation..."></textarea>
+        </div>
+        <div class="form-actions">
+          <button type="button" class="btn btn-outline" id="modal-cancel" data-i18n="btn_cancel">Annuler</button>
+          <button type="submit" class="btn btn-primary">
+            <i class="fa-solid fa-check"></i>
+            <span data-i18n="btn_save">Enregistrer</span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Modal questionnaire satisfaction -->
+<div class="modal-overlay" id="modal-questionnaire">
+  <div class="modal-box" style="max-width:540px">
+    <div class="modal-header">
+      <div class="modal-title"><i class="fa-solid fa-star"></i> Questionnaire satisfaction</div>
+      <button class="modal-close" id="modal-q-close">&times;</button>
+    </div>
+    <div class="modal-body">
+      <p style="font-size:13px;color:var(--text-soft);margin-bottom:16px">
+        Créez un questionnaire pour recueillir les retours des participants après l'événement.
+      </p>
+      <div id="questions-list" style="display:flex;flex-direction:column;gap:8px;margin-bottom:12px"></div>
+      <button type="button" class="btn btn-outline btn-sm" onclick="ajouterQuestion()">
+        <i class="fa-solid fa-plus"></i> Ajouter une question
+      </button>
+      <div class="form-actions" style="margin-top:20px">
+        <button type="button" class="btn btn-outline" onclick="document.getElementById('modal-questionnaire').classList.remove('open')">Annuler</button>
+        <button type="button" class="btn btn-primary" onclick="sauvegarderQuestionnaire()">
+          <i class="fa-solid fa-paper-plane"></i> Envoyer aux participants
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="js/layout.js"></script>
+<script src="js/formations.js"></script>
+<script>
+let _evenementQID = null;
+
+window.ouvrirQuestionnaire = (eventID) => {
+  _evenementQID = eventID;
+  document.getElementById('questions-list').innerHTML = '';
+  ajouterQuestion();
+  document.getElementById('modal-questionnaire').classList.add('open');
+};
+
+window.ajouterQuestion = () => {
+  const list = document.getElementById('questions-list');
+  const idx = list.children.length + 1;
+  list.insertAdjacentHTML('beforeend', `
+    <div style="display:flex;gap:8px;align-items:center" id="q-row-${idx}">
+      <input type="text" class="form-control question-text" placeholder="Question ${idx}" style="flex:1;font-size:13px"/>
+      <select class="form-control question-type" style="width:110px;font-size:12px">
+        <option value="texte">Texte libre</option>
+        <option value="note">Note /5</option>
+        <option value="oui_non">Oui / Non</option>
+      </select>
+      <button type="button" style="background:none;border:none;cursor:pointer;color:var(--danger-text)" onclick="document.getElementById('q-row-${idx}').remove()">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+    </div>`);
+};
+
+window.sauvegarderQuestionnaire = async () => {
+  if (!_evenementQID) return;
+  const texts = Array.from(document.querySelectorAll('.question-text')).map(i => i.value.trim()).filter(Boolean);
+  const types  = Array.from(document.querySelectorAll('.question-type')).map(s => s.value);
+  if (!texts.length) { showToast('Ajoutez au moins une question', 'warning'); return; }
+  const questions = texts.map((q, i) => ({ question: q, type: types[i] || 'texte' }));
+  try {
+    const res = await apiFetch(`/evenements/${_evenementQID}/questionnaire`, {
+      method: 'POST', body: JSON.stringify({ questions: JSON.stringify(questions) }),
+    });
+    if (!res?.ok) { showToast('Erreur lors de la création', 'error'); return; }
+    const d = await res.json();
+    // envoyer immédiatement
+    await apiFetch(`/questionnaires/${d.id}/envoyer`, { method: 'POST', body: '{}' });
+    showToast('Questionnaire envoyé aux participants', 'success');
+    document.getElementById('modal-questionnaire').classList.remove('open');
+  } catch { showToast('Service indisponible', 'error'); }
+};
+
+document.getElementById('modal-q-close')?.addEventListener('click', () => {
+  document.getElementById('modal-questionnaire').classList.remove('open');
+});
+</script>
+</body>
+</html>

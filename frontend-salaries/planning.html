@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8"/>
+  <link rel="icon" type="image/png" href="../brand_assets/Favicon.png"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Mon planning | Espace Salariés</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=Montserrat:wght@400;500;600&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" crossorigin="anonymous"/>
+  <link rel="stylesheet" href="css/style.css"/>
+</head>
+<body>
+
+<div class="page-title-row animate-in">
+  <div>
+    <h1><div class="page-title-icon teal"><i class="fa-solid fa-calendar-days"></i></div><span data-i18n="planning_title">Mon planning</span></h1>
+    <p class="page-title-sub" data-i18n="planning_subtitle">Vos interventions et formations à venir</p>
+  </div>
+  <div class="page-title-actions">
+    <button class="btn btn-outline btn-sm" onclick="exporterIcal()"><i class="fa-solid fa-calendar-arrow-down"></i> Exporter (.ics)</button>
+  </div>
+</div>
+
+<div class="card animate-in">
+  <div class="card-header" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px">
+    <h2><i class="fa-solid fa-calendar-week"></i> <span data-i18n="planning_title">Mon planning</span></h2>
+    <div style="display:flex;gap:8px">
+      <button class="btn btn-outline btn-sm active" id="btn-liste" onclick="basculerVue('liste')"><i class="fa-solid fa-list"></i> Liste</button>
+      <button class="btn btn-outline btn-sm" id="btn-cal" onclick="basculerVue('cal')"><i class="fa-solid fa-calendar"></i> Calendrier</button>
+    </div>
+  </div>
+  <div class="card-body">
+    <div id="liste-wrap">
+      <div class="planning-list" id="planning-list"></div>
+    </div>
+
+    <div id="fc-wrap" style="display:none">
+      <div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap">
+        <button class="btn btn-outline btn-sm active" id="fc-month" onclick="changerVueFC('dayGridMonth')">Mois</button>
+        <button class="btn btn-outline btn-sm" id="fc-week"  onclick="changerVueFC('timeGridWeek')">Semaine</button>
+        <button class="btn btn-outline btn-sm" id="fc-day"   onclick="changerVueFC('timeGridDay')">Jour</button>
+      </div>
+      <div id="fullcalendar"></div>
+    </div>
+  </div>
+</div>
+
+<script src="js/layout.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js"></script>
+<script>
+const COLORS = { atelier:'var(--green-700)', formation:'#e8a020', reunion:'#5C7C6E', evenement:'#2e8b57' };
+
+function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+let _items = [];
+let _calendar = null;
+
+function renderListe(items) {
+  const container = document.getElementById('planning-list');
+  if (!container) return;
+  const locale = typeof _lang !== 'undefined' && _lang === 'en' ? 'en-GB' : 'fr-FR';
+
+  if (!items.length) {
+    container.innerHTML = '<p style="text-align:center;padding:40px;color:var(--text-muted)">Aucun événement à venir dans votre planning.</p>';
+    return;
+  }
+
+  container.innerHTML = items.map(e => {
+    const type    = e.type || 'evenement';
+    const couleur = COLORS[type] || 'var(--green-500)';
+    const rawDate = e.date_debut || e.date_heure;
+    const dateStr = rawDate
+      ? new Date(rawDate).toLocaleDateString(locale, { weekday:'short', day:'numeric', month:'short', year:'numeric' })
+      : '';
+    return `
+      <div class="planning-item" style="border-left:3px solid ${couleur}">
+        <div class="planning-date">${esc(dateStr)}</div>
+        <div class="planning-content">
+          <div class="planning-title">${esc(e.titre || '')}</div>
+          <div class="planning-meta">
+            ${e.lieu ? `<i class="fa-solid fa-location-dot"></i> ${esc(e.lieu)}` : ''}
+            ${e.nb_places ? ` &nbsp;·&nbsp; <i class="fa-solid fa-users"></i> ${e.nb_places} places` : ''}
+          </div>
+        </div>
+        <span class="badge" style="background:${couleur}20;color:${couleur};text-transform:capitalize">${esc(type)}</span>
+      </div>`;
+  }).join('');
+}
+
+function initFullCalendar() {
+  if (_calendar) { _calendar.render(); return; }
+  const el = document.getElementById('fullcalendar');
+  if (!el || typeof FullCalendar === 'undefined') return;
+
+  const locale = typeof _lang !== 'undefined' && _lang === 'en' ? 'en' : 'fr';
+
+  _calendar = new FullCalendar.Calendar(el, {
+    locale,
+    initialView:   'dayGridMonth',
+    headerToolbar: { left: 'prev,next today', center: 'title', right: '' },
+    height:        'auto',
+    events: _items.map(e => ({
+      title: e.titre || '',
+      start: e.date_debut || e.date_heure,
+      backgroundColor: COLORS[e.type || 'evenement'] || '#2e8b57',
+      borderColor:     COLORS[e.type || 'evenement'] || '#2e8b57',
+    })),
+    eventClick(info) {
+      const locale2 = typeof _lang !== 'undefined' && _lang === 'en' ? 'en-GB' : 'fr-FR';
+      const d = new Date(info.event.start).toLocaleDateString(locale2, { weekday:'long', day:'numeric', month:'long', year:'numeric' });
+      alert(`${info.event.title}\n${d}`);
+    },
+  });
+  _calendar.render();
+}
+
+window.basculerVue = function(vue) {
+  const listeWrap = document.getElementById('liste-wrap');
+  const fcWrap    = document.getElementById('fc-wrap');
+  const btnListe  = document.getElementById('btn-liste');
+  const btnCal    = document.getElementById('btn-cal');
+
+  if (vue === 'cal') {
+    listeWrap.style.display = 'none';
+    fcWrap.style.display    = 'block';
+    btnCal.classList.add('active');
+    btnListe.classList.remove('active');
+    initFullCalendar();
+  } else {
+    listeWrap.style.display = 'block';
+    fcWrap.style.display    = 'none';
+    btnListe.classList.add('active');
+    btnCal.classList.remove('active');
+  }
+};
+
+window.changerVueFC = function(view) {
+  if (!_calendar) return;
+  _calendar.changeView(view);
+  ['fc-month','fc-week','fc-day'].forEach(id => document.getElementById(id)?.classList.remove('active'));
+  const map = { dayGridMonth:'fc-month', timeGridWeek:'fc-week', timeGridDay:'fc-day' };
+  document.getElementById(map[view])?.classList.add('active');
+};
+
+function exporterIcal() {
+  const token = localStorage.getItem('uc_sal_token');
+  const a = document.createElement('a');
+  a.href = `${apiBase}/planning/export.ics${token ? '?token='+encodeURIComponent(token) : ''}`;
+  a.download = 'planning-upcycleconnect.ics';
+  a.click();
+}
+
+document.addEventListener('DOMContentLoaded', async () => {
+  await initLayout('planning');
+
+  try {
+    const res = await apiFetch('/evenements/mes-inscriptions');
+    if (res?.ok) { const d = await res.json(); if (Array.isArray(d)) _items = d; }
+  } catch {}
+
+  if (!_items.length) {
+    try {
+      const res = await apiFetch('/planning/me');
+      if (res?.ok) { const d = await res.json(); if (Array.isArray(d)) _items = d; }
+    } catch {}
+  }
+
+  renderListe(_items);
+});
+</script>
+</body>
+</html>

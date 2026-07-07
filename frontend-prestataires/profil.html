@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8"/>
+  <link rel="icon" type="image/png" href="../brand_assets/Favicon.png"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Mon profil | Espace Professionnel</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=Montserrat:wght@400;500;600&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="css/style.css"/>
+</head>
+<body>
+
+<div class="page-title-row animate-in">
+  <div>
+    <h1>
+      <div class="page-title-icon green">
+        <i class="fa-solid fa-user-tie" aria-hidden="true"></i>
+      </div>
+      <span data-i18n="profil_title">Mon profil professionnel</span>
+    </h1>
+    <p class="page-title-sub" data-i18n="profil_subtitle">Informations de votre compte UpcycleConnect</p>
+  </div>
+  <div class="page-title-actions">
+    <a href="abonnement.html" class="btn btn-outline btn-sm">
+      <i class="fa-solid fa-crown" aria-hidden="true"></i>
+      <span data-i18n="nav_abonnement">Mon abonnement</span>
+    </a>
+  </div>
+</div>
+
+<div class="profil-layout animate-in">
+
+  <!-- Carte identité -->
+  <div class="profil-sidebar">
+    <div class="profil-avatar-large" id="profil-avatar-large">J</div>
+    <div>
+      <div class="profil-nom-display" id="profil-nom-display">Jean Martin</div>
+      <div class="profil-entreprise-display" id="profil-entreprise-display">EcoRenovation SAS</div>
+    </div>
+    <span class="badge badge-teal" id="profil-plan-badge">Plan Gratuit</span>
+    <div style="width:100%;border-top:1px solid var(--border);padding-top:16px;display:flex;flex-direction:column;gap:10px">
+      <div style="font-size:12px;color:var(--text-muted);text-align:center;font-weight:500">
+        Membre depuis <strong id="profil-depuis">2026</strong>
+      </div>
+      <div style="display:flex;justify-content:space-between;text-align:center">
+        <div>
+          <div style="font-family:Poppins,sans-serif;font-size:18px;font-weight:800;color:var(--green-700)" id="profil-stat-recup">-</div>
+          <div style="font-size:11px;color:var(--text-muted);font-weight:600" data-i18n="profil_stat_recup">Récupérations</div>
+        </div>
+        <div>
+          <div style="font-family:Poppins,sans-serif;font-size:18px;font-weight:800;color:var(--green-700)" id="profil-stat-projets">-</div>
+          <div style="font-size:11px;color:var(--text-muted);font-weight:600" data-i18n="profil_stat_projets_label">Projets</div>
+        </div>
+        <div>
+          <div style="font-family:Poppins,sans-serif;font-size:18px;font-weight:800;color:var(--green-700)" id="profil-stat-impact">-</div>
+          <div style="font-size:11px;color:var(--text-muted);font-weight:600" data-i18n="profil_stat_co2">Kg CO₂</div>
+        </div>
+      </div>
+    </div>
+    <button class="btn btn-danger btn-sm" style="width:100%" onclick="deconnexion()">
+      <i class="fa-solid fa-right-from-bracket" aria-hidden="true"></i>
+      <span data-i18n="btn_deconnecter">Se déconnecter</span>
+    </button>
+  </div>
+
+  <!-- Formulaires -->
+  <div style="display:flex;flex-direction:column;gap:16px">
+
+    <!-- Identité -->
+    <div class="card animate-in">
+      <div class="card-header">
+        <h2><i class="fa-solid fa-user" aria-hidden="true"></i> <span data-i18n="profil_section_identite">Identité</span></h2>
+      </div>
+      <div class="card-body">
+        <form id="form-identite" novalidate style="display:flex;flex-direction:column;gap:16px">
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label" for="p-prenom" data-i18n="profil_prenom">Prénom</label>
+              <input type="text" id="p-prenom" class="form-control" placeholder="Jean"/>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="p-nom" data-i18n="profil_nom">Nom</label>
+              <input type="text" id="p-nom" class="form-control" placeholder="Martin"/>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label" for="p-email" data-i18n="profil_email">Email</label>
+              <input type="email" id="p-email" class="form-control" readonly
+                     style="background:var(--green-25);color:var(--text-muted)"/>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="p-telephone" data-i18n="profil_telephone">Téléphone</label>
+              <input type="tel" id="p-telephone" class="form-control" placeholder="06 00 00 00 00"/>
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="p-adresse" data-i18n="profil_adresse_pro">Adresse professionnelle</label>
+            <input type="text" id="p-adresse" class="form-control" placeholder="12 rue de la Paix, Paris 75001"/>
+          </div>
+          <div class="form-actions">
+            <button type="submit" class="btn btn-primary">
+              <i class="fa-solid fa-check" aria-hidden="true"></i>
+              <span data-i18n="btn_save">Enregistrer</span>
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Entreprise -->
+    <div class="card animate-in">
+      <div class="card-header">
+        <h2><i class="fa-solid fa-building" aria-hidden="true"></i> <span data-i18n="profil_section_entreprise">Informations entreprise</span></h2>
+      </div>
+      <div class="card-body">
+        <form id="form-entreprise" novalidate style="display:flex;flex-direction:column;gap:16px">
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label" for="p-entreprise" data-i18n="profil_entreprise_nom">Nom de l'entreprise</label>
+              <input type="text" id="p-entreprise" class="form-control" placeholder="Mon Entreprise SAS"/>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="p-siret" data-i18n="profil_siret">SIRET</label>
+              <input type="text" id="p-siret" class="form-control" placeholder="12345678901234" maxlength="14"/>
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="p-description" data-i18n="profil_description">Description de l'activité</label>
+            <textarea id="p-description" class="form-control" rows="3"
+                      placeholder="Décrivez votre activité principale et votre intérêt pour l'upcycling..."></textarea>
+          </div>
+          <div class="form-actions">
+            <button type="submit" class="btn btn-primary">
+              <i class="fa-solid fa-check" aria-hidden="true"></i>
+              <span data-i18n="btn_save">Enregistrer</span>
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Sécurité -->
+    <div class="card animate-in">
+      <div class="card-header">
+        <h2><i class="fa-solid fa-shield" aria-hidden="true"></i> <span data-i18n="profil_section_securite">Sécurité</span></h2>
+      </div>
+      <div class="card-body">
+        <form id="form-securite" novalidate style="display:flex;flex-direction:column;gap:16px">
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label" for="p-pwd-actuel" data-i18n="profil_pwd_actuel">Mot de passe actuel</label>
+              <input type="password" id="p-pwd-actuel" class="form-control" placeholder="••••••••"/>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="p-pwd-new" data-i18n="profil_pwd_nouveau">Nouveau mot de passe</label>
+              <input type="password" id="p-pwd-new" class="form-control" placeholder="Min. 8 caractères"/>
+            </div>
+          </div>
+          <div class="form-actions">
+            <button type="submit" class="btn btn-outline">
+              <i class="fa-solid fa-lock" aria-hidden="true"></i>
+              <span data-i18n="profil_btn_change_pwd">Changer le mot de passe</span>
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Zone danger -->
+    <div class="card animate-in" style="border-color:var(--danger-bg)">
+      <div class="card-header" style="background:var(--danger-bg)">
+        <h2 style="color:var(--danger-text)">
+          <i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i>
+          <span data-i18n="profil_zone_critique">Zone critique</span>
+        </h2>
+      </div>
+      <div class="card-body" style="display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap">
+        <div>
+          <div style="font-family:Poppins,sans-serif;font-weight:700;color:var(--text);margin-bottom:3px" data-i18n="profil_supprimer_titre">Supprimer mon compte</div>
+          <div style="font-size:12.5px;color:var(--text-soft)" data-i18n="profil_supprimer_sub">Cette action désactivera votre compte (soft delete RGPD). Vos données seront conservées 30 jours.</div>
+        </div>
+        <button class="btn btn-danger" onclick="demanderSuppression()">
+          <i class="fa-solid fa-trash" aria-hidden="true"></i>
+          <span data-i18n="profil_btn_desactiver">Désactiver le compte</span>
+        </button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script src="js/layout.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', async () => {
+  const utilisateur = await initLayout('profil');
+  if (!utilisateur) return;
+
+  remplirProfil(utilisateur);
+  chargerStats();
+  bindForms();
+});
+
+async function chargerStats() {
+  document.getElementById('profil-stat-recup').textContent    = 0;
+  document.getElementById('profil-stat-projets').textContent  = 0;
+  document.getElementById('profil-stat-impact').textContent   = 0;
+
+  apiFetch('/depots').then(async r => {
+    if (!r?.ok) return;
+    const d = await r.json();
+    if (Array.isArray(d)) document.getElementById('profil-stat-recup').textContent = d.filter(x => x.statut === 'recupere').length;
+  });
+  apiFetch('/projets/mes-projets').then(async r => {
+    if (!r?.ok) return;
+    const p = await r.json();
+    if (Array.isArray(p)) document.getElementById('profil-stat-projets').textContent = p.length;
+  });
+  apiFetch('/score').then(async r => {
+    if (!r?.ok) return;
+    const s = await r.json();
+    document.getElementById('profil-stat-impact').textContent = Math.round(s.kg_recycles ?? 0);
+  });
+}
+
+function remplirProfil(user) {
+  const prenom = user.prenom || '';
+  const nom    = user.nom    || '';
+  const initiales = (prenom.charAt(0) + nom.charAt(0)).toUpperCase() || 'P';
+
+  const nomAff = prenom ? `${prenom} ${nom}`.trim() : nom || 'Professionnel';
+
+  document.getElementById('p-prenom').value      = prenom;
+  document.getElementById('p-nom').value         = nom;
+  document.getElementById('p-email').value       = user.email    || '';
+  document.getElementById('p-telephone').value   = user.telephone || '';
+  document.getElementById('p-adresse').value     = user.adresse   || '';
+  document.getElementById('p-entreprise').value  = user.entreprise || '';
+  document.getElementById('p-siret').value       = user.siret     || '';
+  document.getElementById('p-description').value = user.description || '';
+
+  document.getElementById('profil-avatar-large').textContent = initiales;
+  document.getElementById('profil-nom-display').textContent   = nomAff;
+  document.getElementById('profil-entreprise-display').textContent = user.entreprise || 'Professionnel';
+
+  const plan = user.plan || 'gratuit';
+  const planBadge = document.getElementById('profil-plan-badge');
+  if (planBadge) {
+    planBadge.textContent  = plan === 'premium' ? 'Plan Premium' : 'Plan Gratuit';
+    planBadge.className    = plan === 'premium' ? 'badge badge-premium' : 'badge badge-teal';
+  }
+
+  if (user.date_inscription) {
+    const annee = new Date(user.date_inscription).getFullYear();
+    const el    = document.getElementById('profil-depuis');
+    if (el) el.textContent = annee;
+  }
+}
+
+function bindForms() {
+  document.getElementById('form-identite')?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const user = getProUser() || {};
+    user.prenom    = document.getElementById('p-prenom').value.trim();
+    user.nom       = document.getElementById('p-nom').value.trim();
+    user.telephone = document.getElementById('p-telephone').value.trim();
+    user.adresse   = document.getElementById('p-adresse').value.trim();
+
+    try {
+      const res = await apiFetch('/users/me', {
+        method: 'PUT',
+        body:   JSON.stringify(user),
+      });
+      if (res?.ok) {
+        localStorage.setItem('uc_pro_user', JSON.stringify(user));
+        showToast('Profil mis à jour', 'success');
+        remplirProfil(user);
+      } else {
+        const err = res ? await res.json().catch(() => ({})) : {};
+        showToast(err.error || 'Erreur lors de la mise à jour', 'error');
+      }
+    } catch {
+      showToast('Service indisponible. Réessayez.', 'error');
+    }
+  });
+
+  document.getElementById('form-entreprise')?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const user = getProUser() || {};
+    user.entreprise  = document.getElementById('p-entreprise').value.trim();
+    user.siret       = document.getElementById('p-siret').value.trim();
+    user.description = document.getElementById('p-description').value.trim();
+
+    try {
+      const res = await apiFetch('/users/me', { method: 'PUT', body: JSON.stringify(user) });
+      if (res?.ok) {
+        localStorage.setItem('uc_pro_user', JSON.stringify(user));
+        showToast('Informations entreprise mises à jour', 'success');
+      } else {
+        const err = res ? await res.json().catch(() => ({})) : {};
+        showToast(err.error || 'Erreur lors de la mise à jour', 'error');
+      }
+    } catch {
+      showToast('Service indisponible. Réessayez.', 'error');
+    }
+  });
+
+  document.getElementById('form-securite')?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const actuel = document.getElementById('p-pwd-actuel').value;
+    const nouveau = document.getElementById('p-pwd-new').value;
+    if (!actuel || !nouveau) { showToast('Veuillez remplir les deux champs', 'warning'); return; }
+    if (nouveau.length < 8)  { showToast('Le mot de passe doit contenir au moins 8 caractères', 'warning'); return; }
+
+    try {
+      const res = await apiFetch('/users/change-password', {
+        method: 'POST',
+        body:   JSON.stringify({ old_password: actuel, new_password: nouveau }),
+      });
+      if (res?.ok) {
+        showToast('Mot de passe modifié avec succès', 'success');
+        e.target.reset();
+      } else {
+        const err = res ? await res.json().catch(() => ({})) : {};
+        showToast(err.error || 'Mot de passe actuel incorrect', 'error');
+      }
+    } catch {
+      showToast('Service indisponible. Réessayez.', 'error');
+    }
+  });
+}
+
+window.deconnexion = () => {
+  clearToken();
+  window.location.href = 'index.html';
+};
+
+window.demanderSuppression = () => {
+  if (confirm('Êtes-vous sûr de vouloir désactiver votre compte ? Cette action est réversible sous 30 jours.')) {
+    showToast('Demande de désactivation envoyée. Notre équipe vous contactera.', 'warning');
+  }
+};
+</script>
+
+</body>
+</html>

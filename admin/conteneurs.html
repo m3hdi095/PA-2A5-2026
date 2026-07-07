@@ -1,0 +1,670 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8"/>
+  <link rel="icon" type="image/png" href="../brand_assets/Favicon.png"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Conteneurs | UpcycleConnect Admin</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;700;800&family=Montserrat:wght@400;500;600;700&family=Roboto:wght@400;500&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"/>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+  <link rel="stylesheet" href="css/style.css"/>
+  <style>
+    .conteneurs-layout {
+      display: grid;
+      grid-template-columns: 380px 1fr;
+      gap: 20px;
+      height: calc(100vh - 180px);
+      min-height: 500px;
+    }
+    .conteneurs-panel {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      overflow-y: auto;
+    }
+    #map {
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      height: 100%;
+      min-height: 400px;
+      z-index: 1;
+    }
+    .conteneur-item {
+      background: var(--white);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow-xs);
+      padding: 14px 16px;
+      cursor: pointer;
+      border: 2px solid transparent;
+      transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    }
+    .conteneur-item:hover,
+    .conteneur-item.active {
+      border-color: var(--uc-teal);
+      box-shadow: var(--shadow-sm);
+    }
+    .conteneur-item-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 8px;
+    }
+    .conteneur-nom {
+      font-weight: 600;
+      font-size: 14px;
+      color: var(--neutral-900);
+    }
+    .conteneur-adresse {
+      font-size: 12px;
+      color: var(--neutral-500);
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .conteneur-adresse i { font-size: 11px; color: var(--uc-teal); }
+    .fill-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 12px;
+      color: var(--neutral-500);
+    }
+    .fill-row .progress-bar { flex: 1; }
+    .fill-pct { font-weight: 600; min-width: 34px; text-align: right; }
+    .fill-pct.danger { color: var(--danger); }
+    .fill-pct.warn   { color: var(--warning); }
+    .fill-pct.ok     { color: var(--uc-teal); }
+    .progress-fill.danger { background: var(--danger); }
+    .progress-fill.warn   { background: var(--warning); }
+
+    /* Panneau détail */
+    .detail-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(45,74,62,0.45);
+      z-index: 400;
+      align-items: center;
+      justify-content: center;
+    }
+    .detail-overlay.open { display: flex; }
+    .detail-panel {
+      background: var(--white);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-lg);
+      padding: 28px 32px;
+      width: 100%;
+      max-width: 520px;
+      max-height: 85vh;
+      overflow-y: auto;
+    }
+    .detail-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      margin-bottom: 20px;
+    }
+    .detail-title { font-size: 18px; font-weight: 700; color: var(--neutral-900); }
+    .detail-sub   { font-size: 12px; color: var(--neutral-500); margin-top: 2px; }
+    .detail-close { background: none; border: none; font-size: 18px; color: var(--neutral-300); cursor: pointer; padding: 4px; }
+    .detail-close:hover { color: var(--neutral-900); }
+    .detail-stats {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+    .detail-stat {
+      background: var(--neutral-50);
+      border-radius: var(--radius);
+      padding: 12px 14px;
+    }
+    .detail-stat-val  { font-size: 22px; font-weight: 700; color: var(--uc-forest); font-family: 'Montserrat', sans-serif; }
+    .detail-stat-lbl  { font-size: 11px; color: var(--neutral-500); margin-top: 2px; }
+    .historique-list { display: flex; flex-direction: column; gap: 8px; }
+    .historique-item {
+      display: flex;
+      gap: 12px;
+      align-items: flex-start;
+      padding: 8px 0;
+      border-bottom: 1px solid var(--neutral-100);
+      font-size: 13px;
+    }
+    .historique-item:last-child { border-bottom: none; }
+    .historique-dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: var(--uc-teal);
+      margin-top: 5px;
+      flex-shrink: 0;
+    }
+    .tournee-form { display: flex; flex-direction: column; gap: 12px; margin-top: 16px; }
+
+    @media (max-width: 900px) {
+      .conteneurs-layout { grid-template-columns: 1fr; height: auto; }
+      #map { height: 320px; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="page-title-row">
+  <div>
+    <h1>
+      <div class="page-title-icon green">
+        <i class="fa-solid fa-box-archive" aria-hidden="true"></i>
+      </div>
+      <span data-i18n="nav_conteneurs">Conteneurs</span>
+    </h1>
+    <p class="page-title-sub" data-i18n="cont_subtitle">Carte interactive et gestion des points de collecte</p>
+  </div>
+  <div style="display:flex;gap:10px">
+    <button class="btn btn-ghost" id="btnTournee" style="gap:6px">
+      <i class="fa-solid fa-route" aria-hidden="true"></i>
+      <span data-i18n="cont_btn_tournee">Planifier une tournée</span>
+    </button>
+    <button class="btn btn-primary btn-sm" id="btnAddConteneur" style="gap:6px">
+      <i class="fa-solid fa-plus" aria-hidden="true"></i>
+      <span data-i18n="btn_add">Ajouter</span>
+    </button>
+  </div>
+</div>
+
+<!-- Barre filtres -->
+<div class="filters-bar" style="margin-bottom:16px">
+  <input type="text" id="searchConteneur" class="search-input" data-i18n-placeholder="cont_search" placeholder="Rechercher un conteneur..." style="max-width:280px"/>
+  <select id="filterStatut" class="filter-select">
+    <option value="" data-i18n="users_status_all">Tous les statuts</option>
+    <option value="disponible">Disponible</option>
+    <option value="plein">Plein</option>
+    <option value="en_maintenance">En maintenance</option>
+  </select>
+  <div style="margin-left:auto;font-size:12px;color:var(--neutral-500)" id="countLabel"></div>
+</div>
+
+<!-- Layout carte + liste -->
+<div class="conteneurs-layout">
+  <div class="conteneurs-panel" id="conteneursList"></div>
+  <div id="map"></div>
+</div>
+
+<!-- Modale détail conteneur -->
+<div class="detail-overlay" id="detailOverlay">
+  <div class="detail-panel">
+    <div class="detail-header">
+      <div>
+        <div class="detail-title" id="detailNom">-</div>
+        <div class="detail-sub" id="detailAdresse">-</div>
+      </div>
+      <button class="detail-close" id="detailClose"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <div class="detail-stats">
+      <div class="detail-stat">
+        <div class="detail-stat-val" id="detailRemplissage">-%</div>
+        <div class="detail-stat-lbl" data-i18n="cont_taux_remplissage">Taux de remplissage</div>
+      </div>
+      <div class="detail-stat">
+        <div class="detail-stat-val" id="detailCapacite">-</div>
+        <div class="detail-stat-lbl" data-i18n="cont_capacite">Capacité max (objets)</div>
+      </div>
+      <div class="detail-stat">
+        <div class="detail-stat-val" id="detailOuvertures">-</div>
+        <div class="detail-stat-lbl" data-i18n="cont_ouvertures">Ouvertures ce mois</div>
+      </div>
+      <div class="detail-stat">
+        <div class="detail-stat-val" id="detailStatutVal">-</div>
+        <div class="detail-stat-lbl" data-i18n="factures_th_statut">Statut</div>
+      </div>
+    </div>
+    <h3 style="font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--neutral-500);margin-bottom:10px" data-i18n="cont_historique">
+      Historique récent
+    </h3>
+    <div class="historique-list" id="detailHistorique"></div>
+    <div style="margin-top:20px;display:flex;gap:10px">
+      <button class="btn btn-ghost btn-sm" id="detailMaintenance">
+        <i class="fa-solid fa-wrench"></i> <span data-i18n="cont_btn_maintenance">Passer en maintenance</span>
+      </button>
+      <button class="btn btn-ghost btn-sm" style="color:var(--danger)" id="detailDesactiver">
+        <i class="fa-solid fa-ban"></i> <span data-i18n="cont_btn_desactiver">Désactiver</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Modale ajout conteneur -->
+<div class="modal-overlay" id="addConteneurModal">
+  <div class="modal" style="max-width:480px">
+    <div class="modal-header">
+      <h2 class="modal-title">
+        <i class="fa-solid fa-plus" aria-hidden="true"></i>
+        <span data-i18n="cont_add_title">Ajouter un conteneur</span>
+      </h2>
+      <button class="modal-close" id="addConteneurClose"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <form id="addConteneurForm" class="tournee-form">
+      <div class="form-group">
+        <label class="form-label" data-i18n="cont_form_adresse">Adresse</label>
+        <input type="text" id="newAdresse" class="form-control" required placeholder="Ex: 12 rue de la Paix"/>
+      </div>
+      <div class="form-group">
+        <label class="form-label" data-i18n="cont_form_ville">Ville</label>
+        <input type="text" id="newVille" class="form-control" placeholder="Ex: Paris"/>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+        <div class="form-group">
+          <label class="form-label">Latitude</label>
+          <input type="number" id="newLat" class="form-control" step="0.000001" placeholder="48.8566"/>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Longitude</label>
+          <input type="number" id="newLng" class="form-control" step="0.000001" placeholder="2.3522"/>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label" data-i18n="cont_capacite">Capacité (objets)</label>
+        <input type="number" id="newCapacite" class="form-control" min="1" required placeholder="50"/>
+      </div>
+      <div id="addConteneurError" style="display:none;color:var(--danger);font-size:13px"></div>
+      <div class="modal-actions">
+        <button type="button" class="btn btn-ghost" id="addConteneurCancel" data-i18n="btn_cancel">Annuler</button>
+        <button type="submit" class="btn btn-primary btn-sm" id="addConteneurSubmit">
+          <i class="fa-solid fa-check"></i> <span data-i18n="btn_add">Ajouter</span>
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Modale tournée -->
+<div class="modal-overlay" id="tourneeModal">
+  <div class="modal" style="max-width:480px">
+    <div class="modal-header">
+      <h2 class="modal-title">
+        <i class="fa-solid fa-route" aria-hidden="true"></i>
+        <span data-i18n="cont_btn_tournee">Planifier une tournée</span>
+      </h2>
+      <button class="modal-close" id="tourneClose"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <form id="tourneeForm" class="tournee-form">
+      <div class="form-group">
+        <label class="form-label" data-i18n="cont_form_date">Date de collecte</label>
+        <input type="date" id="tourneeDate" class="form-control" required />
+      </div>
+      <div class="form-group">
+        <label class="form-label" data-i18n="cont_form_conteneurs">Conteneurs à inclure</label>
+        <select id="tourneeConteneurs" class="form-control" multiple style="height:110px"></select>
+      </div>
+      <div class="form-group">
+        <label class="form-label" data-i18n="cont_form_note">Note pour le collecteur</label>
+        <textarea id="tourneeNote" class="form-control" rows="3" placeholder="Ex: priorité aux conteneurs saturés..."></textarea>
+      </div>
+      <div class="modal-actions">
+        <button type="button" class="btn btn-ghost" id="tourneCancel" data-i18n="btn_cancel">Annuler</button>
+        <button type="submit" class="btn btn-primary btn-sm">
+          <i class="fa-solid fa-check"></i> <span data-i18n="cont_btn_confirm_tournee">Confirmer la tournée</span>
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="js/layout.js"></script>
+<script>
+let conteneursData    = [];
+let conteneursFiltres = [];
+let mapInstance = null;
+let markers = {};
+let conteneurActif = null;
+
+const STATUT_CONFIG = {
+  disponible:     { badge: 'badge-green', label: 'Disponible' },
+  plein:          { badge: 'badge-red',   label: 'Plein' },
+  en_maintenance: { badge: 'badge-gray',  label: 'En maintenance' },
+};
+
+function nomConteneur(c) { return c.adresse + (c.ville ? ', ' + c.ville : ''); }
+function tauxRemplissage(c) {
+  return c.capacite ? Math.round((c.nb_objets || 0) / c.capacite * 100) : 0;
+}
+
+function classFill(pct) {
+  if (pct >= 90) return 'danger';
+  if (pct >= 70) return 'warn';
+  return 'ok';
+}
+
+// LIst:  
+function renderListe() {
+  const liste = document.getElementById('conteneursList');
+  document.getElementById('countLabel').textContent = `${conteneursFiltres.length} ${t('cont_count_suffix')}`;
+
+  if (!conteneursFiltres.length) {
+    liste.innerHTML = `<div class="empty-state" style="padding:40px 0;text-align:center;color:var(--neutral-300)">
+      <i class="fa-solid fa-box-open" style="font-size:32px"></i><p>${t('cont_none')}</p>
+    </div>`;
+    return;
+  }
+
+  liste.innerHTML = conteneursFiltres.map(c => {
+    const pct  = tauxRemplissage(c);
+    const cls  = classFill(pct);
+    const stat = STATUT_CONFIG[c.statut] || STATUT_CONFIG.disponible;
+    return `
+      <div class="conteneur-item" id="item-${c.id}" onclick="ouvrirDetail(${c.id})">
+        <div class="conteneur-item-header">
+          <span class="conteneur-nom">${escAdmin(nomConteneur(c))}</span>
+          <span class="badge ${stat.badge}">${stat.label}</span>
+        </div>
+        <div class="conteneur-adresse">
+          <i class="fa-solid fa-location-dot"></i>${escAdmin(c.adresse)}
+        </div>
+        <div class="fill-row">
+          <span style="font-size:11px;white-space:nowrap">${c.nb_objets || 0}/${c.capacite}</span>
+          <div class="progress-bar"><div class="progress-fill ${cls}" style="width:${pct}%"></div></div>
+          <span class="fill-pct ${cls}">${pct}%</span>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+// carte leaflet: 
+function initMap() {
+  mapInstance = L.map('map').setView([48.860, 2.380], 13);
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+    attribution: '&copy; OpenStreetMap &copy; CARTO',
+    maxZoom: 19,
+  }).addTo(mapInstance);
+  conteneursData.forEach(c => ajouterMarqueur(c));
+}
+
+function couleurMarqueur(statut) {
+  if (statut === 'plein')          return '#c0392b';
+  if (statut === 'en_maintenance') return '#BCB3A6';
+  return '#2D4A3E';
+}
+
+function ajouterMarqueur(c) {
+  const icone = L.divIcon({
+    className: '',
+    html: `<div style="
+      width:32px;height:32px;border-radius:50% 50% 50% 0;
+      background:${couleurMarqueur(c.statut)};
+      border:3px solid #fff;
+      box-shadow:0 2px 6px rgba(0,0,0,0.25);
+      transform:rotate(-45deg);
+      display:flex;align-items:center;justify-content:center;">
+    </div>`,
+    iconSize: [32, 32],
+    iconAnchor: [16, 32],
+  });
+
+  const pct = tauxRemplissage(c);
+  if (!c.latitude || !c.longitude) return;
+  const marker = L.marker([c.latitude, c.longitude], { icon: icone })
+    .addTo(mapInstance)
+    .bindPopup(`
+      <div style="font-family:Montserrat,sans-serif;min-width:180px">
+        <div style="font-weight:700;font-size:13px;margin-bottom:4px">${escAdmin(nomConteneur(c))}</div>
+        <div style="font-size:11px;color:var(--text-muted);margin-bottom:8px">${escAdmin(c.adresse)}</div>
+        <div style="font-size:12px;margin-bottom:4px">
+          <b>${pct}%</b> ${t('cont_popup_rempli')} <b>${c.nb_objets || 0}/${c.capacite}</b> ${t('cont_popup_objets')}
+        </div>
+        <button onclick="ouvrirDetail(${c.id})" style="
+          margin-top:6px;background:#2D4A3E;color:#fff;border:none;
+          padding:5px 12px;border-radius:6px;font-size:12px;cursor:pointer;width:100%">
+          ${t('cont_voir_detail')}
+        </button>
+      </div>
+    `);
+  marker.on('click', () => {
+    activerItem(c.id);
+  });
+  markers[c.id] = marker;
+}
+
+function activerItem(id) {
+  document.querySelectorAll('.conteneur-item').forEach(el => el.classList.remove('active'));
+  const el = document.getElementById(`item-${id}`);
+  if (el) {
+    el.classList.add('active');
+    el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }
+  conteneurActif = id;
+}
+
+// détail: 
+window.ouvrirDetail = id => {
+  const c = conteneursData.find(x => x.id === id);
+  if (!c) return;
+  activerItem(id);
+
+  if (mapInstance && markers[id] && c.latitude && c.longitude) {
+    mapInstance.setView([c.latitude, c.longitude], 15, { animate: true });
+    markers[id].openPopup();
+  }
+
+  const pct  = tauxRemplissage(c);
+  const stat = STATUT_CONFIG[c.statut] || STATUT_CONFIG.disponible;
+  document.getElementById('detailNom').textContent      = nomConteneur(c);
+  document.getElementById('detailAdresse').textContent  = c.adresse || '';
+  document.getElementById('detailRemplissage').textContent = pct + '%';
+  document.getElementById('detailCapacite').textContent    = c.capacite;
+  document.getElementById('detailOuvertures').textContent  = c.nb_objets || 0;
+  document.getElementById('detailStatutVal').innerHTML     = `<span class="badge ${stat.badge}">${stat.label}</span>`;
+
+  const btnMaint = document.getElementById('detailMaintenance');
+  if (c.statut === 'en_maintenance') {
+    btnMaint.innerHTML = '<i class="fa-solid fa-circle-check"></i> Réactiver';
+  } else {
+    btnMaint.innerHTML = '<i class="fa-solid fa-wrench"></i> Passer en maintenance';
+  }
+
+  document.getElementById('detailHistorique').innerHTML =
+    `<p style="font-size:13px;color:var(--neutral-300)">${t('cont_no_historique')}</p>`;
+
+  document.getElementById('detailOverlay').classList.add('open');
+};
+
+//  Filtres: 
+function appliquerFiltres() {
+  const q = document.getElementById('searchConteneur').value.toLowerCase();
+  const s = document.getElementById('filterStatut').value;
+  conteneursFiltres = conteneursData.filter(c =>
+    (nomConteneur(c).toLowerCase().includes(q) || (c.adresse || '').toLowerCase().includes(q)) &&
+    (s === '' || c.statut === s)
+  );
+  renderListe();
+}
+
+// tournée:  
+function remplirSelectTournee() {
+  const sel = document.getElementById('tourneeConteneurs');
+  sel.innerHTML = conteneursData.map(c =>
+    `<option value="${c.id}" ${c.statut === 'plein' ? 'selected' : ''}>${escAdmin(nomConteneur(c))}</option>`
+  ).join('');
+}
+
+function escAdmin(str) {
+  return String(str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+async function chargerConteneurs() {
+  try {
+    const res = await apiFetch('/conteneurs');
+    if (res?.ok) {
+      const data = await res.json();
+      conteneursData = Array.isArray(data) ? data : [];
+    }
+  } catch {}
+  conteneursFiltres = [...conteneursData];
+  renderListe();
+  conteneursData.forEach(c => ajouterMarqueur(c));
+  remplirSelectTournee();
+}
+
+document.addEventListener('DOMContentLoaded', async () => {
+  await initLayout('conteneurs');
+
+  const today = new Date().toISOString().split('T')[0];
+  document.getElementById('tourneeDate').min = today;
+  document.getElementById('tourneeDate').value = today;
+
+  initMap();
+  await chargerConteneurs();
+
+  document.getElementById('searchConteneur').addEventListener('input', appliquerFiltres);
+  document.getElementById('filterStatut').addEventListener('change', appliquerFiltres);
+
+  document.getElementById('detailClose').addEventListener('click', () => {
+    document.getElementById('detailOverlay').classList.remove('open');
+  });
+  document.getElementById('detailOverlay').addEventListener('click', e => {
+    if (e.target === document.getElementById('detailOverlay'))
+      document.getElementById('detailOverlay').classList.remove('open');
+  });
+
+  document.getElementById('detailMaintenance').addEventListener('click', async () => {
+    if (!conteneurActif) return;
+    const c = conteneursData.find(x => x.id === conteneurActif);
+    const nouveauStatut = (c?.statut === 'en_maintenance') ? 'disponible' : 'en_maintenance';
+    try {
+      const res = await apiFetch(`/admin/conteneurs/${conteneurActif}/statut`, {
+        method: 'PUT',
+        body: JSON.stringify({ statut: nouveauStatut }),
+      });
+      if (res?.ok) {
+        if (c) c.statut = nouveauStatut;
+        const statConf = STATUT_CONFIG[nouveauStatut] || STATUT_CONFIG.disponible;
+        document.getElementById('detailStatutVal').innerHTML = `<span class="badge ${statConf.badge}">${statConf.label}</span>`;
+        document.getElementById('detailMaintenance').innerHTML = nouveauStatut === 'en_maintenance'
+          ? '<i class="fa-solid fa-circle-check"></i> Réactiver'
+          : '<i class="fa-solid fa-wrench"></i> Passer en maintenance';
+        showToast(t('cont_toast_maintenance'), 'warning');
+        appliquerFiltres();
+        if (markers[conteneurActif]) {
+          markers[conteneurActif].remove();
+          delete markers[conteneurActif];
+        }
+        if (c) ajouterMarqueur(c);
+      }
+    } catch { showToast(t('toast_error'), 'error'); }
+  });
+
+  document.getElementById('detailDesactiver').addEventListener('click', async () => {
+    if (!conteneurActif) return;
+    if (!confirm(t('confirm_action'))) return;
+    try {
+      const res = await apiFetch(`/admin/conteneurs/${conteneurActif}/statut`, {
+        method: 'PUT',
+        body: JSON.stringify({ statut: 'en_maintenance' }),
+      });
+      if (res?.ok) {
+        const c = conteneursData.find(x => x.id === conteneurActif);
+        if (c) c.statut = 'en_maintenance';
+        showToast(t('cont_toast_desactive'), 'error');
+        document.getElementById('detailOverlay').classList.remove('open');
+        renderListe();
+      }
+    } catch { showToast(t('toast_error'), 'error'); }
+  });
+
+  document.getElementById('btnTournee').addEventListener('click', () => {
+    document.getElementById('tourneeModal').classList.add('open');
+  });
+  document.getElementById('tourneClose').addEventListener('click', () => {
+    document.getElementById('tourneeModal').classList.remove('open');
+  });
+  document.getElementById('tourneCancel').addEventListener('click', () => {
+    document.getElementById('tourneeModal').classList.remove('open');
+  });
+
+  document.getElementById('tourneeForm').addEventListener('submit', async e => {
+    e.preventDefault();
+    const date = document.getElementById('tourneeDate').value;
+    const note = document.getElementById('tourneeNote')?.value?.trim() || '';
+    const sel  = document.getElementById('tourneeConteneurs');
+    const conteneurs = sel ? Array.from(sel.selectedOptions).map(o => o.value) : [];
+    const btn = e.target.querySelector('[type="submit"]');
+    if (btn) btn.disabled = true;
+    try {
+      const res = await apiFetch('/admin/tournees', {
+        method: 'POST',
+        body:   JSON.stringify({ date_tournee: date, note, conteneurs }),
+      });
+      if (res?.ok) {
+        showToast(t('cont_toast_tournee') || 'Tournée planifiée avec succès', 'success');
+        document.getElementById('tourneeModal').classList.remove('open');
+        document.getElementById('tourneeForm').reset();
+        return;
+      }
+      const err = res ? await res.json().catch(() => ({})) : {};
+      showToast(err.error || 'Erreur lors de la planification', 'error');
+    } catch {
+      showToast('Service indisponible. Réessayez.', 'error');
+    } finally {
+      if (btn) btn.disabled = false;
+    }
+  });
+
+  const openAdd  = () => document.getElementById('addConteneurModal').classList.add('open');
+  const closeAdd = () => {
+    document.getElementById('addConteneurModal').classList.remove('open');
+    document.getElementById('addConteneurForm').reset();
+    document.getElementById('addConteneurError').style.display = 'none';
+  };
+  document.getElementById('btnAddConteneur').addEventListener('click', openAdd);
+  document.getElementById('addConteneurClose').addEventListener('click', closeAdd);
+  document.getElementById('addConteneurCancel').addEventListener('click', closeAdd);
+  document.getElementById('addConteneurModal').addEventListener('click', e => {
+    if (e.target === document.getElementById('addConteneurModal')) closeAdd();
+  });
+
+  document.getElementById('addConteneurForm').addEventListener('submit', async e => {
+    e.preventDefault();
+    const errEl = document.getElementById('addConteneurError');
+    const btn   = document.getElementById('addConteneurSubmit');
+    errEl.style.display = 'none';
+    btn.disabled = true;
+
+    const payload = {
+      adresse:   document.getElementById('newAdresse').value.trim(),
+      ville:     document.getElementById('newVille').value.trim(),
+      latitude:  parseFloat(document.getElementById('newLat').value) || 0,
+      longitude: parseFloat(document.getElementById('newLng').value) || 0,
+      capacite:  parseInt(document.getElementById('newCapacite').value) || 0,
+    };
+
+    try {
+      const res = await apiFetch('/admin/conteneurs', {
+        method: 'POST',
+        body: JSON.stringify(payload),
+      });
+      if (res?.ok) {
+        const created = await res.json();
+        created.nb_objets = 0;
+        created.statut = created.statut || 'disponible';
+        conteneursData.push(created);
+        conteneursFiltres = [...conteneursData];
+        renderListe();
+        ajouterMarqueur(created);
+        remplirSelectTournee();
+        closeAdd();
+        showToast(t('cont_toast_added') || 'Conteneur ajouté', 'success');
+      } else {
+        errEl.textContent = t('toast_error') || 'Erreur lors de la création';
+        errEl.style.display = 'block';
+      }
+    } catch {
+      errEl.textContent = t('toast_error') || 'Erreur réseau';
+      errEl.style.display = 'block';
+    } finally {
+      btn.disabled = false;
+    }
+  });
+});
+</script>
+</body>
+</html>

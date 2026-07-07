@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8"/>
+  <link rel="icon" type="image/png" href="../brand_assets/Favicon.png"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Tableau de bord | Espace Salariés</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=Montserrat:wght@400;500;600&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" crossorigin="anonymous"/>
+  <link rel="stylesheet" href="css/style.css"/>
+</head>
+<body>
+
+<!-- Bannière de bienvenue -->
+<div class="dashboard-hero">
+  <img src="../brand_assets/image_acceuil_maybe.jpeg" alt="" aria-hidden="true"
+       class="dashboard-hero-img" style="object-position:center 30%">
+  <div class="dashboard-hero-overlay"></div>
+  <div class="dashboard-hero-body">
+    <div>
+      <p class="dashboard-hero-label" data-i18n="sal_banner_label">Espace Salariés · Again²</p>
+      <h2 class="dashboard-hero-title" id="banner-name" data-i18n="nav_dashboard">Tableau de bord</h2>
+    </div>
+    <a href="formations.html" class="dashboard-hero-btn">
+      <i class="fa-solid fa-graduation-cap" aria-hidden="true"></i>
+      <span data-i18n="sal_btn_manage">Gérer les formations</span>
+    </a>
+  </div>
+</div>
+
+<!-- Stats -->
+<div class="stats-grid animate-in">
+  <div class="stat-card" style="--accent:var(--green-700);--icon-bg:var(--green-50)">
+    <div class="stat-icon-wrap"><i class="fa-solid fa-graduation-cap"></i></div>
+    <div class="stat-info">
+      <div class="stat-value" id="stat-formations">-</div>
+      <div class="stat-label" data-i18n="sal_stat_formations">Formations actives</div>
+    </div>
+  </div>
+  <div class="stat-card" style="--accent:#e8a020;--icon-bg:#fef3e2">
+    <div class="stat-icon-wrap" style="background:#fef3e2;color:#e8a020"><i class="fa-solid fa-shield-halved"></i></div>
+    <div class="stat-info">
+      <div class="stat-value" id="stat-moderation">-</div>
+      <div class="stat-label" data-i18n="sal_stat_moderation">Messages à modérer</div>
+    </div>
+  </div>
+  <div class="stat-card" style="--accent:#2e8b57;--icon-bg:#d4eee3">
+    <div class="stat-icon-wrap" style="background:#d4eee3;color:#2e8b57"><i class="fa-solid fa-lightbulb"></i></div>
+    <div class="stat-info">
+      <div class="stat-value" id="stat-conseils">-</div>
+      <div class="stat-label" data-i18n="sal_stat_conseils">Conseils publiés</div>
+    </div>
+  </div>
+  <div class="stat-card" style="--accent:#5C7C6E;--icon-bg:var(--green-50)">
+    <div class="stat-icon-wrap"><i class="fa-solid fa-users"></i></div>
+    <div class="stat-info">
+      <div class="stat-value" id="stat-participants">-</div>
+      <div class="stat-label" data-i18n="sal_stat_participants">Participants ce mois</div>
+    </div>
+  </div>
+</div>
+
+<!-- Actions rapides -->
+<div class="card animate-in">
+  <div class="card-header">
+    <h2><i class="fa-solid fa-bolt"></i> <span data-i18n="sal_quick_title">Actions rapides</span></h2>
+  </div>
+  <div class="card-body" style="display:grid;grid-template-columns:repeat(5,1fr);gap:12px">
+    <a href="formations.html" class="btn btn-outline" style="flex-direction:column;gap:6px;padding:16px;text-align:center;height:auto;justify-content:center">
+      <i class="fa-solid fa-graduation-cap" style="font-size:18px;color:var(--green-700)"></i>
+      <span style="font-size:12px" data-i18n="sal_quick_formations">Formations</span>
+    </a>
+    <a href="evenements.html" class="btn btn-primary" style="flex-direction:column;gap:6px;padding:16px;text-align:center;height:auto;justify-content:center">
+      <i class="fa-solid fa-calendar-plus" style="font-size:18px"></i>
+      <span style="font-size:12px">Créer un événement</span>
+    </a>
+    <a href="planning.html" class="btn btn-outline" style="flex-direction:column;gap:6px;padding:16px;text-align:center;height:auto;justify-content:center">
+      <i class="fa-solid fa-calendar-days" style="font-size:18px;color:var(--green-700)"></i>
+      <span style="font-size:12px" data-i18n="sal_quick_planning">Mon planning</span>
+    </a>
+    <a href="conseils.html" class="btn btn-outline" style="flex-direction:column;gap:6px;padding:16px;text-align:center;height:auto;justify-content:center">
+      <i class="fa-solid fa-lightbulb" style="font-size:18px;color:var(--green-700)"></i>
+      <span style="font-size:12px" data-i18n="sal_quick_conseils">Conseils</span>
+    </a>
+    <a href="moderation.html" class="btn btn-outline" style="flex-direction:column;gap:6px;padding:16px;text-align:center;height:auto;justify-content:center">
+      <i class="fa-solid fa-shield-halved" style="font-size:18px;color:var(--green-700)"></i>
+      <span style="font-size:12px" data-i18n="sal_quick_moderation">Modération</span>
+    </a>
+  </div>
+</div>
+
+<script src="js/layout.js"></script>
+<script>
+function setStat(id, val) {
+  const el = document.getElementById(id);
+  if (el) el.textContent = val ?? '-';
+}
+
+document.addEventListener('DOMContentLoaded', async () => {
+  const user = await initLayout('dashboard');
+  if (!user) return;
+
+  const prenom = user.prenom || user.nom || 'vous';
+  const el = document.getElementById('banner-name');
+  if (el) el.textContent = `Bonjour, ${prenom} !`;
+
+  const [evRes, sigRes, consRes] = await Promise.allSettled([
+    apiFetch('/evenements'),
+    apiFetch('/forum/signalements'),
+    apiFetch('/conseils/mes-articles'),
+  ]);
+
+  if (evRes.status === 'fulfilled' && evRes.value?.ok) {
+    const data = await evRes.value.json();
+    if (Array.isArray(data)) {
+      const actives = data.filter(e => e.statut !== 'annule' && e.statut !== 'termine').length;
+      const total_participants = data.reduce((s, e) => s + (e.nb_inscriptions || 0), 0);
+      setStat('stat-formations',   actives);
+      setStat('stat-participants', total_participants);
+    }
+  } else {
+    setStat('stat-formations', 0);
+    setStat('stat-participants', 0);
+  }
+
+  if (sigRes.status === 'fulfilled' && sigRes.value?.ok) {
+    const data = await sigRes.value.json();
+    setStat('stat-moderation', Array.isArray(data) ? data.filter(s => s.statut === 'en_attente' || !s.statut).length : 0);
+  } else {
+    setStat('stat-moderation', 0);
+  }
+
+  if (consRes.status === 'fulfilled' && consRes.value?.ok) {
+    const data = await consRes.value.json();
+    setStat('stat-conseils', Array.isArray(data) ? data.filter(c => c.statut === 'publie').length : 0);
+  } else {
+    setStat('stat-conseils', 0);
+  }
+});
+</script>
+
+</body>
+</html>

@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8"/>
+  <link rel="icon" type="image/png" href="../brand_assets/Favicon.png"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Espace conseil | Espace Particuliers</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=Montserrat:wght@400;500;600&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" crossorigin="anonymous"/>
+  <link rel="stylesheet" href="css/style.css"/>
+</head>
+<body>
+
+<div class="page-title-row animate-in">
+  <div>
+    <h1>
+      <div class="page-title-icon teal"><i class="fa-solid fa-lightbulb" aria-hidden="true"></i></div>
+      <span data-i18n="conseils_title">Espace conseil</span>
+    </h1>
+    <p class="page-title-sub" data-i18n="conseils_subtitle">Conseils et astuces de la communauté upcycling</p>
+  </div>
+</div>
+
+<!-- Articles conseils -->
+<div id="conseils-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:16px" class="animate-in"></div>
+
+<!-- Modal détail article + commentaires -->
+<div class="modal-overlay" id="modal-conseil">
+  <div class="modal-box" style="max-width:660px;max-height:88vh;overflow-y:auto">
+    <div class="modal-header">
+      <div class="modal-title" id="mc-titre">Article</div>
+      <button class="modal-close" id="mc-close">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div id="mc-contenu" style="font-size:14px;line-height:1.75;color:var(--text-soft);margin-bottom:20px"></div>
+
+      <!-- Likes + vues -->
+      <div style="display:flex;gap:16px;align-items:center;padding:12px 0;border-top:1px solid var(--border);border-bottom:1px solid var(--border);margin-bottom:20px">
+        <button id="mc-like-btn" class="btn btn-outline btn-sm" onclick="toggleLike()">
+          <i class="fa-regular fa-heart"></i> <span id="mc-nb-likes">0</span> <span data-i18n="conseils_likes">j'aime</span>
+        </button>
+        <span style="font-size:12px;color:var(--text-muted)">
+          <i class="fa-solid fa-eye"></i> <span id="mc-nb-vues">-</span> <span data-i18n="conseils_vues">vues</span>
+        </span>
+      </div>
+
+      <!-- Commentaires -->
+      <h4 style="font-size:13px;font-weight:700;margin-bottom:12px;color:var(--text)">
+        <i class="fa-solid fa-comments" style="color:var(--teal-500)"></i> <span data-i18n="conseils_comments_title">Commentaires</span>
+      </h4>
+      <div id="mc-commentaires" style="display:flex;flex-direction:column;gap:10px;margin-bottom:16px"></div>
+
+      <!-- Formulaire nouveau commentaire -->
+      <form id="form-commentaire" style="display:flex;flex-direction:column;gap:8px">
+        <textarea id="comment-input" class="form-control" rows="3" data-i18n-placeholder="conseils_comment_placeholder" placeholder="Laisser un commentaire... (soumis à modération)" style="resize:vertical"></textarea>
+        <button type="submit" class="btn btn-primary btn-sm" style="align-self:flex-end">
+          <i class="fa-solid fa-paper-plane"></i> <span data-i18n="conseils_btn_envoyer">Envoyer</span>
+        </button>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script src="js/layout.js"></script>
+<script>
+
+let conseilsData = [];
+let _conseilActif = null;
+
+function rendreCarte(c, i) {
+  return `
+    <div class="card animate-in" style="cursor:pointer;transition:transform .2s,box-shadow .2s;animation-delay:${i*.04}s"
+         onmouseenter="this.style.transform='translateY(-3px)';this.style.boxShadow='0 8px 28px rgba(45,74,62,.14)'"
+         onmouseleave="this.style.transform='';this.style.boxShadow=''"
+         onclick="ouvrirConseil(${c.id})">
+      <div style="height:4px;background:var(--teal-500);border-radius:var(--radius-lg) var(--radius-lg) 0 0"></div>
+      <div class="card-body" style="padding:20px">
+        <h3 style="font-family:var(--font-heading);font-size:14.5px;font-weight:700;color:var(--text);line-height:1.3;margin-bottom:10px">${esc(c.titre)}</h3>
+        <p style="font-size:12.5px;color:var(--text-soft);line-height:1.55;margin-bottom:16px">${esc((c.contenu||'').slice(0,200))}${(c.contenu||'').length>200?'...':''}</p>
+        ${c.date_fin ? `<div style="display:inline-flex;align-items:center;gap:5px;background:var(--teal-50,#f0fdfa);color:var(--teal-700,#0f766e);font-size:11px;font-weight:600;padding:3px 8px;border-radius:20px;margin-bottom:10px"><i class="fa-regular fa-calendar-xmark"></i> ${t('conseil_valide_jusqu')||'Valable jusqu\'au'} ${new Date(c.date_fin).toLocaleDateString(_lang==='en'?'en-GB':'fr-FR',{day:'numeric',month:'short',year:'numeric'})}</div>` : ''}
+        <div style="display:flex;align-items:center;justify-content:space-between;padding-top:12px;border-top:1px solid var(--border)">
+          <div style="font-size:11px;color:var(--text-muted)">${c.date_publication ? new Date(c.date_publication).toLocaleDateString('fr-FR',{day:'numeric',month:'short',year:'numeric'}) : '-'}</div>
+          <div style="display:flex;gap:12px;font-size:12px;color:var(--text-muted)">
+            <span><i class="fa-regular fa-heart"></i> ${c.nb_likes||0}</span>
+            <span><i class="fa-solid fa-eye"></i> ${c.nb_vues||0}</span>
+          </div>
+        </div>
+      </div>
+    </div>`;
+}
+
+async function chargerConseils() {
+  try {
+    const res = await apiFetch(`/conseils?lang=${_lang}`);
+    if (res?.ok) {
+      const data = await res.json();
+      if (Array.isArray(data)) conseilsData = data;
+    }
+  } catch {}
+  const grid = document.getElementById('conseils-grid');
+  if (!conseilsData.length) {
+    grid.innerHTML = `<p style="text-align:center;color:var(--text-muted);padding:40px;grid-column:1/-1">${t('conseils_aucun_article')}</p>`;
+    return;
+  }
+  grid.innerHTML = conseilsData.map((c, i) => rendreCarte(c, i)).join('');
+}
+
+window.ouvrirConseil = async (id) => {
+  const c = conseilsData.find(x => x.id === id);
+  if (!c) return;
+  _conseilActif = id;
+
+  document.getElementById('mc-titre').textContent = c.titre;
+  document.getElementById('mc-contenu').innerHTML = esc(c.contenu || '').replace(/\n/g, '<br>');
+  document.getElementById('mc-nb-likes').textContent = c.nb_likes || 0;
+  document.getElementById('mc-nb-vues').textContent = c.nb_vues || 0;
+  document.getElementById('mc-commentaires').innerHTML = `<p style="color:var(--text-muted);font-size:13px">${t('conseils_chargement')}</p>`;
+  document.getElementById('mc-like-btn').classList.remove('btn-primary');
+  document.getElementById('mc-like-btn').classList.add('btn-outline');
+  document.getElementById('modal-conseil').classList.add('open');
+
+  // incrémenter vues
+  apiFetch(`/conseils/${id}/vue`, { method: 'POST' }).catch(() => {});
+
+  // charger commentaires
+  await chargerCommentaires(id);
+};
+
+async function chargerCommentaires(id) {
+  const wrap = document.getElementById('mc-commentaires');
+  try {
+    const res = await apiFetch(`/conseils/${id}/commentaires`);
+    const list = res?.ok ? await res.json() : [];
+    if (!Array.isArray(list) || !list.length) {
+      wrap.innerHTML = `<p style="color:var(--text-muted);font-size:13px;text-align:center;padding:8px">${t('conseils_aucun_commentaire')}</p>`;
+      return;
+    }
+    wrap.innerHTML = list.map(cm => `
+      <div style="background:var(--neutral-50,#f9fafb);border-radius:8px;padding:12px 14px;border:1px solid var(--border)">
+        <div style="font-size:12px;font-weight:700;color:var(--text);margin-bottom:4px">
+          <i class="fa-solid fa-user" style="color:var(--teal-500)"></i> ${esc(cm.auteur)}
+        </div>
+        <div style="font-size:13px;color:var(--text-soft);line-height:1.6">${esc(cm.contenu)}</div>
+        <div style="font-size:11px;color:var(--text-muted);margin-top:6px">${cm.date_envoi ? new Date(cm.date_envoi).toLocaleString('fr-FR',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'}) : ''}</div>
+      </div>`).join('');
+  } catch {
+    wrap.innerHTML = `<p style="color:var(--danger-text);font-size:13px">${t('conseils_erreur_commentaires')}</p>`;
+  }
+}
+
+window.toggleLike = async () => {
+  if (!_conseilActif) return;
+  try {
+    const res = await apiFetch(`/conseils/${_conseilActif}/like`, { method: 'POST' });
+    if (res?.ok) {
+      const d = await res.json();
+      document.getElementById('mc-nb-likes').textContent = d.nb_likes || 0;
+      const btn = document.getElementById('mc-like-btn');
+      if (d.liked) {
+        btn.classList.remove('btn-outline');
+        btn.classList.add('btn-primary');
+        btn.querySelector('i').className = 'fa-solid fa-heart';
+      } else {
+        btn.classList.remove('btn-primary');
+        btn.classList.add('btn-outline');
+        btn.querySelector('i').className = 'fa-regular fa-heart';
+      }
+    }
+  } catch {}
+};
+
+document.addEventListener('DOMContentLoaded', async () => {
+  await initLayout('conseils');
+  await chargerConseils();
+
+  document.getElementById('mc-close')?.addEventListener('click', () => {
+    document.getElementById('modal-conseil').classList.remove('open');
+    _conseilActif = null;
+  });
+  document.getElementById('modal-conseil')?.addEventListener('click', e => {
+    if (e.target === document.getElementById('modal-conseil')) {
+      document.getElementById('modal-conseil').classList.remove('open');
+      _conseilActif = null;
+    }
+  });
+
+  document.getElementById('form-commentaire')?.addEventListener('submit', async e => {
+    e.preventDefault();
+    const input = document.getElementById('comment-input');
+    const contenu = input?.value.trim();
+    if (!contenu || !_conseilActif) return;
+    const btn = e.target.querySelector('button[type="submit"]');
+    if (btn) btn.disabled = true;
+    try {
+      const res = await apiFetch(`/conseils/${_conseilActif}/commentaires`, {
+        method: 'POST', body: JSON.stringify({ contenu }),
+      });
+      if (res?.ok) {
+        input.value = '';
+        showToast(t('conseils_commentaire_soumis'), 'success');
+      } else {
+        const d = res ? await res.json().catch(() => ({})) : {};
+        showToast(d.error || t('conseils_erreur_generique'), 'error');
+      }
+    } catch { showToast(t('conseils_service_indisponible'), 'error'); }
+    if (btn) btn.disabled = false;
+  });
+});
+
+function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+</script>
+
+</body>
+</html>

@@ -1,0 +1,35 @@
+@import '../../shared/uc-design.css';
+
+/* espace salaries, specifique salarie - base: shared/uc-design.css */
+
+body.sal-layout { display: flex; overflow-x: hidden; }
+
+/* login hero - brand photo */
+.login-hero {
+  background:
+    linear-gradient(160deg, var(--hero-overlay-start) 0%, var(--hero-overlay-mid) 60%, var(--hero-overlay-end) 100%),
+    url('../../brand_assets/peinture_verre_idee_projet.jpg');
+  background-size: cover;
+  background-position: center;
+  position: relative;
+  overflow: hidden;
+}
+.login-hero-logo {
+  position: absolute;
+  top: 36px; left: 56px;
+  height: 52px; width: auto;
+  margin-bottom: 0; z-index: 2;
+  filter: drop-shadow(0 2px 14px rgba(0,0,0,.32));
+}
+
+/* responsive */
+@media (max-width: 900px) {
+  .login-page { grid-template-columns: 1fr; }
+  .login-hero  { display: none; }
+}
+@media (max-width: 768px) {
+  .page-title-row { flex-direction: column; align-items: flex-start; }
+}
+
+/* notif-bell, msg-bubble, filtre-tab → shared/uc-design.css */
+

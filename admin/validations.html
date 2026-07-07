@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8"/>
+  <link rel="icon" type="image/png" href="../brand_assets/Favicon.png"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Validations | UpcycleConnect Admin</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&family=Montserrat:wght@300;400;500;600;700&family=Roboto:wght@300;400;500&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="css/style.css"/>
+</head>
+<body>
+
+<div class="page-title-row">
+  <div>
+    <h1>
+      <div class="page-title-icon green">
+        <i class="fa-solid fa-circle-check" aria-hidden="true"></i>
+      </div>
+      <span data-i18n="validations_title">Validations en attente</span>
+    </h1>
+    <p class="page-title-sub" data-i18n="validations_subtitle">Approuver ou refuser les demandes soumises par les utilisateurs</p>
+  </div>
+  <div class="page-title-actions">
+    <a href="users.html" class="btn btn-outline btn-sm">
+      <i class="fa-solid fa-users" aria-hidden="true"></i>
+      <span data-i18n="nav_users">Utilisateurs</span>
+    </a>
+    <button class="btn btn-outline btn-sm" id="refreshBtn">
+      <i class="fa-solid fa-rotate-right" aria-hidden="true"></i>
+      <span data-i18n="btn_rafraichir">Rafraîchir</span>
+    </button>
+    <span id="totalBadge" class="badge badge-orange" style="font-size:13px;padding:6px 14px"></span>
+  </div>
+</div>
+
+<!-- TABS -->
+<div style="display:flex;gap:4px;background:white;border:1.5px solid var(--neutral-200);border-radius:12px;padding:4px;width:fit-content;margin-bottom:24px">
+  <button class="val-tab active" data-tab="annonces">
+    <i class="fa-solid fa-bullhorn" aria-hidden="true"></i>
+    <span data-i18n="tab_annonces">Annonces</span> <span class="tab-count" id="countAnnonces">0</span>
+  </button>
+  <button class="val-tab" data-tab="conteneurs">
+    <i class="fa-solid fa-box" aria-hidden="true"></i>
+    <span data-i18n="tab_depots">Dépôts conteneurs</span> <span class="tab-count" id="countConteneurs">0</span>
+  </button>
+  <button class="val-tab" data-tab="formations">
+    <i class="fa-solid fa-graduation-cap" aria-hidden="true"></i>
+    <span data-i18n="tab_formations">Formations</span> <span class="tab-count" id="countFormations">0</span>
+  </button>
+  <button class="val-tab" data-tab="projets">
+    <i class="fa-solid fa-recycle" aria-hidden="true"></i>
+    Projets <span class="tab-count" id="countProjets">0</span>
+  </button>
+  <button class="val-tab" data-tab="conseils">
+    <i class="fa-solid fa-lightbulb" aria-hidden="true"></i>
+    Conseils <span class="tab-count" id="countConseils">0</span>
+  </button>
+  <button class="val-tab" data-tab="commentaires">
+    <i class="fa-solid fa-comments" aria-hidden="true"></i>
+    Commentaires <span class="tab-count" id="countCommentaires">0</span>
+  </button>
+</div>
+
+<!-- CONTENT -->
+<div id="valItems" style="display:flex;flex-direction:column;gap:12px"></div>
+
+<!-- MODAL détail -->
+<div class="modal-overlay" id="detailModal">
+  <div class="modal-box">
+    <div class="modal-header">
+      <div class="modal-title" id="detailTitle">Détail</div>
+      <button class="modal-close" id="detailClose">&times;</button>
+    </div>
+    <div class="modal-body" id="detailBody"></div>
+  </div>
+</div>
+
+<script src="js/layout.js" data-page="validations"></script>
+<script>
+const ICONE_VAL = {
+  don:       '<i class="fa-solid fa-hand-holding-heart" aria-hidden="true"></i>',
+  vente:     '<i class="fa-solid fa-tag" aria-hidden="true"></i>',
+  conteneur: '<i class="fa-solid fa-box" aria-hidden="true"></i>',
+  formation: '<i class="fa-solid fa-graduation-cap" aria-hidden="true"></i>',
+  projet:    '<i class="fa-solid fa-recycle" aria-hidden="true"></i>',
+  conseil:   '<i class="fa-solid fa-lightbulb" aria-hidden="true"></i>',
+};
+
+let valData = { annonces: [], conteneurs: [], formations: [], projets: [], conseils: [], commentaires: [] };
+let activeTab = 'annonces';
+
+function renderTab(tab) {
+  activeTab = tab;
+  const items = valData[tab] || [];
+  const container = document.getElementById('valItems');
+  const locale = _lang === 'en' ? 'en-GB' : 'fr-FR';
+
+  if (!items.length) {
+    container.innerHTML = `<div class="empty-state card" style="padding:60px">
+      <i class="fa-solid fa-circle-check" style="font-size:40px;color:var(--uc-teal);margin-bottom:12px" aria-hidden="true"></i>
+      <p>${t('validations_empty')}</p>
+    </div>`;
+    return;
+  }
+
+  container.innerHTML = items.map(v => `
+    <div class="val-card" id="valCard${v.id}">
+      <div class="val-type-icon">${ICONE_VAL[v.type] || ''}</div>
+      <div class="val-info">
+        <div class="val-title">${escVal(v.titre)}</div>
+        <div class="val-meta">
+          <strong>${escVal(v.auteur)}</strong> ·
+          <span class="badge badge-orange" style="font-size:10px">${escVal(v.type)}</span>
+        </div>
+      </div>
+      <div class="val-date">${new Date(v.date).toLocaleDateString(locale,{day:'2-digit',month:'short'})}</div>
+      <div class="val-actions">
+        <button class="btn btn-outline btn-sm" onclick="showDetail(${v.id})">${t('btn_detail')}</button>
+        <button class="btn btn-primary btn-sm" onclick="approve(${v.id},'${tab}')">
+          <i class="fa-solid fa-check" aria-hidden="true"></i>
+          ${t('btn_approuver')}
+        </button>
+        <button class="btn btn-danger btn-sm" onclick="reject(${v.id},'${tab}')">
+          <i class="fa-solid fa-xmark" aria-hidden="true"></i>
+          ${t('btn_refuser')}
+        </button>
+      </div>
+    </div>
+  `).join('');
+}
+
+function updateCounts() {
+  const total = Object.values(valData).reduce((a,b) => a + b.length, 0);
+  document.getElementById('countAnnonces').textContent   = valData.annonces.length;
+  document.getElementById('countConteneurs').textContent = valData.conteneurs.length;
+  document.getElementById('countFormations').textContent = valData.formations.length;
+  document.getElementById('countProjets').textContent    = valData.projets.length;
+  document.getElementById('countConseils').textContent       = valData.conseils.length;
+  document.getElementById('countCommentaires').textContent   = valData.commentaires.length;
+  document.getElementById('totalBadge').textContent = `${total} ${t('badge_en_attente')}`;
+}
+
+function showDetail(id) {
+  const all = [...valData.annonces, ...valData.conteneurs, ...valData.formations];
+  const v   = all.find(x => x.id === id);
+  if (!v) return;
+  const locale = _lang === 'en' ? 'en-GB' : 'fr-FR';
+  document.getElementById('detailTitle').textContent = v.titre;
+  document.getElementById('detailBody').innerHTML = `
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px">
+      <div style="font-size:36px;color:var(--uc-teal)">${ICONE_VAL[v.type] || ''}</div>
+      <div>
+        <div style="font-weight:600;font-size:15px;color:var(--neutral-900)">${escVal(v.titre)}</div>
+        <div style="font-size:12px;color:var(--neutral-400)">${t('validations_par')} <strong>${escVal(v.auteur)}</strong> · ${new Date(v.date).toLocaleDateString(locale)}</div>
+      </div>
+    </div>
+    <div style="background:var(--neutral-50);border-radius:var(--radius);padding:14px;margin-bottom:16px;font-size:13.5px;color:var(--neutral-700);line-height:1.6">${escVal(v.desc)}</div>
+    <div class="form-actions">
+      <button class="btn btn-outline" onclick="closeDetail()">${t('btn_fermer')}</button>
+      <button class="btn btn-danger" onclick="reject(${v.id},'${activeTab}');closeDetail()">${t('btn_refuser')}</button>
+      <button class="btn btn-primary" onclick="approve(${v.id},'${activeTab}');closeDetail()">${t('btn_approuver')}</button>
+    </div>
+  `;
+  document.getElementById('detailModal').classList.add('open');
+}
+window.closeDetail = () => document.getElementById('detailModal').classList.remove('open');
+window.showDetail = showDetail;
+
+function escVal(str) {
+  return String(str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+async function loadAnnoncesFromAPI() {
+  try {
+    const res = await apiFetch('/admin/annonces/en-attente');
+    if (!res?.ok) return;
+    const data = await res.json();
+    const list = Array.isArray(data) ? data : (data.annonces || []);
+    valData.annonces = list.map(a => {
+      const prenom = a.auteur_prenom || '';
+      const nom    = a.auteur_nom    || '';
+      const auteur = (prenom + ' ' + nom).trim() || ('Utilisateur #' + (a.id_utilisateur || '?'));
+      return {
+        id:     a.id,
+        titre:  a.titre || 'Sans titre',
+        type:   a.type_annonce || a.type || 'don',
+        auteur,
+        date:   a.date_publication || a.created_at || new Date().toISOString(),
+        desc:   a.description || '',
+      };
+    });
+  } catch {}
+}
+
+async function loadDepotsFromAPI() {
+  try {
+    const res = await apiFetch('/admin/depots/en-attente');
+    if (!res?.ok) return;
+    const data = await res.json();
+    const list = Array.isArray(data) ? data : [];
+    valData.conteneurs = list.map(d => {
+      const prenom = d.auteur_prenom || '';
+      const nom    = d.auteur_nom    || '';
+      const auteur = (prenom + ' ' + nom).trim() || ('Particulier #' + d.id_particulier);
+      return {
+        id:     d.id,
+        titre:  `Dépôt dans conteneur #${d.id_conteneur}`,
+        type:   'conteneur',
+        auteur,
+        date:   d.date_demande || new Date().toISOString(),
+        desc:   `Objet #${d.id_objet} · Code ouverture : ${d.code_ouverture || '-'} · Code retrait : ${d.code_barre_retrait || '-'}`,
+      };
+    });
+  } catch {}
+}
+
+async function loadProjetsFromAPI() {
+  try {
+    const res = await apiFetch('/admin/projets/en-attente');
+    if (!res?.ok) return;
+    const data = await res.json();
+    const list = Array.isArray(data) ? data : [];
+    valData.projets = list.map(p => {
+      const prenom = p.auteur_prenom || '';
+      const nom    = p.auteur_nom    || '';
+      const auteur = (prenom + ' ' + nom).trim() || ('Utilisateur #' + p.id_utilisateur);
+      return {
+        id:     p.id,
+        titre:  p.titre || 'Sans titre',
+        type:   'projet',
+        auteur,
+        date:   p.date_debut || new Date().toISOString(),
+        desc:   p.description || '',
+      };
+    });
+  } catch {}
+}
+
+async function loadFormationsFromAPI() {
+  try {
+    const res = await apiFetch('/admin/evenements/en-attente');
+    if (!res?.ok) return;
+    const data = await res.json();
+    const list = Array.isArray(data) ? data : [];
+    valData.formations = list.map(e => {
+      const prenom = e.auteur_prenom || '';
+      const nom    = e.auteur_nom    || '';
+      const auteur = (prenom + ' ' + nom).trim() || (e.id_salarie_createur ? 'Salarié #' + e.id_salarie_createur : 'Administrateur');
+      return {
+        id:     e.id,
+        titre:  e.titre || 'Sans titre',
+        type:   'formation',
+        auteur,
+        date:   e.date_debut || new Date().toISOString(),
+        desc:   `${e.description || ''} · ${e.nb_places || 0} places · Lieu : ${e.lieu || '-'} · Tarif : ${e.tarif || 0} €`,
+      };
+    });
+  } catch {}
+}
+
+async function loadCommentaires() {
+  try {
+    const res = await apiFetch('/commentaires/en-attente');
+    if (!res?.ok) return;
+    const data = await res.json();
+    valData.commentaires = (Array.isArray(data) ? data : []).map(c => ({
+      id:     c.id_commentaire || c.id,
+      titre:  `Commentaire sur article #${c.id_conseil}`,
+      type:   'commentaire',
+      auteur: (c.auteur || '').trim() || ('Utilisateur #' + c.id_utilisateur),
+      date:   c.date_envoi || new Date().toISOString(),
+      desc:   c.contenu || '',
+    }));
+  } catch {}
+}
+
+async function loadConseils() {
+  try {
+    const res = await apiFetch('/admin/conseils/en-attente');
+    if (!res?.ok) return;
+    const data = await res.json();
+    valData.conseils = (Array.isArray(data) ? data : []).map(c => ({
+      id:     c.id,
+      titre:  c.titre || 'Sans titre',
+      type:   'conseil',
+      auteur: (c.auteur || '').trim() || ('Salarié #' + c.id_salarie_redacteur),
+      date:   c.date_publication || new Date().toISOString(),
+      desc:   c.contenu || '',
+    }));
+  } catch {}
+}
+
+window.approve = async (id, tab) => {
+  let ok = false;
+  try {
+    let res;
+    if (tab === 'annonces') {
+      res = await apiFetch('/admin/annonces/validate', {
+        method: 'POST',
+        body: JSON.stringify({ annonce_id: id, decision: 'validee', commentaire: '' }),
+      });
+    } else if (tab === 'conteneurs') {
+      res = await apiFetch('/admin/depots/validate', {
+        method: 'POST',
+        body: JSON.stringify({ depot_id: id, decision: 'valide', motif: '' }),
+      });
+    } else if (tab === 'formations') {
+      res = await apiFetch('/admin/evenements/validate', {
+        method: 'POST',
+        body: JSON.stringify({ evenement_id: id, decision: 'valide' }),
+      });
+    } else if (tab === 'projets') {
+      res = await apiFetch('/admin/projets/validate', {
+        method: 'POST',
+        body: JSON.stringify({ projet_id: id, decision: 'valide' }),
+      });
+    } else if (tab === 'conseils') {
+      res = await apiFetch('/admin/conseils/valider', {
+        method: 'POST',
+        body: JSON.stringify({ article_id: id, decision: 'publie' }),
+      });
+    } else if (tab === 'commentaires') {
+      res = await apiFetch(`/commentaires/${id}/moderer`, {
+        method: 'PUT',
+        body: JSON.stringify({ decision: 'approuve' }),
+      });
+    }
+    ok = res?.ok === true;
+  } catch {}
+  if (!ok) { showToast(t('toast_error') || 'Erreur lors de la validation', 'error'); return; }
+  removeCard(id, tab, true);
+};
+
+window.reject = async (id, tab) => {
+  let ok = false;
+  try {
+    let res;
+    if (tab === 'annonces') {
+      res = await apiFetch('/admin/annonces/validate', {
+        method: 'POST',
+        body: JSON.stringify({ annonce_id: id, decision: 'refusee', commentaire: '' }),
+      });
+    } else if (tab === 'conteneurs') {
+      res = await apiFetch('/admin/depots/validate', {
+        method: 'POST',
+        body: JSON.stringify({ depot_id: id, decision: 'refuse', motif: '' }),
+      });
+    } else if (tab === 'formations') {
+      res = await apiFetch('/admin/evenements/validate', {
+        method: 'POST',
+        body: JSON.stringify({ evenement_id: id, decision: 'annule' }),
+      });
+    } else if (tab === 'projets') {
+      res = await apiFetch('/admin/projets/validate', {
+        method: 'POST',
+        body: JSON.stringify({ projet_id: id, decision: 'refuse' }),
+      });
+    } else if (tab === 'conseils') {
+      res = await apiFetch('/admin/conseils/valider', {
+        method: 'POST',
+        body: JSON.stringify({ article_id: id, decision: 'refuse' }),
+      });
+    } else if (tab === 'commentaires') {
+      res = await apiFetch(`/commentaires/${id}/moderer`, {
+        method: 'PUT',
+        body: JSON.stringify({ decision: 'refuse' }),
+      });
+    }
+    ok = res?.ok === true;
+  } catch {}
+  if (!ok) { showToast(t('toast_error') || 'Erreur lors du refus', 'error'); return; }
+  removeCard(id, tab, false);
+};
+
+function removeCard(id, tab, accepted) {
+  valData[tab] = valData[tab].filter(v => v.id !== id);
+  const card = document.getElementById(`valCard${id}`);
+  if (card) {
+    card.style.borderColor = accepted ? 'var(--uc-teal)' : '#ef5350';
+    card.style.background  = accepted ? 'var(--uc-teal-pale)' : 'var(--danger-bg)';
+    setTimeout(() => { card.remove(); renderTab(tab); }, 400);
+  }
+  showToast(accepted ? t('toast_approved') : t('toast_rejected'), accepted ? 'success' : 'warning');
+  updateCounts();
+}
+
+document.addEventListener('DOMContentLoaded', async () => {
+  await initLayout('validations');
+
+  await Promise.all([
+    loadAnnoncesFromAPI(),
+    loadDepotsFromAPI(),
+    loadFormationsFromAPI(),
+    loadProjetsFromAPI(),
+    loadConseils(),
+    loadCommentaires(),
+  ]);
+
+  updateCounts();
+  renderTab('annonces');
+
+  document.querySelectorAll('.val-tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      document.querySelectorAll('.val-tab').forEach(t => t.classList.remove('active'));
+      tab.classList.add('active');
+      renderTab(tab.dataset.tab);
+    });
+  });
+
+  document.getElementById('refreshBtn').addEventListener('click', async () => {
+    const btn = document.getElementById('refreshBtn');
+    btn.disabled = true;
+    await Promise.all([loadAnnoncesFromAPI(), loadDepotsFromAPI(), loadFormationsFromAPI(), loadProjetsFromAPI(), loadConseils(), loadCommentaires()]);
+    updateCounts();
+    renderTab(activeTab);
+    btn.disabled = false;
+    showToast(t('toast_refreshed') || 'Données rechargées', 'success');
+  });
+
+  document.getElementById('detailClose').addEventListener('click', closeDetail);
+  document.getElementById('detailModal').addEventListener('click', e => {
+    if (e.target === document.getElementById('detailModal')) closeDetail();
+  });
+});
+</script>
+</body>
+</html>

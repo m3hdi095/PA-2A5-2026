@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8"/>
+  <link rel="icon" type="image/png" href="../brand_assets/Favicon.png"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Alertes matériaux | Espace Professionnel</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=Montserrat:wght@400;500;600&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="css/style.css"/>
+</head>
+<body>
+
+<div class="page-title-row animate-in">
+  <div>
+    <h1>
+      <div class="page-title-icon green">
+        <i class="fa-solid fa-bell" aria-hidden="true"></i>
+      </div>
+      <span data-i18n="nav_alertes">Alertes matériaux</span>
+    </h1>
+    <p class="page-title-sub" data-i18n="alertes_subtitle">Soyez notifié en temps réel des nouveaux matériaux disponibles</p>
+  </div>
+  <div class="page-title-actions">
+    <button class="btn btn-primary" onclick="ouvrirNouvelleAlerte()">
+      <i class="fa-solid fa-plus" aria-hidden="true"></i>
+      <span data-i18n="alertes_btn_nouvelle">Nouvelle alerte</span>
+    </button>
+  </div>
+</div>
+
+<!-- Alertes actives -->
+<div class="card animate-in">
+  <div class="card-header">
+    <h2><i class="fa-solid fa-bolt" aria-hidden="true"></i> <span data-i18n="alertes_actives_title">Alertes actives</span></h2>
+    <span class="badge badge-green" id="count-alertes">…</span>
+  </div>
+  <div class="card-body" style="padding:0">
+    <div id="alertes-actives"></div>
+  </div>
+</div>
+
+<!-- Historique notifications -->
+<div class="card animate-in">
+  <div class="card-header">
+    <h2><i class="fa-solid fa-clock-rotate-left" aria-hidden="true"></i> <span data-i18n="alertes_notifs_title">Notifications reçues</span></h2>
+    <button class="btn btn-ghost btn-sm" onclick="marquerToutesLues()" data-i18n="alertes_btn_marquer_lu">
+      Tout marquer lu
+    </button>
+  </div>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th data-i18n="th_date">Date</th>
+          <th>Titre</th>
+          <th>Message</th>
+          <th data-i18n="th_type">Type</th>
+          <th data-i18n="th_action">Action</th>
+        </tr>
+      </thead>
+      <tbody id="notifs-body"></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Modal nouvelle alerte -->
+<div class="modal-overlay" id="modal-alerte">
+  <div class="modal-box">
+    <div class="modal-header">
+      <div class="modal-title">
+        <i class="fa-solid fa-bell" aria-hidden="true"></i>
+        <span data-i18n="alertes_modal_title">Nouvelle alerte matériau</span>
+      </div>
+      <button class="modal-close" onclick="fermerAlerte()">&times;</button>
+    </div>
+    <div class="modal-body">
+      <form id="form-alerte" style="display:flex;flex-direction:column;gap:16px">
+        <div class="form-group">
+          <label class="form-label"><span data-i18n="alertes_cat_label">Catégorie de matériau</span> <span class="form-required">*</span></label>
+          <select id="alerte-cat" class="form-control">
+            <option value="">Toutes les catégories</option>
+            <option value="textiles">Textiles</option>
+            <option value="bois">Bois</option>
+            <option value="metal">Métal</option>
+            <option value="plastique">Plastique</option>
+            <option value="electronique">Électronique</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Type</label>
+          <select id="alerte-type" class="form-control">
+            <option value="">Dons et ventes</option>
+            <option value="don">Dons uniquement (gratuit)</option>
+            <option value="vente">Ventes uniquement</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label" data-i18n="alertes_rayon_label">Rayon de recherche</label>
+          <select id="alerte-rayon" class="form-control">
+            <option value="5">5 km</option>
+            <option value="10" selected>10 km</option>
+            <option value="20">20 km</option>
+            <option value="50">50 km</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label" data-i18n="alertes_keyword_label">Mot-clé (optionnel)</label>
+          <input type="text" id="alerte-keyword" class="form-control" placeholder="Ex: palette, lin, cuivre..."/>
+        </div>
+        <div class="form-actions">
+          <button type="button" class="btn btn-outline" onclick="fermerAlerte()" data-i18n="btn_annuler">Annuler</button>
+          <button type="submit" class="btn btn-primary">
+            <i class="fa-solid fa-bell" aria-hidden="true"></i>
+            <span data-i18n="alertes_btn_creer">Créer l'alerte</span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script src="js/layout.js"></script>
+<script>
+let alertes = [];
+
+document.addEventListener('DOMContentLoaded', async () => {
+  await initLayout('alertes');
+  await chargerAlertes();
+  await chargerNotifications();
+
+  document.getElementById('form-alerte').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const btn = e.target.querySelector('[type="submit"]');
+    if (btn) btn.disabled = true;
+    const data = {
+      categorie:    document.getElementById('alerte-cat').value,
+      type_annonce: document.getElementById('alerte-type').value,
+      rayon:        parseInt(document.getElementById('alerte-rayon').value) || 10,
+      mot_cle:      document.getElementById('alerte-keyword').value.trim(),
+    };
+    try {
+      const res = await apiFetch('/alertes', { method: 'POST', body: JSON.stringify(data) });
+      if (res?.ok) {
+        fermerAlerte();
+        showToast('Alerte créée avec succès', 'success');
+        document.getElementById('form-alerte').reset();
+        await chargerAlertes();
+        return;
+      }
+      const err = res ? await res.json().catch(() => ({})) : {};
+      showToast(err.error || 'Erreur lors de la création', 'error');
+    } catch {
+      showToast('Service indisponible. Réessayez.', 'error');
+    } finally {
+      if (btn) btn.disabled = false;
+    }
+  });
+
+  document.getElementById('modal-alerte').addEventListener('click', e => {
+    if (e.target === document.getElementById('modal-alerte')) fermerAlerte();
+  });
+});
+
+async function chargerAlertes() {
+  try {
+    const res = await apiFetch('/alertes');
+    if (res?.ok) { const d = await res.json(); if (Array.isArray(d)) alertes = d; }
+  } catch {}
+  renderAlertesActives();
+}
+
+function renderAlertesActives() {
+  const container = document.getElementById('alertes-actives');
+  if (!container) return;
+  const badge = document.getElementById('count-alertes');
+
+  if (!alertes.length) {
+    container.innerHTML = `
+      <div style="padding:32px;text-align:center;color:var(--text-muted)">
+        <i class="fa-solid fa-bell" style="font-size:28px;color:var(--green-200);display:block;margin-bottom:10px" aria-hidden="true"></i>
+        <p style="font-size:13.5px">Aucune alerte configurée. Créez votre première alerte matériau.</p>
+      </div>`;
+    if (badge) badge.textContent = '0 active';
+    return;
+  }
+
+  if (badge) badge.textContent = alertes.length + ' active' + (alertes.length > 1 ? 's' : '');
+
+  const CAT_ICON = { textiles:'fa-shirt', bois:'fa-tree', metal:'fa-gear', plastique:'fa-recycle', electronique:'fa-microchip' };
+  container.innerHTML = alertes.map(a => {
+    const icon = CAT_ICON[a.categorie] || 'fa-bell';
+    const label = a.categorie ? (a.categorie.charAt(0).toUpperCase() + a.categorie.slice(1)) : 'Toutes catégories';
+    const typeLabel = a.type_annonce === 'don' ? 'Dons uniquement' : a.type_annonce === 'vente' ? 'Ventes uniquement' : 'Dons & ventes';
+    const detail = [typeLabel, a.rayon + ' km', a.mot_cle ? '"' + esc(a.mot_cle) + '"' : ''].filter(Boolean).join(' · ');
+    return `
+      <div style="display:flex;align-items:center;gap:14px;padding:14px 20px;border-bottom:1px solid var(--neutral-100)">
+        <div style="width:36px;height:36px;border-radius:50%;background:var(--uc-teal-pale);color:var(--uc-forest);display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0">
+          <i class="fa-solid ${icon}" aria-hidden="true"></i>
+        </div>
+        <div style="flex:1;min-width:0">
+          <div style="font-weight:600;font-size:13px">${label}</div>
+          <div style="font-size:12px;color:var(--text-muted);margin-top:2px">${detail}</div>
+        </div>
+        <button class="btn btn-ghost btn-sm" onclick="supprimerAlerte(${a.id})" style="color:var(--danger)" title="Supprimer">
+          <i class="fa-solid fa-trash" aria-hidden="true"></i>
+        </button>
+      </div>`;
+  }).join('');
+}
+
+async function chargerNotifications() {
+  const tbody = document.getElementById('notifs-body');
+  if (!tbody) return;
+
+  let notifs = [];
+  try {
+    const res = await apiFetch('/notifications');
+    if (res?.ok) {
+      const data = await res.json();
+      if (Array.isArray(data)) notifs = data;
+    }
+  } catch {}
+
+  if (!notifs.length) {
+    tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;padding:40px;color:var(--text-muted)">Aucune notification reçue.</td></tr>`;
+    return;
+  }
+
+  const locale = _lang === 'en' ? 'en-GB' : 'fr-FR';
+  tbody.innerHTML = notifs.map(n => {
+    const date = n.date_envoi
+      ? new Date(n.date_envoi).toLocaleDateString(locale, { day:'2-digit', month:'short', year:'numeric' })
+      : '-';
+    return `
+      <tr style="${!n.lu ? 'background:var(--green-25);' : ''}">
+        <td style="color:var(--text-muted);font-size:12px">${date}</td>
+        <td class="td-primary" style="${!n.lu ? 'font-weight:700' : ''}">
+          ${!n.lu ? '<span style="width:6px;height:6px;background:var(--green-700);border-radius:50%;display:inline-block;margin-right:6px"></span>' : ''}
+          ${esc(n.titre)}
+        </td>
+        <td style="font-size:12.5px;color:var(--text-soft)">${esc(n.contenu || '')}</td>
+        <td><span class="badge badge-gray">${esc(n.type || '-')}</span></td>
+        <td>
+          ${!n.lu
+            ? `<button class="btn btn-ghost btn-sm" onclick="marquerLue(${n.id})">Marquer lu</button>`
+            : ''}
+        </td>
+      </tr>`;
+  }).join('');
+}
+
+window.ouvrirNouvelleAlerte = () => document.getElementById('modal-alerte').classList.add('open');
+window.fermerAlerte         = () => document.getElementById('modal-alerte').classList.remove('open');
+
+window.supprimerAlerte = async (id) => {
+  if (!confirm('Supprimer cette alerte ?')) return;
+  try {
+    const res = await apiFetch(`/alertes/${id}`, { method: 'DELETE' });
+    if (res?.ok) {
+      alertes = alertes.filter(a => a.id !== id);
+      renderAlertesActives();
+      showToast('Alerte supprimée', 'success');
+      return;
+    }
+    showToast('Erreur lors de la suppression', 'error');
+  } catch {
+    showToast('Service indisponible', 'error');
+  }
+};
+
+window.marquerToutesLues = async () => {
+  await apiFetch('/notifications/read-all', { method: 'PUT' });
+  await chargerNotifications();
+  showToast('Toutes les notifications marquées comme lues', 'success');
+};
+
+window.marquerLue = async (id) => {
+  await apiFetch(`/notifications/${id}/read`, { method: 'PUT' });
+  await chargerNotifications();
+};
+
+function esc(str) {
+  return String(str||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+</script>
+
+</body>
+</html>

@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8"/>
+  <link rel="icon" type="image/png" href="../brand_assets/Favicon.png"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Espace Professionnel | UpcycleConnect</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=Montserrat:wght@400;500;600&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"/>
+  <link rel="stylesheet" href="css/style.css"/>
+  <style>
+    /* Ajustements spécifiques page login */
+    .login-page { min-height: 100vh; }
+    .form-input-icon { position: relative; }
+    .form-input-icon i {
+      position: absolute;
+      left: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 13px;
+      color: var(--text-muted);
+      pointer-events: none;
+    }
+    .form-input-icon input { padding-left: 36px; }
+    .login-submit-btn {
+      width: 100%;
+      padding: 12px;
+      font-size: 14px;
+      letter-spacing: 0.02em;
+    }
+    .password-strength-wrap {
+      height: 3px;
+      background: var(--green-50);
+      border-radius: var(--radius-pill);
+      overflow: hidden;
+      margin-top: 6px;
+    }
+    #password-strength {
+      height: 100%;
+      width: 0%;
+      border-radius: var(--radius-pill);
+      transition: width 0.3s var(--ease), background 0.3s var(--ease);
+    }
+    .login-features {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-top: 32px;
+    }
+    .login-feature {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 13px;
+      color: rgba(255,255,255,0.8);
+      font-weight: 500;
+    }
+    .login-feature i {
+      width: 28px;
+      height: 28px;
+      background: rgba(178,222,195,0.15);
+      border-radius: var(--radius);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--green-200);
+      font-size: 13px;
+      flex-shrink: 0;
+    }
+  </style>
+</head>
+<body>
+
+<div class="login-page">
+
+  <!-- Panneau gauche : branding & valeur -->
+  <div class="login-left">
+    <div class="login-left-orb-1"></div>
+    <div class="login-left-orb-2"></div>
+
+    <div class="login-brand">
+      <a href="../index.html">
+        <img src="../brand_assets/upcycleconnect_logo_font_blanc.png"
+             alt="UpcycleConnect"
+             onerror="this.style.display='none'"/>
+      </a>
+      <div class="login-brand-label">Espace<br>Professionnel</div>
+    </div>
+
+    <div class="login-hero">
+      <div class="login-hero-eyebrow">Plateforme d'économie circulaire</div>
+      <h1>
+        Valorisez les<br>
+        <span>matériaux</span><br>
+        de demain.
+      </h1>
+      <p>
+        Accédez à des matériaux upcyclables en temps réel,
+        gérez vos projets de valorisation et construisez
+        une activité durable et rentable.
+      </p>
+
+      <div class="login-features">
+        <div class="login-feature">
+          <i class="fa-solid fa-bolt" aria-hidden="true"></i>
+          Alertes matériaux en temps réel
+        </div>
+        <div class="login-feature">
+          <i class="fa-solid fa-location-dot" aria-hidden="true"></i>
+          Réseau de conteneurs géolocalisés
+        </div>
+        <div class="login-feature">
+          <i class="fa-solid fa-diagram-project" aria-hidden="true"></i>
+          Suivi de projets upcycling
+        </div>
+        <div class="login-feature">
+          <i class="fa-solid fa-chart-line" aria-hidden="true"></i>
+          Statistiques d'impact CO₂
+        </div>
+      </div>
+    </div>
+
+    <div class="login-stats">
+      <div class="login-stat">
+        <div class="login-stat-value">2 400+</div>
+        <div class="login-stat-label">Annonces actives</div>
+      </div>
+      <div class="login-stat">
+        <div class="login-stat-value">86</div>
+        <div class="login-stat-label">Conteneurs</div>
+      </div>
+      <div class="login-stat">
+        <div class="login-stat-value">12 t</div>
+        <div class="login-stat-label">CO₂ économisé</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Panneau droit : formulaire -->
+  <div class="login-right">
+    <div class="login-form-wrap">
+
+      <h1 class="login-form-title" id="login-form-title" data-i18n="login_title">Espace Professionnel</h1>
+      <p class="login-form-subtitle" id="login-form-subtitle" data-i18n="login_subtitle">Accédez à vos matériaux upcyclables</p>
+
+      <!-- Connexion -->
+      <div id="section-login">
+        <form id="form-login" class="login-form-section" novalidate>
+
+          <div class="form-group">
+            <label class="form-label" for="login-email" data-i18n="email_label">Adresse email</label>
+            <div class="form-input-icon">
+              <i class="fa-regular fa-envelope" aria-hidden="true"></i>
+              <input type="email" id="login-email" class="form-control"
+                     placeholder="jean@entreprise.fr" autocomplete="email" required/>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="login-password" data-i18n="password_label">Mot de passe</label>
+            <div class="form-input-icon">
+              <i class="fa-solid fa-lock" aria-hidden="true"></i>
+              <input type="password" id="login-password" class="form-control"
+                     placeholder="••••••••" autocomplete="current-password" required/>
+            </div>
+          </div>
+
+          <div style="text-align:right">
+            <a href="#" style="font-size:12px;color:var(--green-700);font-weight:600" data-i18n="forgot_password">
+              Mot de passe oublié ?
+            </a>
+          </div>
+
+          <button type="submit" class="btn btn-primary login-submit-btn">
+            <i class="fa-solid fa-right-to-bracket" aria-hidden="true"></i>
+            <span data-i18n="btn_login">Se connecter</span>
+          </button>
+
+          <div class="login-divider"><span>ou</span></div>
+
+          <p class="login-toggle">
+            <a id="toggle-to-register" data-i18n="toggle_register">Pas encore de compte ? S'inscrire</a>
+          </p>
+        </form>
+      </div>
+
+      <!-- Inscription -->
+      <div id="section-register" class="hidden">
+        <form id="form-register" class="login-form-section" novalidate>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label" for="reg-nom"><span data-i18n="nom_label">Nom complet</span> <span class="form-required">*</span></label>
+              <input type="text" id="reg-nom" class="form-control" placeholder="Jean Martin" required/>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="reg-email"><span data-i18n="email_label">Email</span> <span class="form-required">*</span></label>
+              <input type="email" id="reg-email" class="form-control" placeholder="jean@sas.fr" required/>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="reg-entreprise" data-i18n="entreprise_label">Entreprise</label>
+            <div class="form-input-icon">
+              <i class="fa-solid fa-building" aria-hidden="true"></i>
+              <input type="text" id="reg-entreprise" class="form-control" placeholder="Mon Entreprise SAS"/>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="reg-siret" data-i18n="siret_label">Numéro SIRET</label>
+            <div class="form-input-icon">
+              <i class="fa-solid fa-id-card" aria-hidden="true"></i>
+              <input type="text" id="reg-siret" class="form-control" placeholder="12345678901234" maxlength="14"/>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label" for="reg-password"><span data-i18n="password_label">Mot de passe</span> <span class="form-required">*</span></label>
+              <input type="password" id="reg-password" class="form-control" placeholder="Min. 8 caractères" required/>
+              <div class="password-strength-wrap"><div id="password-strength"></div></div>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="reg-password2">Confirmer <span class="form-required">*</span></label>
+              <input type="password" id="reg-password2" class="form-control" placeholder="••••••••" required/>
+            </div>
+          </div>
+
+          <button type="submit" class="btn btn-primary login-submit-btn">
+            <i class="fa-solid fa-user-plus" aria-hidden="true"></i>
+            <span data-i18n="btn_register">Créer mon compte</span>
+          </button>
+
+          <div class="login-divider"><span>ou</span></div>
+
+          <p class="login-toggle">
+            <a id="toggle-to-login" data-i18n="toggle_login">Déjà un compte ? Se connecter</a>
+          </p>
+        </form>
+      </div>
+
+    </div>
+
+    <p style="text-align:center;font-size:11px;color:var(--text-muted);margin-top:32px">
+      En vous connectant, vous acceptez les
+      <a href="#" style="color:var(--green-700);font-weight:600">Conditions d'utilisation</a>
+      et la
+      <a href="#" style="color:var(--green-700);font-weight:600">Politique de confidentialité</a>
+      d'UpcycleConnect.
+    </p>
+
+    <div class="login-footer-again">
+      <span>Un projet</span>
+      <img src="../brand_assets/logo_again_transparent.png" alt="again²" onerror="this.style.display='none'"/>
+    </div>
+  </div>
+
+</div>
+
+<!-- Toast -->
+<div id="toast-login" class="toast-notif"></div>
+
+<script src="js/layout.js"></script>
+<script src="js/auth.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', () => chargerTraductions().then(applyTranslations));
+</script>
+
+</body>
+</html>

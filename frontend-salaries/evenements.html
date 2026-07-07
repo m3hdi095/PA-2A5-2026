@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8"/>
+  <link rel="icon" type="image/png" href="../brand_assets/Favicon.png"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Mes événements | Espace Salariés</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=Montserrat:wght@400;500;600&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" crossorigin="anonymous"/>
+  <link rel="stylesheet" href="css/style.css"/>
+</head>
+<body>
+
+<div class="page-title-row animate-in">
+  <div>
+    <h1>
+      <div class="page-title-icon green">
+        <i class="fa-solid fa-calendar-days" aria-hidden="true"></i>
+      </div>
+      <span data-i18n="ev_title">Mes événements</span>
+    </h1>
+    <p class="page-title-sub" data-i18n="ev_subtitle">Créez et gérez vos formations, ateliers et événements</p>
+  </div>
+  <div class="page-title-actions">
+    <button class="btn btn-primary" id="btn-nouvel-event">
+      <i class="fa-solid fa-plus" aria-hidden="true"></i>
+      <span data-i18n="ev_btn_nouveau">Nouvel événement</span>
+    </button>
+  </div>
+</div>
+
+<!-- Liste des événements du salarié -->
+<div class="card animate-in" style="margin-bottom:20px">
+  <div class="card-header">
+    <h2><i class="fa-solid fa-list" aria-hidden="true"></i> <span data-i18n="ev_mes_creations">Mes créations</span></h2>
+    <span id="badge-total" class="badge badge-teal">0</span>
+  </div>
+  <div id="events-list" class="card-body" style="display:flex;flex-direction:column;gap:10px">
+    <div class="skeleton" style="height:60px;border-radius:var(--radius)"></div>
+    <div class="skeleton" style="height:60px;border-radius:var(--radius)"></div>
+  </div>
+</div>
+
+<!-- Modal création / édition -->
+<div class="modal-overlay" id="modal-event">
+  <div class="modal-box" style="max-width:560px">
+    <div class="modal-header">
+      <div class="modal-title" id="modal-event-titre">Nouvel événement</div>
+      <button class="modal-close" id="modal-event-close">&times;</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="ev-id"/>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label"><span data-i18n="ev_label_titre">Titre</span> <span class="required">*</span></label>
+          <input id="ev-titre" class="form-control" type="text" data-i18n-placeholder="ev_placeholder_titre" placeholder="Atelier récupération palettes…" maxlength="150"/>
+        </div>
+        <div class="form-group">
+          <label class="form-label"><span data-i18n="ev_label_type">Type</span> <span class="required">*</span></label>
+          <select id="ev-type" class="form-control">
+            <option value="formation" data-i18n="opt_formation">Formation</option>
+            <option value="atelier" data-i18n="opt_atelier">Atelier</option>
+            <option value="evenement" data-i18n="opt_evenement">Événement</option>
+            <option value="conseil" data-i18n="ev_opt_conseil">Conseil</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label" data-i18n="ev_label_description">Description</label>
+        <textarea id="ev-description" class="form-control" rows="3" data-i18n-placeholder="ev_placeholder_description" placeholder="Décrivez le contenu et les objectifs…"></textarea>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label"><span data-i18n="ev_label_date_debut">Date de début</span> <span class="required">*</span></label>
+          <input id="ev-date-debut" class="form-control" type="datetime-local"/>
+        </div>
+        <div class="form-group">
+          <label class="form-label" data-i18n="ev_label_date_fin">Date de fin</label>
+          <input id="ev-date-fin" class="form-control" type="datetime-local"/>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label" data-i18n="ev_label_lieu">Lieu</label>
+          <input id="ev-lieu" class="form-control" type="text" data-i18n-placeholder="ev_placeholder_lieu" placeholder="Salle B2, Atelier principal…"/>
+        </div>
+        <div class="form-group">
+          <label class="form-label" data-i18n="ev_label_capacite">Capacité max</label>
+          <input id="ev-places" class="form-control" type="number" min="1" max="500" placeholder="20"/>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label" data-i18n="ev_label_tarif">Tarif (€, laisser 0 si gratuit)</label>
+        <input id="ev-tarif" class="form-control" type="number" min="0" step="0.01" placeholder="0"/>
+      </div>
+      <p id="ev-error" style="color:var(--danger,#ef5350);font-size:13px;display:none"></p>
+    </div>
+    <div class="form-actions" style="padding:16px 22px;border-top:1px solid var(--border)">
+      <button class="btn btn-outline" id="btn-ev-cancel" data-i18n="ev_btn_annuler">Annuler</button>
+      <button class="btn btn-primary" id="btn-ev-save">
+        <i class="fa-solid fa-paper-plane" aria-hidden="true"></i>
+        <span data-i18n="ev_btn_soumettre">Soumettre pour validation</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<script src="js/layout.js" data-page="evenements"></script>
+<script>
+function buildBadges() {
+  return {
+    TYPE_BADGE: {
+      formation: `<span class="badge badge-teal">${t('opt_formation')}</span>`,
+      atelier:   `<span class="badge badge-green">${t('opt_atelier')}</span>`,
+      evenement: `<span class="badge badge-orange">${t('opt_evenement')}</span>`,
+      conseil:   `<span class="badge" style="background:var(--beige-light)">${t('ev_opt_conseil')}</span>`,
+    },
+    STATUT_BADGE: {
+      en_attente: `<span class="badge badge-orange">${t('ev_statut_attente')}</span>`,
+      valide:     `<span class="badge badge-green">${t('ev_statut_valide')}</span>`,
+      annule:     `<span class="badge" style="background:var(--danger-bg);color:var(--danger)">${t('ev_statut_annule')}</span>`,
+    },
+  };
+}
+
+let mesEvents = [];
+
+document.addEventListener('DOMContentLoaded', async () => {
+  await initLayout('evenements');
+  await chargerMesEvents();
+
+  document.getElementById('btn-nouvel-event').addEventListener('click', () => ouvrirModal());
+  document.getElementById('modal-event-close').addEventListener('click', fermerModal);
+  document.getElementById('btn-ev-cancel').addEventListener('click', fermerModal);
+  document.getElementById('modal-event').addEventListener('click', e => {
+    if (e.target === document.getElementById('modal-event')) fermerModal();
+  });
+  document.getElementById('btn-ev-save').addEventListener('click', sauvegarderEvent);
+});
+
+async function chargerMesEvents() {
+  const list = document.getElementById('events-list');
+  try {
+    const res = await apiFetch('/evenements/mes-creations');
+    if (res?.ok) {
+      const data = await res.json();
+      mesEvents = Array.isArray(data) ? data : [];
+    }
+  } catch {}
+  renderEvents();
+}
+
+function renderEvents() {
+  const list = document.getElementById('events-list');
+  const badge = document.getElementById('badge-total');
+  badge.textContent = mesEvents.length;
+
+  if (!mesEvents.length) {
+    list.innerHTML = `<div class="empty-state" style="padding:40px 0">
+      <i class="fa-solid fa-calendar-xmark" aria-hidden="true"></i>
+      <p>${t('ev_aucun')}</p>
+    </div>`;
+    return;
+  }
+
+  const { TYPE_BADGE, STATUT_BADGE } = buildBadges();
+  const locale = _lang === 'en' ? 'en-GB' : 'fr-FR';
+  list.innerHTML = mesEvents.map(ev => {
+    const dateStr = ev.date_debut
+      ? new Date(ev.date_debut).toLocaleDateString(locale, { day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' })
+      : '—';
+    return `<div class="val-card" style="gap:12px">
+      <div class="val-type-icon">${TYPE_BADGE[ev.type] || ''}</div>
+      <div class="val-info">
+        <div class="val-title">${esc(ev.titre || t('ev_sans_titre'))}</div>
+        <div class="val-meta">${dateStr} · ${esc(ev.lieu || t('ev_lieu_non_defini'))} · ${ev.nb_places || '?'} ${t('ev_places')}</div>
+      </div>
+      ${STATUT_BADGE[ev.statut] || ''}
+      <div class="val-actions">
+        <button class="btn btn-outline btn-sm" onclick="ouvrirModal(${ev.id})">
+          <i class="fa-solid fa-pen" aria-hidden="true"></i> ${t('ev_btn_modifier')}
+        </button>
+        ${ev.statut === 'valide' ? `<button class="btn btn-danger btn-sm" onclick="annulerEvent(${ev.id}, '${esc(ev.titre)}')">
+          <i class="fa-solid fa-ban" aria-hidden="true"></i> ${t('ev_btn_annuler_event')}
+        </button>` : ''}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function ouvrirModal(id) {
+  const ev = id ? mesEvents.find(e => e.id === id) : null;
+  document.getElementById('modal-event-titre').textContent = ev ? t('ev_modal_modifier') : t('ev_modal_nouveau');
+  document.getElementById('ev-id').value        = ev?.id || '';
+  document.getElementById('ev-titre').value     = ev?.titre || '';
+  document.getElementById('ev-type').value      = ev?.type || 'formation';
+  document.getElementById('ev-description').value = ev?.description || '';
+  document.getElementById('ev-date-debut').value = ev?.date_debut ? ev.date_debut.slice(0,16) : '';
+  document.getElementById('ev-date-fin').value   = ev?.date_fin   ? ev.date_fin.slice(0,16)   : '';
+  document.getElementById('ev-lieu').value       = ev?.lieu || '';
+  document.getElementById('ev-places').value     = ev?.nb_places || '';
+  document.getElementById('ev-tarif').value      = ev?.tarif || 0;
+  document.getElementById('ev-error').style.display = 'none';
+  document.getElementById('modal-event').classList.add('open');
+}
+
+function fermerModal() {
+  document.getElementById('modal-event').classList.remove('open');
+}
+
+async function sauvegarderEvent() {
+  const titre = document.getElementById('ev-titre').value.trim();
+  const dateDebut = document.getElementById('ev-date-debut').value;
+  const errEl = document.getElementById('ev-error');
+
+  if (!titre || !dateDebut) {
+    errEl.textContent = t('ev_err_obligatoire');
+    errEl.style.display = 'block';
+    return;
+  }
+
+  const id = document.getElementById('ev-id').value;
+  const payload = {
+    titre,
+    type:        document.getElementById('ev-type').value,
+    description: document.getElementById('ev-description').value.trim(),
+    date_debut:  dateDebut,
+    date_fin:    document.getElementById('ev-date-fin').value || null,
+    lieu:        document.getElementById('ev-lieu').value.trim(),
+    nb_places:   parseInt(document.getElementById('ev-places').value) || 0,
+    tarif:       parseFloat(document.getElementById('ev-tarif').value) || 0,
+  };
+
+  const btn = document.getElementById('btn-ev-save');
+  btn.disabled = true;
+
+  try {
+    const res = id
+      ? await apiFetch(`/evenements/${id}`, { method: 'PUT',  body: JSON.stringify(payload) })
+      : await apiFetch('/evenements',        { method: 'POST', body: JSON.stringify(payload) });
+
+    if (res?.ok) {
+      fermerModal();
+      showToast(id ? t('ev_succes_maj') : t('ev_succes_soumis'), 'success');
+      await chargerMesEvents();
+    } else {
+      const err = await res?.json().catch(() => ({}));
+      errEl.textContent = err?.error || t('ev_err_enregistrement');
+      errEl.style.display = 'block';
+    }
+  } catch {
+    errEl.textContent = t('ev_err_reseau');
+    errEl.style.display = 'block';
+  }
+
+  btn.disabled = false;
+}
+
+function esc(str) {
+  return String(str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+async function annulerEvent(id, titre) {
+  if (!confirm(t('ev_confirm_annuler').replace('{titre}', titre))) return;
+  const res = await apiFetch(`/evenements/${id}/annuler`, { method: 'PUT' });
+  if (res?.ok) {
+    showToast(t('ev_succes_annule'), 'success');
+    await chargerMesEvents();
+  } else {
+    const err = await res?.json().catch(() => ({}));
+    showToast(err?.error || t('ev_err_annuler'), 'error');
+  }
+}
+</script>
+</body>
+</html>

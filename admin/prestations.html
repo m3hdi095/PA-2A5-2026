@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8"/>
+  <link rel="icon" type="image/png" href="../brand_assets/Favicon.png"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Prestations | UpcycleConnect Admin</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&family=Montserrat:wght@300;400;500;600;700&family=Roboto:wght@300;400;500&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="css/style.css"/>
+</head>
+<body>
+
+<div class="page-title-row">
+  <div>
+    <h1>
+      <div class="page-title-icon green">
+        <i class="fa-solid fa-calendar-days" aria-hidden="true"></i>
+      </div>
+      <span data-i18n="nav_prestations">Prestations</span>
+    </h1>
+    <p class="page-title-sub" data-i18n="prest_subtitle">Formations, ateliers et événements proposés</p>
+  </div>
+  <div class="page-title-actions">
+    <a href="categories.html" class="btn btn-outline btn-sm">
+      <i class="fa-solid fa-tags" aria-hidden="true"></i>
+      <span data-i18n="nav_categories">Catégories</span>
+    </a>
+    <a href="validations.html" class="btn btn-outline btn-sm">
+      <i class="fa-solid fa-circle-check" aria-hidden="true"></i>
+      <span data-i18n="nav_validations">Validations</span>
+    </a>
+    <button class="btn btn-outline btn-sm" id="btnGrid" title="Vue cartes">
+      <i class="fa-solid fa-table-cells-large" aria-hidden="true"></i>
+    </button>
+    <button class="btn btn-outline btn-sm" id="btnList" title="Vue liste">
+      <i class="fa-solid fa-list" aria-hidden="true"></i>
+    </button>
+    <button class="btn btn-primary" id="btnAdd">
+      <i class="fa-solid fa-plus" aria-hidden="true"></i>
+      <span data-i18n="btn_add">Ajouter</span>
+    </button>
+  </div>
+</div>
+
+<!-- FILTERS -->
+<div class="filters-bar">
+  <div class="filter-wrap">
+    <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
+    <input type="text" class="filter-input" id="searchInput" data-i18n-placeholder="prest_search" placeholder="Rechercher une prestation..."/>
+  </div>
+  <select class="filter-select" id="typeFilter">
+    <option value="" data-i18n="prest_filter_all_types">Tous les types</option>
+    <option value="formation" data-i18n="factures_type_form">Formation</option>
+    <option value="atelier" data-i18n="prest_type_atelier">Atelier</option>
+    <option value="evenement" data-i18n="prest_type_evenement">Événement</option>
+  </select>
+  <select class="filter-select" id="statusFilter">
+    <option value="" data-i18n="prest_filter_all_status">Tous les statuts</option>
+    <option value="en_attente" data-i18n="prest_statut_brouillon">En attente</option>
+    <option value="valide" data-i18n="prest_statut_publie">Validé</option>
+    <option value="annule" data-i18n="prest_statut_annule">Annulé</option>
+    <option value="cloture" data-i18n="prest_statut_complet">Clôturé</option>
+  </select>
+</div>
+
+<!-- VUE LISTE -->
+<div id="listView" class="card" style="display:none">
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th data-i18n="users_th_id">#</th>
+          <th data-i18n="prest_th_titre">Titre</th>
+          <th data-i18n="prest_th_type">Type</th>
+          <th data-i18n="prest_th_date">Date</th>
+          <th data-i18n="prest_th_places">Places</th>
+          <th data-i18n="prest_th_prix">Prix</th>
+          <th data-i18n="factures_th_statut">Statut</th>
+          <th style="text-align:right" data-i18n="prest_th_actions">Actions</th>
+        </tr>
+      </thead>
+      <tbody id="prestationsBody"></tbody>
+    </table>
+  </div>
+  <div class="pagination" id="pagination"><span class="page-info" id="pageInfo"></span></div>
+</div>
+
+<!-- VUE CARTES -->
+<div id="gridView" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px">
+</div>
+
+<!-- MODAL -->
+<div class="modal-overlay" id="prestModal">
+  <div class="modal-box" style="max-width:640px">
+    <div class="modal-header">
+      <div class="modal-title" id="modalTitle">
+        <i class="fa-solid fa-calendar-days" aria-hidden="true"></i>
+        <span data-i18n="prest_modal_add">Ajouter une prestation</span>
+      </div>
+      <button class="modal-close" id="modalClose">&times;</button>
+    </div>
+    <div class="modal-body">
+      <form id="prestForm" novalidate>
+        <input type="hidden" id="prestId"/>
+        <div class="form-group">
+          <label class="form-label"><span data-i18n="form_titre">Titre</span> <span class="form-required">*</span></label>
+          <input type="text" id="titre" class="form-control" required/>
+        </div>
+        <div class="form-group">
+          <label class="form-label" data-i18n="form_description">Description</label>
+          <textarea id="description" class="form-control" rows="2"></textarea>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label" data-i18n="form_type">Type</label>
+            <select id="type" class="form-control">
+              <option value="formation" data-i18n="factures_type_form">Formation</option>
+              <option value="atelier" data-i18n="prest_type_atelier">Atelier</option>
+              <option value="evenement" data-i18n="prest_type_evenement">Événement</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label" data-i18n="form_statut">Statut</label>
+            <select id="statut" class="form-control">
+              <option value="en_attente" data-i18n="prest_statut_en_attente">En attente</option>
+              <option value="valide" data-i18n="prest_statut_publie">Validé</option>
+              <option value="cloture" data-i18n="prest_statut_complet">Clôturé</option>
+              <option value="annule" data-i18n="prest_statut_annule">Annulé</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label" data-i18n="form_date_debut">Date début</label>
+            <input type="datetime-local" id="date_debut" class="form-control"/>
+          </div>
+          <div class="form-group">
+            <label class="form-label" data-i18n="form_date_fin">Date fin</label>
+            <input type="datetime-local" id="date_fin" class="form-control"/>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label" data-i18n="form_prix">Prix (€)</label>
+            <input type="number" step="0.01" min="0" id="prix" class="form-control" placeholder="0 = gratuit"/>
+          </div>
+          <div class="form-group">
+            <label class="form-label" data-i18n="form_places_max">Places max</label>
+            <input type="number" min="1" id="places_max" class="form-control"/>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label" data-i18n="form_lieu">Lieu</label>
+          <input type="text" id="lieu" class="form-control" placeholder="Paris 10e, En ligne..."/>
+        </div>
+        <div class="form-actions">
+          <button type="button" class="btn btn-outline" id="cancelBtn" data-i18n="btn_cancel">Annuler</button>
+          <button type="submit" class="btn btn-primary">
+            <i class="fa-solid fa-check" aria-hidden="true"></i>
+            <span data-i18n="btn_save">Enregistrer</span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script src="js/layout.js" data-page="prestations"></script>
+<script src="js/prestations.js"></script>
+
+</body>
+</html>

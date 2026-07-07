@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8"/>
+  <link rel="icon" type="image/png" href="../brand_assets/Favicon.png"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Espace Particuliers | UpcycleConnect</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=Montserrat:wght@400;500;600&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" crossorigin="anonymous"/>
+  <link rel="stylesheet" href="css/style.css"/>
+</head>
+<body>
+
+<div class="login-page">
+
+  <!-- Panneau gauche hero -->
+  <div class="login-hero">
+    <a href="../index.html">
+      <img src="../brand_assets/upcycleconnect_logo_font_blanc.png"
+           alt="UpcycleConnect" class="login-hero-logo"
+           onerror="this.style.display='none'"/>
+    </a>
+
+    <h1 class="login-hero-title">Rejoignez la<br>communauté<br>d'upcycling</h1>
+    <p class="login-hero-subtitle">Choisissez votre profil pour personnaliser votre experience sur notre plateforme</p>
+
+    <!-- Cartes de rôle (maquette) -->
+    <div class="login-role-cards">
+      <div class="login-role-card">
+        <div class="login-role-icon">
+          <i class="fa-solid fa-user" aria-hidden="true"></i>
+        </div>
+        <div class="login-role-info">
+          <div class="login-role-name">Particulier</div>
+          <div class="login-role-desc">Donnez, vendez ou recuperez des objets, participez aux ateliers.</div>
+        </div>
+      </div>
+      <div class="login-role-card">
+        <div class="login-role-icon">
+          <i class="fa-solid fa-briefcase" aria-hidden="true"></i>
+        </div>
+        <div class="login-role-info">
+          <div class="login-role-name">Professionnel</div>
+          <div class="login-role-desc">Artisan, createur ou entreprise : acces aux materiaux en volume.</div>
+        </div>
+      </div>
+      <div class="login-role-card">
+        <div class="login-role-icon">
+          <i class="fa-solid fa-building-user" aria-hidden="true"></i>
+        </div>
+        <div class="login-role-info">
+          <div class="login-role-name">Salarie</div>
+          <div class="login-role-desc">Programme entreprise : acces via votre employeur partenaire.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Panneau droit formulaire -->
+  <div class="login-form-section">
+    <div class="login-form-wrap">
+
+      <!-- Connexion -->
+      <div id="section-login" class="active">
+        <div class="login-form-title" data-i18n="auth_login_title">Connexion</div>
+        <p class="login-form-sub">Accédez à votre espace particulier</p>
+        <div id="auth-error" class="login-error"></div>
+        <form id="form-login" novalidate>
+          <div class="login-form-group">
+            <label for="login-email" data-i18n="auth_email">Adresse e-mail</label>
+            <input type="email" id="login-email" autocomplete="email" placeholder="marie@example.fr" required/>
+          </div>
+          <div class="login-form-group">
+            <label for="login-password" data-i18n="auth_password">Mot de passe</label>
+            <input type="password" id="login-password" autocomplete="current-password" placeholder="••••••••" required/>
+          </div>
+          <button type="submit" class="login-btn">
+            <i class="fa-solid fa-right-to-bracket" aria-hidden="true"></i>
+            <span data-i18n="auth_btn_login">Se connecter</span>
+          </button>
+        </form>
+        <div class="login-switch">
+          <button id="to-register" data-i18n="auth_switch_to_register">Pas encore de compte ? Créer un compte</button>
+        </div>
+        <div style="text-align:center;margin-top:10px">
+          <button id="btn-forgot" data-i18n="auth_forgot_password" style="background:none;border:none;color:var(--teal-600);font-size:12.5px;cursor:pointer;text-decoration:underline">
+            Mot de passe oublié ?
+          </button>
+        </div>
+        <div id="forgot-form" style="display:none;margin-top:14px">
+          <form id="form-forgot" style="display:flex;gap:8px">
+            <input type="email" id="forgot-email" class="form-control" placeholder="Votre adresse email" style="flex:1;font-size:13px"/>
+            <button type="submit" class="btn btn-primary btn-sm" data-i18n="auth_send">Envoyer</button>
+          </form>
+          <div id="forgot-msg" style="display:none;margin-top:8px;font-size:12.5px;color:var(--teal-700)"></div>
+        </div>
+      </div>
+
+      <!-- Inscription -->
+      <div id="section-register" style="display:none">
+        <div class="login-form-title" data-i18n="auth_register_title">Créer un compte</div>
+        <p class="login-form-sub">Rejoignez la communauté particuliers</p>
+        <div id="auth-error-reg" class="login-error"></div>
+        <form id="form-register" novalidate>
+          <div class="form-row-2">
+            <div class="login-form-group">
+              <label for="reg-prenom" data-i18n="auth_prenom">Prénom</label>
+              <input type="text" id="reg-prenom" autocomplete="given-name" placeholder="Marie" required/>
+            </div>
+            <div class="login-form-group">
+              <label for="reg-nom" data-i18n="auth_nom">Nom</label>
+              <input type="text" id="reg-nom" autocomplete="family-name" placeholder="Dupont" required/>
+            </div>
+          </div>
+          <div class="login-form-group">
+            <label for="reg-email" data-i18n="auth_email">Adresse e-mail</label>
+            <input type="email" id="reg-email" autocomplete="email" placeholder="marie@example.fr" required/>
+          </div>
+          <div class="login-form-group">
+            <label for="reg-password" data-i18n="auth_password">Mot de passe</label>
+            <input type="password" id="reg-password" autocomplete="new-password" placeholder="••••••••" required/>
+          </div>
+          <button type="submit" class="login-btn">
+            <i class="fa-solid fa-user-plus" aria-hidden="true"></i>
+            <span data-i18n="auth_btn_register">Créer mon compte</span>
+          </button>
+        </form>
+        <div class="login-switch">
+          <button id="to-login" data-i18n="auth_switch_to_login">Déjà un compte ? Se connecter</button>
+        </div>
+      </div>
+
+      <div class="login-footer-again">
+        <span>Un projet</span>
+        <img src="../brand_assets/logo_again_transparent.png" alt="again²" onerror="this.style.display='none'"/>
+      </div>
+
+    </div>
+  </div>
+
+</div>
+
+<script>
+// Gestion simple de l'affichage des deux sections
+document.getElementById('to-register')?.addEventListener('click', () => {
+  document.getElementById('section-login').style.display = 'none';
+  document.getElementById('section-register').style.display = 'block';
+});
+document.getElementById('to-login')?.addEventListener('click', () => {
+  document.getElementById('section-register').style.display = 'none';
+  document.getElementById('section-login').style.display = 'block';
+});
+
+// Ajouter classe active pour les sections
+document.getElementById('section-login')?.classList.add('active');
+
+// Mot de passe oublié
+document.getElementById('btn-forgot')?.addEventListener('click', () => {
+  const form = document.getElementById('forgot-form');
+  form.style.display = form.style.display === 'none' ? 'block' : 'none';
+});
+document.getElementById('form-forgot')?.addEventListener('submit', async e => {
+  e.preventDefault();
+  const email = document.getElementById('forgot-email').value.trim();
+  const msg   = document.getElementById('forgot-msg');
+  if (!email) return;
+  try {
+    await fetch(`${API_BASE}/forgot-password`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email }),
+    });
+    msg.textContent = 'Si cet email est enregistré, un lien de réinitialisation vous a été envoyé.';
+    msg.style.display = 'block';
+    document.getElementById('forgot-email').value = '';
+  } catch {
+    msg.textContent = 'Service indisponible. Réessayez plus tard.';
+    msg.style.color = '#c62828';
+    msg.style.display = 'block';
+  }
+});
+</script>
+<script src="js/layout.js"></script>
+<script src="js/auth.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', () => chargerTraductions().then(applyTranslations));
+</script>
+
+</body>
+</html>

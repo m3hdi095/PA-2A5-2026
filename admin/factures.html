@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8"/>
+  <link rel="icon" type="image/png" href="../brand_assets/Favicon.png"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Facturation | UpcycleConnect Admin</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&family=Montserrat:wght@300;400;500;600;700&family=Roboto:wght@300;400;500&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="css/style.css"/>
+</head>
+<body>
+
+<div class="page-title-row">
+  <div>
+    <h1>
+      <div class="page-title-icon green">
+        <i class="fa-solid fa-file-invoice" aria-hidden="true"></i>
+      </div>
+      <span data-i18n="factures_title">Facturation</span>
+    </h1>
+    <p class="page-title-sub" data-i18n="factures_subtitle">Suivi des revenus, factures et abonnements</p>
+  </div>
+  <div class="page-title-actions">
+    <a href="users.html" class="btn btn-outline btn-sm">
+      <i class="fa-solid fa-users" aria-hidden="true"></i>
+      <span data-i18n="nav_users">Utilisateurs</span>
+    </a>
+    <button class="btn btn-outline btn-sm" id="exportBtn">
+      <i class="fa-solid fa-download" aria-hidden="true"></i>
+      <span data-i18n="btn_export_csv">Exporter CSV</span>
+    </button>
+    <button class="btn btn-outline btn-sm" id="pdfBtn" style="color:var(--danger-text);border-color:var(--danger)">
+      <i class="fa-solid fa-file-pdf" aria-hidden="true"></i>
+      <span data-i18n="btn_rapport_pdf">Rapport PDF</span>
+    </button>
+    <button class="btn btn-primary" id="btnAdd">
+      <i class="fa-solid fa-plus" aria-hidden="true"></i>
+      <span data-i18n="btn_new_facture">Nouvelle facture</span>
+    </button>
+  </div>
+</div>
+
+<!-- REVENUS SUMMARY -->
+<div class="stats-row" style="margin-bottom:24px">
+  <div class="stat-card" style="--accent:var(--uc-teal);--icon-bg:var(--uc-teal-pale)">
+    <div class="stat-icon"><i class="fa-solid fa-money-bill-wave" aria-hidden="true"></i></div>
+    <div class="stat-info">
+      <div class="stat-value" id="stat-total">-</div>
+      <div class="stat-label" data-i18n="factures_stat_revenus">Revenus total</div>
+    </div>
+  </div>
+  <div class="stat-card" style="--accent:var(--uc-teal);--icon-bg:var(--orange-100)">
+    <div class="stat-icon" style="background:var(--orange-100)"><i class="fa-solid fa-user-check" style="color:var(--uc-teal)" aria-hidden="true"></i></div>
+    <div class="stat-info">
+      <div class="stat-value" id="stat-abo">-</div>
+      <div class="stat-label" data-i18n="factures_stat_abo">Abonnements</div>
+    </div>
+  </div>
+  <div class="stat-card" style="--accent:var(--info);--icon-bg:var(--info-bg)">
+    <div class="stat-icon" style="background:var(--info-bg)"><i class="fa-solid fa-graduation-cap" style="color:var(--info)" aria-hidden="true"></i></div>
+    <div class="stat-info">
+      <div class="stat-value" id="stat-form">-</div>
+      <div class="stat-label" data-i18n="factures_stat_form">Formations</div>
+    </div>
+  </div>
+  <div class="stat-card" style="--accent:var(--danger);--icon-bg:var(--danger-bg)">
+    <div class="stat-icon" style="background:var(--danger-bg)"><i class="fa-solid fa-circle-exclamation" style="color:var(--danger-text)" aria-hidden="true"></i></div>
+    <div class="stat-info">
+      <div class="stat-value" id="stat-impayees">-</div>
+      <div class="stat-label" data-i18n="factures_stat_impayees">Impayées</div>
+    </div>
+    <span class="stat-trend trend-down" id="stat-nb-impayees"></span>
+  </div>
+</div>
+
+<!-- FILTERS -->
+<div class="filters-bar">
+  <div class="filter-wrap">
+    <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
+    <input type="text" class="filter-input" id="searchInput" data-i18n-placeholder="factures_search" placeholder="Rechercher client, numéro..."/>
+  </div>
+  <select class="filter-select" id="typeFilter">
+    <option value="" data-i18n="factures_filter_all_types">Tous les types</option>
+    <option value="abonnement" data-i18n="factures_type_abo">Abonnement</option>
+    <option value="transaction" data-i18n="factures_type_comm">Commission</option>
+    <option value="evenement" data-i18n="factures_type_form">Formation</option>
+    <option value="publicite" data-i18n="factures_type_pub">Publicité</option>
+  </select>
+  <select class="filter-select" id="statusFilter">
+    <option value="" data-i18n="factures_filter_all_status">Tous les statuts</option>
+    <option value="payee" data-i18n="factures_statut_paye">Payée</option>
+    <option value="en_attente" data-i18n="factures_statut_attente">En attente</option>
+    <option value="annulee" data-i18n="factures_statut_impaye">Annulée</option>
+  </select>
+</div>
+
+<!-- TABLE -->
+<div class="card">
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th data-i18n="factures_th_num">N° Facture</th>
+          <th data-i18n="factures_th_client">Client</th>
+          <th data-i18n="factures_th_type">Type</th>
+          <th data-i18n="factures_th_ht">HT</th>
+          <th data-i18n="factures_th_tva">TVA 20%</th>
+          <th data-i18n="factures_th_ttc">TTC</th>
+          <th data-i18n="factures_th_date">Date</th>
+          <th data-i18n="factures_th_statut">Statut</th>
+          <th style="text-align:right" data-i18n="factures_th_actions">Actions</th>
+        </tr>
+      </thead>
+      <tbody id="facturesBody"></tbody>
+    </table>
+  </div>
+  <div class="pagination" id="pagination">
+    <span class="page-info" id="pageInfo"></span>
+  </div>
+</div>
+
+<!-- MODAL NOUVELLE FACTURE -->
+<div class="modal-overlay" id="factureModal">
+  <div class="modal-box">
+    <div class="modal-header">
+      <div class="modal-title" id="modalTitle">
+        <i class="fa-solid fa-file-invoice" aria-hidden="true"></i>
+        <span data-i18n="btn_new_facture">Nouvelle facture</span>
+      </div>
+      <button class="modal-close" id="modalClose">&times;</button>
+    </div>
+    <div class="modal-body">
+      <form id="factureForm">
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label"><span data-i18n="form_type">Type</span> <span class="form-required">*</span></label>
+            <select id="type" class="form-control">
+              <option value="abonnement" data-i18n="factures_type_abo">Abonnement</option>
+              <option value="transaction" data-i18n="factures_type_comm">Commission</option>
+              <option value="evenement" data-i18n="factures_type_form">Formation</option>
+              <option value="publicite" data-i18n="factures_type_pub">Publicité</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label"><span data-i18n="form_montant_ht">Montant HT (€)</span> <span class="form-required">*</span></label>
+            <input type="number" step="0.01" min="0" id="montantHt" class="form-control" placeholder="25.00"/>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label" data-i18n="form_tva_calc">TVA calculée</label>
+            <input type="text" id="tvaCalc" class="form-control" readonly style="background:var(--neutral-50);color:var(--neutral-500)" placeholder="0.00 €"/>
+          </div>
+          <div class="form-group">
+            <label class="form-label" data-i18n="form_montant_ttc">Montant TTC</label>
+            <input type="text" id="ttcCalc" class="form-control" readonly style="background:var(--uc-teal-pale);color:var(--uc-forest);font-weight:700" placeholder="0.00 €"/>
+          </div>
+        </div>
+        <div class="form-actions">
+          <button type="button" class="btn btn-outline" id="cancelBtn" data-i18n="btn_cancel">Annuler</button>
+          <button type="submit" class="btn btn-primary">
+            <i class="fa-solid fa-check" aria-hidden="true"></i>
+            <span data-i18n="btn_create_facture">Créer la facture</span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+<script src="js/layout.js" data-page="factures"></script>
+<script src="js/factures.js"></script>
+<script src="js/factures-pdf.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  document.getElementById('pdfBtn').addEventListener('click', () => {
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
+    const locale = typeof _lang !== 'undefined' && _lang === 'en' ? 'en-GB' : 'fr-FR';
+    const dateNow = new Date().toLocaleDateString(locale, { day:'numeric', month:'long', year:'numeric' });
+
+    doc.setFillColor(45, 74, 62);
+    doc.rect(0, 0, 297, 22, 'F');
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(14);
+    doc.setFont('helvetica', 'bold');
+    doc.text('UpcycleConnect - Rapport financier', 14, 13);
+    doc.setFontSize(9);
+    doc.setFont('helvetica', 'normal');
+    doc.text('Généré le ' + dateNow, 270, 13, { align: 'right' });
+
+    const totalTTC    = allFactures.reduce((s, f) => s + Number(f.ttc || 0), 0);
+    const totalPayees = allFactures.filter(f => f.statut === 'payee').reduce((s, f) => s + Number(f.ttc || 0), 0);
+    const nbImpayees  = allFactures.filter(f => f.statut === 'en_attente').length;
+
+    doc.setTextColor(60, 60, 60);
+    doc.setFontSize(9);
+    doc.setFont('helvetica', 'normal');
+    doc.text(`Total TTC : ${totalTTC.toFixed(2)} €   |   Payées : ${totalPayees.toFixed(2)} €   |   En attente : ${nbImpayees} facture(s)`, 14, 30);
+
+    const rows = allFactures.map(f => [
+      f.num,
+      f.client,
+      typeLabel(f.type),
+      Number(f.ht  || 0).toFixed(2) + ' €',
+      (Number(f.tva || 0) * Number(f.ht || 0) / 100).toFixed(2) + ' €',
+      Number(f.ttc || 0).toFixed(2) + ' €',
+      f.date ? new Date(f.date).toLocaleDateString(locale) : '-',
+      statusLabel(f.statut),
+    ]);
+
+    doc.autoTable({
+      startY: 35,
+      head: [['N° Facture', 'Client', 'Type', 'HT', 'TVA 20%', 'TTC', 'Date', 'Statut']],
+      body: rows,
+      styles: { fontSize: 8, cellPadding: 3 },
+      headStyles: { fillColor: [45, 74, 62], textColor: 255, fontStyle: 'bold' },
+      alternateRowStyles: { fillColor: [245, 248, 246] },
+      columnStyles: { 5: { fontStyle: 'bold', textColor: [45, 74, 62] } },
+    });
+
+    doc.save('rapport-financier-upcycleconnect.pdf');
+  });
+});
+</script>
+</body>
+</html>

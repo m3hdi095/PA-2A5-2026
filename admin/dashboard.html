@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8"/>
+  <link rel="icon" type="image/png" href="../brand_assets/Favicon.png"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Tableau de bord | UpcycleConnect Admin</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&family=Montserrat:wght@300;400;500;600;700&family=Roboto:wght@300;400;500&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" crossorigin="anonymous"/>
+  <link rel="stylesheet" href="css/style.css"/>
+</head>
+<body>
+
+<!-- Bannière de bienvenue -->
+<div class="dashboard-hero" style="align-items:center;margin-bottom:24px">
+  <img src="../brand_assets/image_acceuil_maybe.jpeg" alt="" aria-hidden="true"
+       class="dashboard-hero-img" style="object-position:center 35%">
+  <div class="dashboard-hero-overlay"></div>
+  <div class="dashboard-hero-body" style="padding:32px 36px">
+    <div>
+      <p class="dashboard-hero-label" data-i18n="dashboard_espace_admin">Espace administration</p>
+      <h2 class="dashboard-hero-title" style="font-size:1.6rem;margin-bottom:6px">
+        <span data-i18n="dashboard_welcome">Bonjour</span>, <span id="adminName">Admin</span> <span style="opacity:.7">!</span>
+      </h2>
+      <p style="font-size:13.5px;color:rgba(255,255,255,.65);margin:0" data-i18n="dashboard_manage_subtitle">Gérez la plateforme UpcycleConnect depuis ce tableau de bord.</p>
+    </div>
+    <a href="validations.html" class="dashboard-hero-btn" style="border-radius:var(--radius-pill)">
+      <i class="fa-solid fa-circle-check" aria-hidden="true"></i>
+      <span data-i18n="btn_validations">Validations</span>
+    </a>
+  </div>
+</div>
+
+<!-- En-tête de page -->
+<div class="page-title-row animate-in">
+  <div>
+    <h1>
+      <div class="page-title-icon green">
+        <i class="fa-solid fa-table-columns" aria-hidden="true"></i>
+      </div>
+      <span data-i18n="dashboard_title">Tableau de bord</span>
+    </h1>
+    <p class="page-title-sub"><span data-i18n="dashboard_vue_ensemble">Vue d'ensemble</span> <span id="dateNow"></span></p>
+  </div>
+</div>
+
+<!-- Stat cards -->
+<div class="stats-row animate-in">
+  <a href="users.html" class="stat-card" style="--accent:var(--uc-green);--icon-bg:var(--uc-green-pale);text-decoration:none">
+    <div class="stat-icon">
+      <i class="fa-solid fa-users" aria-hidden="true"></i>
+    </div>
+    <div class="stat-info">
+      <div class="stat-value" id="stat-users">-</div>
+      <div class="stat-label" data-i18n="stat_users">Utilisateurs</div>
+    </div>
+    <i class="fa-solid fa-arrow-right" style="font-size:12px;color:var(--neutral-300);margin-left:auto" aria-hidden="true"></i>
+  </a>
+
+  <a href="prestations.html" class="stat-card" style="--accent:var(--uc-teal);--icon-bg:var(--uc-teal-pale);text-decoration:none">
+    <div class="stat-icon">
+      <i class="fa-solid fa-calendar-days" aria-hidden="true"></i>
+    </div>
+    <div class="stat-info">
+      <div class="stat-value" id="stat-prestations">-</div>
+      <div class="stat-label" data-i18n="stat_prestations">Prestations</div>
+    </div>
+    <i class="fa-solid fa-arrow-right" style="font-size:12px;color:var(--neutral-300);margin-left:auto" aria-hidden="true"></i>
+  </a>
+
+  <a href="categories.html" class="stat-card" style="--accent:var(--uc-forest);--icon-bg:var(--uc-green-pale);text-decoration:none">
+    <div class="stat-icon">
+      <i class="fa-solid fa-tags" aria-hidden="true"></i>
+    </div>
+    <div class="stat-info">
+      <div class="stat-value" id="stat-categories">-</div>
+      <div class="stat-label" data-i18n="stat_categories">Catégories</div>
+    </div>
+    <i class="fa-solid fa-arrow-right" style="font-size:12px;color:var(--neutral-300);margin-left:auto" aria-hidden="true"></i>
+  </a>
+
+  <a href="factures.html" class="stat-card" style="--accent:var(--uc-navy);--icon-bg:#dce8f0;text-decoration:none">
+    <div class="stat-icon">
+      <i class="fa-solid fa-file-invoice" aria-hidden="true"></i>
+    </div>
+    <div class="stat-info">
+      <div class="stat-value" id="stat-factures">-</div>
+      <div class="stat-label" data-i18n="stat_factures">Factures</div>
+    </div>
+    <i class="fa-solid fa-arrow-right" style="font-size:12px;color:var(--neutral-300);margin-left:auto" aria-hidden="true"></i>
+  </a>
+</div>
+
+<!-- Alertes -->
+<div class="card animate-in" id="alertes-card" style="margin-bottom:20px;display:none">
+  <div class="card-header" style="border-bottom:1px solid var(--border-color)">
+    <h2 style="color:var(--danger-text)">
+      <i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i>
+      <span data-i18n="dashboard_alertes">Alertes</span>
+    </h2>
+    <span id="alertes-count" style="background:var(--danger-bg);color:var(--danger-text);font-size:12px;font-weight:700;padding:3px 10px;border-radius:20px"></span>
+  </div>
+  <div id="alertes-list" style="padding:0"></div>
+</div>
+
+<!-- Grille principale -->
+<div class="dashboard-grid">
+
+  <!-- Actions rapides -->
+  <div class="card">
+    <div class="card-header">
+      <h2>
+        <i class="fa-solid fa-bolt" aria-hidden="true"></i>
+        <span data-i18n="dashboard_quick_actions">Actions rapides</span>
+      </h2>
+    </div>
+    <div class="card-body">
+      <div class="quick-actions">
+        <a href="users.html" class="quick-action">
+          <i class="fa-solid fa-user-plus" aria-hidden="true"></i>
+          <span data-i18n="dashboard_add_user">Ajouter utilisateur</span>
+        </a>
+        <a href="categories.html" class="quick-action">
+          <i class="fa-solid fa-tags" aria-hidden="true"></i>
+          <span data-i18n="dashboard_new_category">Nouvelle catégorie</span>
+        </a>
+        <a href="prestations.html" class="quick-action">
+          <i class="fa-solid fa-calendar-plus" aria-hidden="true"></i>
+          <span data-i18n="dashboard_new_prestation">Nouvelle prestation</span>
+        </a>
+        <a href="validations.html" class="quick-action">
+          <i class="fa-solid fa-circle-check" aria-hidden="true"></i>
+          <span data-i18n="btn_validations">Validations</span>
+        </a>
+        <a href="conteneurs.html" class="quick-action">
+          <i class="fa-solid fa-box-archive" aria-hidden="true"></i>
+          <span data-i18n="nav_conteneurs">Conteneurs</span>
+        </a>
+        <a href="notifications.html" class="quick-action">
+          <i class="fa-solid fa-bell" aria-hidden="true"></i>
+          <span data-i18n="dashboard_notif_push">Notification push</span>
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Activité récente -->
+  <div class="card">
+    <div class="card-header">
+      <h2>
+        <i class="fa-solid fa-clock-rotate-left" aria-hidden="true"></i>
+        <span data-i18n="dashboard_recent">Activité récente</span>
+      </h2>
+      <a href="users.html" style="font-size:12px;color:var(--uc-green);font-weight:600" data-i18n="dashboard_see_all">Voir tout</a>
+    </div>
+    <div class="card-body" id="recentActivity" style="padding-top:8px">
+      <div style="text-align:center;padding:20px;color:var(--neutral-300)" data-i18n="loading">Chargement...</div>
+    </div>
+  </div>
+
+</div>
+
+<!-- Graphiques -->
+<div class="dashboard-charts-row">
+
+  <div class="card">
+    <div class="card-header">
+      <h2>
+        <i class="fa-solid fa-chart-line" aria-hidden="true"></i>
+        <span data-i18n="dashboard_chart_inscriptions">Inscriptions (6 derniers mois)</span>
+      </h2>
+    </div>
+    <div class="card-body" style="padding-top:8px">
+      <canvas id="chartInscriptions" height="200"></canvas>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <h2>
+        <i class="fa-solid fa-chart-pie" aria-hidden="true"></i>
+        <span data-i18n="dashboard_chart_roles">Répartition des rôles</span>
+      </h2>
+    </div>
+    <div class="card-body" style="display:flex;align-items:center;justify-content:center;padding-top:8px">
+      <canvas id="chartRoles" height="200" style="max-width:280px"></canvas>
+    </div>
+  </div>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script src="js/layout.js"></script>
+<script src="js/dashboard.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  try {
+    const u = JSON.parse(localStorage.getItem('uc_admin_user') || '{}');
+    const prenom = u.prenom || '';
+    const nom    = u.nom    || '';
+    const affiche = prenom ? prenom : nom;
+    if (affiche) document.getElementById('adminName').textContent = affiche;
+  } catch(e) {}
+});
+</script>
+
+</body>
+</html>

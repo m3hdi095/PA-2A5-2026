@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8"/>
+  <link rel="icon" type="image/png" href="../brand_assets/Favicon.png"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Paramètres | UpcycleConnect Admin</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&family=Montserrat:wght@300;400;500;600;700&family=Roboto:wght@300;400;500&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="css/style.css"/>
+  <style>
+    .settings-layout { display: grid; grid-template-columns: 220px 1fr; gap: 24px; align-items: start; }
+    .settings-nav { background: white; border: 1.5px solid var(--neutral-200); border-radius: var(--radius-lg); overflow: hidden; position: sticky; top: calc(var(--topbar-h) + 20px); }
+    .settings-nav-item {
+      display: flex; align-items: center; gap: 10px;
+      padding: 13px 18px; font-size: 13px; font-weight: 500;
+      color: var(--neutral-500); cursor: pointer; border: none; background: none;
+      width: 100%; text-align: left; font-family: 'Montserrat',sans-serif;
+      border-left: 3px solid transparent; transition: background .2s, color .2s, border-color .2s;
+    }
+    .settings-nav-item i { font-size: 15px; flex-shrink: 0; }
+    .settings-nav-item:hover { background: var(--neutral-50); color: var(--neutral-700); }
+    .settings-nav-item.active { color: var(--uc-forest); background: var(--uc-teal-pale); border-left-color: var(--uc-teal); font-weight: 600; }
+    .settings-panel { display: none; }
+    .settings-panel.active { display: block; animation: pageIn .3s ease; }
+    .settings-section { margin-bottom: 28px; }
+    .settings-section h3 { font-family:'Poppins',sans-serif; font-size:15px; font-weight:600; color:var(--neutral-900); margin-bottom:16px; padding-bottom:10px; border-bottom:1px solid var(--neutral-100); }
+    .toggle-row { display:flex; align-items:center; justify-content:space-between; padding:12px 0; border-bottom:1px solid var(--neutral-100); }
+    .toggle-row:last-child { border-bottom:none; }
+    .toggle-label { font-size:13.5px; color:var(--neutral-700); }
+    .toggle-sub { font-size:11px; color:var(--neutral-400); margin-top:2px; }
+    .toggle { position:relative; width:44px; height:24px; flex-shrink:0; }
+    .toggle input { opacity:0; width:0; height:0; }
+    .toggle-slider { position:absolute; inset:0; background:var(--neutral-200); border-radius:12px; cursor:pointer; transition:.3s; }
+    .toggle-slider::before { content:''; position:absolute; height:18px; width:18px; left:3px; top:3px; background:white; border-radius:50%; transition:.3s; box-shadow:0 1px 4px rgba(0,0,0,.2); }
+    .toggle input:checked + .toggle-slider { background:var(--uc-teal); }
+    .toggle input:checked + .toggle-slider::before { transform:translateX(20px); }
+    @media(max-width:700px) { .settings-layout { grid-template-columns:1fr; } .settings-nav { position:static; } }
+  </style>
+</head>
+<body>
+
+<div class="page-title-row">
+  <div>
+    <h1>
+      <div class="page-title-icon green">
+        <i class="fa-solid fa-gear" aria-hidden="true"></i>
+      </div>
+      <span data-i18n="params_title">Paramètres</span>
+    </h1>
+    <p class="page-title-sub" data-i18n="params_subtitle">Configuration de la plateforme UpcycleConnect</p>
+  </div>
+</div>
+
+<div class="settings-layout">
+
+  <!-- NAV -->
+  <nav class="settings-nav">
+    <button class="settings-nav-item active" data-panel="general">
+      <i class="fa-solid fa-circle-check" aria-hidden="true"></i>
+      <span data-i18n="params_nav_general">Général</span>
+    </button>
+    <button class="settings-nav-item" data-panel="paiement">
+      <i class="fa-solid fa-credit-card" aria-hidden="true"></i>
+      <span data-i18n="params_nav_paiement">Paiements</span>
+    </button>
+    <button class="settings-nav-item" data-panel="notifications">
+      <i class="fa-solid fa-bell" aria-hidden="true"></i>
+      <span data-i18n="nav_notifications">Notifications</span>
+    </button>
+    <button class="settings-nav-item" data-panel="securite">
+      <i class="fa-solid fa-shield" aria-hidden="true"></i>
+      <span data-i18n="params_nav_securite">Sécurité</span>
+    </button>
+    <button class="settings-nav-item" data-panel="langues">
+      <i class="fa-solid fa-globe" aria-hidden="true"></i>
+      <span data-i18n="params_nav_langues">Langues</span>
+    </button>
+    <button class="settings-nav-item" data-panel="compte">
+      <i class="fa-solid fa-user" aria-hidden="true"></i>
+      <span data-i18n="params_nav_compte">Mon compte</span>
+    </button>
+  </nav>
+
+  <!-- PANELS -->
+  <div>
+
+    <!-- GÉNÉRAL -->
+    <div class="settings-panel active card" id="panel-general">
+      <div class="card-body">
+        <div class="settings-section">
+          <h3 data-i18n="params_section_platform">Informations de la plateforme</h3>
+          <div class="form-group">
+            <label class="form-label" data-i18n="params_platform_name">Nom de la plateforme</label>
+            <input type="text" class="form-control" value="UpcycleConnect"/>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label" data-i18n="params_platform_email">Email de contact</label>
+              <input type="email" class="form-control" value="contact@upcycleconnect.fr"/>
+            </div>
+            <div class="form-group">
+              <label class="form-label" data-i18n="form_telephone">Téléphone</label>
+              <input type="tel" class="form-control" value="+33 1 00 00 00 00"/>
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label" data-i18n="params_platform_adresse">Adresse du siège</label>
+            <input type="text" class="form-control" value="174 rue La Fayette, Paris 10e"/>
+          </div>
+        </div>
+        <div class="settings-section">
+          <h3 data-i18n="params_section_general">Options générales</h3>
+          <div class="toggle-row">
+            <div>
+              <div class="toggle-label" data-i18n="params_maintenance_label">Mode maintenance</div>
+              <div class="toggle-sub" data-i18n="params_maintenance_sub">Désactive l'accès public au site</div>
+            </div>
+            <label class="toggle"><input type="checkbox"/><span class="toggle-slider"></span></label>
+          </div>
+          <div class="toggle-row">
+            <div>
+              <div class="toggle-label" data-i18n="params_inscriptions_label">Inscriptions ouvertes</div>
+              <div class="toggle-sub" data-i18n="params_inscriptions_sub">Autoriser les nouveaux comptes</div>
+            </div>
+            <label class="toggle"><input type="checkbox" checked/><span class="toggle-slider"></span></label>
+          </div>
+          <div class="toggle-row">
+            <div>
+              <div class="toggle-label" data-i18n="params_validation_label">Validation manuelle des annonces</div>
+              <div class="toggle-sub" data-i18n="params_validation_sub">Chaque annonce passe par un admin avant publication</div>
+            </div>
+            <label class="toggle"><input type="checkbox" checked/><span class="toggle-slider"></span></label>
+          </div>
+        </div>
+        <button class="btn btn-primary" onclick="save()">
+          <i class="fa-solid fa-check" aria-hidden="true"></i>
+          <span data-i18n="btn_save">Enregistrer</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- PAIEMENTS -->
+    <div class="settings-panel card" id="panel-paiement">
+      <div class="card-body">
+        <div class="settings-section">
+          <h3>Stripe</h3>
+          <div style="display:flex;align-items:flex-start;gap:10px;background:var(--neutral-50);border:1.5px solid var(--neutral-200);border-radius:var(--radius);padding:14px;margin-bottom:16px">
+            <i class="fa-solid fa-circle-info" style="color:var(--uc-teal);margin-top:2px" aria-hidden="true"></i>
+            <div style="font-size:13px;color:var(--neutral-600);line-height:1.5">
+              Les clés Stripe sont des <strong>secrets serveur</strong> : elles ne transitent jamais par le navigateur.<br/>
+              Configurez-les dans le fichier <code style="background:var(--neutral-200);padding:1px 5px;border-radius:3px">api-go/.env</code> :
+              <code style="display:block;margin-top:8px;padding:8px;background:var(--neutral-200);border-radius:4px;font-size:12px">STRIPE_SECRET_KEY=sk_live_...</code>
+            </div>
+          </div>
+        </div>
+        <div class="settings-section">
+          <h3 data-i18n="params_section_tarif">Règles de tarification</h3>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label" data-i18n="params_commission">Commission ventes (%)</label>
+              <input type="number" class="form-control" value="7" min="5" max="10"/>
+            </div>
+            <div class="form-group">
+              <label class="form-label" data-i18n="params_tva">TVA appliquée (%)</label>
+              <input type="number" class="form-control" value="20" readonly style="background:var(--neutral-50)"/>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label" data-i18n="params_abo_part">Abonnement particulier (€/mois)</label>
+              <input type="number" class="form-control" value="0"/>
+            </div>
+            <div class="form-group">
+              <label class="form-label" data-i18n="params_abo_pro">Abonnement pro (€/mois)</label>
+              <input type="number" class="form-control" value="30"/>
+            </div>
+          </div>
+        </div>
+        <button class="btn btn-primary" onclick="save()">
+          <i class="fa-solid fa-check" aria-hidden="true"></i>
+          <span data-i18n="btn_save">Enregistrer</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- NOTIFICATIONS -->
+    <div class="settings-panel card" id="panel-notifications">
+      <div class="card-body">
+        <div class="settings-section">
+          <h3>OneSignal (push notifications)</h3>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">App ID</label>
+              <input type="text" class="form-control" placeholder="xxxxxxxx-xxxx-xxxx"/>
+            </div>
+            <div class="form-group">
+              <label class="form-label">API Key REST</label>
+              <input type="password" class="form-control" placeholder="os_key_..."/>
+            </div>
+          </div>
+        </div>
+        <div class="settings-section">
+          <h3>Email (SMTP)</h3>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label" data-i18n="params_smtp_server">Serveur SMTP</label>
+              <input type="text" class="form-control" value="smtp.upcycleconnect.fr"/>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Port</label>
+              <input type="number" class="form-control" value="587"/>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label" data-i18n="params_smtp_user">Utilisateur</label>
+              <input type="text" class="form-control" value="no-reply@upcycleconnect.fr"/>
+            </div>
+            <div class="form-group">
+              <label class="form-label" data-i18n="form_password">Mot de passe</label>
+              <input type="password" class="form-control" placeholder="••••••••"/>
+            </div>
+          </div>
+        </div>
+        <div class="settings-section">
+          <h3 data-i18n="params_section_triggers">Déclencheurs de notification</h3>
+          <div class="toggle-row">
+            <div><div class="toggle-label" data-i18n="params_trigger_annonce">Nouvelle annonce validée</div></div>
+            <label class="toggle"><input type="checkbox" checked/><span class="toggle-slider"></span></label>
+          </div>
+          <div class="toggle-row">
+            <div><div class="toggle-label" data-i18n="params_trigger_conteneur">Conteneur presque plein (&gt;80%)</div></div>
+            <label class="toggle"><input type="checkbox" checked/><span class="toggle-slider"></span></label>
+          </div>
+          <div class="toggle-row">
+            <div><div class="toggle-label" data-i18n="params_trigger_formation">Nouvelle inscription formation</div></div>
+            <label class="toggle"><input type="checkbox" checked/><span class="toggle-slider"></span></label>
+          </div>
+          <div class="toggle-row">
+            <div><div class="toggle-label" data-i18n="params_trigger_paiement">Paiement reçu</div></div>
+            <label class="toggle"><input type="checkbox" checked/><span class="toggle-slider"></span></label>
+          </div>
+        </div>
+        <button class="btn btn-primary" onclick="save()"><span data-i18n="btn_save">Enregistrer</span></button>
+      </div>
+    </div>
+
+    <!-- SÉCURITÉ -->
+    <div class="settings-panel card" id="panel-securite">
+      <div class="card-body">
+        <div class="settings-section">
+          <h3 data-i18n="params_section_jwt">Clé JWT</h3>
+          <div style="display:flex;align-items:flex-start;gap:10px;background:var(--warning-bg);border:1.5px solid var(--border);border-radius:var(--radius);padding:14px;margin-bottom:16px">
+            <i class="fa-solid fa-triangle-exclamation" style="color:var(--warning-text);margin-top:2px" aria-hidden="true"></i>
+            <div style="font-size:13px;color:var(--neutral-600);line-height:1.5">
+              Le secret JWT est une <strong>clé serveur confidentielle</strong> : l'afficher ici serait une faille de sécurité.<br/>
+              Modifiez-la dans <code style="background:var(--warning-bg);padding:1px 5px;border-radius:3px">api-go/.env</code> :
+              <code style="display:block;margin-top:8px;padding:8px;background:var(--warning-bg);border-radius:4px;font-size:12px">JWT_SECRET=votre_secret_fort_ici</code>
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label" data-i18n="params_session_duration">Durée de session (secondes)</label>
+            <input type="number" class="form-control" value="3600"/>
+          </div>
+        </div>
+        <div class="settings-section">
+          <h3 data-i18n="params_section_securite">Options de sécurité</h3>
+          <div class="toggle-row">
+            <div><div class="toggle-label" data-i18n="params_https_label">HTTPS forcé</div><div class="toggle-sub" data-i18n="params_https_sub">Redirige HTTP vers HTTPS</div></div>
+            <label class="toggle"><input type="checkbox" checked/><span class="toggle-slider"></span></label>
+          </div>
+          <div class="toggle-row">
+            <div><div class="toggle-label" data-i18n="params_rate_limit_label">Limite de tentatives de connexion</div><div class="toggle-sub" data-i18n="params_rate_limit_sub">Blocage après 5 échecs</div></div>
+            <label class="toggle"><input type="checkbox" checked/><span class="toggle-slider"></span></label>
+          </div>
+          <div class="toggle-row">
+            <div><div class="toggle-label" data-i18n="params_logs_label">Logs d'accès admin</div></div>
+            <label class="toggle"><input type="checkbox" checked/><span class="toggle-slider"></span></label>
+          </div>
+        </div>
+        <button class="btn btn-primary" onclick="save()"><span data-i18n="btn_save">Enregistrer</span></button>
+      </div>
+    </div>
+
+    <!-- LANGUES -->
+    <div class="settings-panel card" id="panel-langues">
+      <div class="card-body">
+        <div class="settings-section">
+          <h3 data-i18n="params_section_langs">Langues disponibles</h3>
+          <p id="langsDesc" style="font-size:13px;color:var(--neutral-500);margin-bottom:16px"></p>
+          <div id="langList" style="display:flex;flex-direction:column;gap:10px"></div>
+          <button class="btn btn-outline btn-sm" style="margin-top:16px" onclick="addLang()">
+            <i class="fa-solid fa-plus" aria-hidden="true"></i>
+            <span data-i18n="params_btn_add_lang">Ajouter une langue</span>
+          </button>
+        </div>
+        <div class="settings-section">
+          <h3 data-i18n="params_section_default_lang">Langue par défaut</h3>
+          <select class="form-control" style="max-width:220px">
+            <option>Français (FR)</option>
+            <option>English (EN)</option>
+            <option>Español (ES)</option>
+          </select>
+        </div>
+        <button class="btn btn-primary" style="margin-top:16px" onclick="save()"><span data-i18n="btn_save">Enregistrer</span></button>
+      </div>
+    </div>
+
+    <!-- MON COMPTE -->
+    <div class="settings-panel card" id="panel-compte">
+      <div class="card-body">
+        <div class="settings-section">
+          <h3 data-i18n="params_section_account">Informations personnelles</h3>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Prénom</label>
+              <input type="text" class="form-control" id="myPrenom" placeholder="Jean"/>
+            </div>
+            <div class="form-group">
+              <label class="form-label" data-i18n="form_nom">Nom</label>
+              <input type="text" class="form-control" id="myNom" placeholder="Dupont"/>
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label" data-i18n="form_email">Email</label>
+            <input type="email" class="form-control" id="myEmail" placeholder="admin@upcycleconnect.fr"/>
+          </div>
+        </div>
+        <div class="settings-section">
+          <h3 data-i18n="params_section_pwd">Changer le mot de passe</h3>
+          <div class="form-group">
+            <label class="form-label" data-i18n="params_pwd_actuel">Mot de passe actuel</label>
+            <input type="password" class="form-control" id="pwd-actuel" placeholder="••••••••"/>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label" data-i18n="params_pwd_nouveau">Nouveau mot de passe</label>
+              <input type="password" class="form-control" id="pwd-nouveau" placeholder="••••••••"/>
+            </div>
+            <div class="form-group">
+              <label class="form-label" data-i18n="params_pwd_confirm">Confirmation</label>
+              <input type="password" class="form-control" id="pwd-confirm" placeholder="••••••••"/>
+            </div>
+          </div>
+        </div>
+        <button class="btn btn-primary" onclick="save()"><span data-i18n="btn_save">Enregistrer</span></button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script src="js/layout.js" data-page="parametres"></script>
+<script>
+document.addEventListener('DOMContentLoaded', async () => {
+  await initLayout('parametres');
+
+  // Pre-fill depuis l'API (source fraîche), fallback localStorage
+  try {
+    const cached = JSON.parse(localStorage.getItem('uc_admin_user') || '{}');
+    if (cached.prenom) document.getElementById('myPrenom').value = cached.prenom;
+    if (cached.nom)    document.getElementById('myNom').value    = cached.nom;
+    if (cached.email)  document.getElementById('myEmail').value  = cached.email;
+  } catch(e) {}
+  try {
+    const res = await apiFetch('/users/me');
+    if (res?.ok) {
+      const user = await res.json();
+      if (user.prenom !== undefined) document.getElementById('myPrenom').value = user.prenom || '';
+      if (user.nom    !== undefined) document.getElementById('myNom').value    = user.nom    || '';
+      if (user.email  !== undefined) document.getElementById('myEmail').value  = user.email  || '';
+    }
+  } catch(e) {}
+
+  // Restore settings from localStorage for all non-compte panels
+  ['general','paiement','securite','notifications'].forEach(panel => {
+    try {
+      const saved = JSON.parse(localStorage.getItem('uc_settings_' + panel) || 'null');
+      if (!saved) return;
+      const el = document.getElementById('panel-' + panel);
+      if (!el) return;
+      el.querySelectorAll('input[type="text"],input[type="email"],input[type="tel"],input[type="number"],input[type="password"],select').forEach(inp => {
+        if (inp.id && saved[inp.id] !== undefined) inp.value = saved[inp.id];
+      });
+      el.querySelectorAll('input[type="checkbox"]').forEach(cb => {
+        const key = cb.closest('.toggle-row')?.querySelector('.toggle-label')?.textContent?.trim() || cb.name;
+        if (key && saved['cb_' + key] !== undefined) cb.checked = saved['cb_' + key];
+      });
+    } catch {}
+  });
+
+  // Nav tabs
+  document.querySelectorAll('.settings-nav-item').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.settings-nav-item').forEach(b=>b.classList.remove('active'));
+      document.querySelectorAll('.settings-panel').forEach(p=>p.classList.remove('active'));
+      btn.classList.add('active');
+      document.getElementById('panel-'+btn.dataset.panel).classList.add('active');
+    });
+  });
+
+  // Languages list
+  const langs = [
+    { code:'fr', label:'Français (FR)',  active:true },
+    { code:'en', label:'English (EN)',   active:true },
+    { code:'es', label:'Español (ES)',   active:false },
+  ];
+
+  // La description contient du code inline, donc on la construit ici plutôt qu'avec data-i18n
+  document.getElementById('langsDesc').textContent = t('params_langs_desc');
+
+  const langList = document.getElementById('langList');
+  langList.innerHTML = langs.map(l => `
+    <div style="display:flex;align-items:center;gap:12px;padding:10px 14px;background:var(--neutral-50);border-radius:var(--radius);border:1.5px solid var(--neutral-200)">
+      <span style="font-size:14px;flex:1">${l.label}</span>
+      <span class="badge ${l.active?'badge-green':'badge-gray'}">${l.active ? t('user_actif') : t('params_inactif')}</span>
+      <code style="font-size:11px;background:var(--neutral-200);padding:2px 6px;border-radius:4px">lang/${l.code}.json</code>
+      <button class="btn btn-ghost btn-icon" style="color:var(--danger)" onclick="this.closest('div').remove();showToast(t('params_toast_lang_removed'),'warning')">
+        <i class="fa-solid fa-trash" aria-hidden="true"></i>
+      </button>
+    </div>
+  `).join('');
+});
+
+window.save = async () => {
+  const activePanel = document.querySelector('.settings-nav-item.active')?.dataset.panel;
+  if (activePanel === 'compte') {
+    const prenom     = document.getElementById('myPrenom').value.trim();
+    const nom        = document.getElementById('myNom').value.trim();
+    const email      = document.getElementById('myEmail').value.trim();
+    const pwdActuel  = document.getElementById('pwd-actuel').value;
+    const pwdNouveau = document.getElementById('pwd-nouveau').value;
+    const pwdConfirm = document.getElementById('pwd-confirm').value;
+
+    // changement mot de passe si les champs sont remplis
+    if (pwdActuel || pwdNouveau || pwdConfirm) {
+      if (!pwdActuel || !pwdNouveau || !pwdConfirm) {
+        showToast('Remplissez les trois champs mot de passe', 'warning'); return;
+      }
+      if (pwdNouveau !== pwdConfirm) {
+        showToast('Les mots de passe ne correspondent pas', 'warning'); return;
+      }
+      if (pwdNouveau.length < 8) {
+        showToast('Le mot de passe doit faire au moins 8 caractères', 'warning'); return;
+      }
+      try {
+        const resPwd = await apiFetch('/users/change-password', {
+          method: 'POST',
+          body: JSON.stringify({ old_password: pwdActuel, new_password: pwdNouveau }),
+        });
+        if (!resPwd?.ok) {
+          const d = resPwd ? await resPwd.json().catch(() => ({})) : {};
+          showToast(d.error || 'Mot de passe actuel incorrect', 'error'); return;
+        }
+        document.getElementById('pwd-actuel').value  = '';
+        document.getElementById('pwd-nouveau').value = '';
+        document.getElementById('pwd-confirm').value = '';
+      } catch { showToast('Erreur lors du changement de mot de passe', 'error'); return; }
+    }
+
+    try {
+      const res = await apiFetch('/users/me', {
+        method: 'PUT',
+        body: JSON.stringify({ prenom, nom, email }),
+      });
+      if (res?.ok) {
+        try {
+          const me = await apiFetch('/users/me');
+          if (me?.ok) localStorage.setItem('uc_admin_user', JSON.stringify(await me.json()));
+        } catch {}
+        showToast(t('params_toast_saved') || 'Profil mis à jour', 'success');
+        return;
+      }
+    } catch {}
+    showToast('Erreur lors de la mise à jour', 'error');
+    return;
+  }
+  // Save panel settings to localStorage
+  const panel = document.getElementById('panel-' + activePanel);
+  if (panel) {
+    const data = {};
+    panel.querySelectorAll('input[type="text"],input[type="email"],input[type="tel"],input[type="number"],select').forEach(inp => {
+      if (inp.id) data[inp.id] = inp.value;
+    });
+    panel.querySelectorAll('input[type="checkbox"]').forEach(cb => {
+      const key = cb.closest('.toggle-row')?.querySelector('.toggle-label')?.textContent?.trim() || cb.name;
+      if (key) data['cb_' + key] = cb.checked;
+    });
+    localStorage.setItem('uc_settings_' + activePanel, JSON.stringify(data));
+  }
+  showToast(t('params_toast_saved') || 'Paramètres enregistrés', 'success');
+};
+window.addLang = () => {
+  const code = prompt(t('params_prompt_lang_code'));
+  if (!code) return;
+  showToast(`${t('params_toast_lang_prefix')} lang/${code}.json ${t('params_toast_lang_suffix')}`, 'warning');
+};
+</script>
+</body>
+</html>
