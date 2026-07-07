@@ -27,6 +27,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   document.getElementById('type-filter')?.addEventListener('change', appliquerFiltres);
   document.getElementById('cat-filter')?.addEventListener('change', appliquerFiltres);
   document.getElementById('sort-filter')?.addEventListener('change', appliquerFiltres);
+  document.getElementById('projet-filter')?.addEventListener('change', appliquerFiltres);
 
   document.getElementById('modal-detail-close')?.addEventListener('click', fermerModalDetail);
   document.getElementById('modal-detail')?.addEventListener('click', (e) => {
@@ -92,16 +93,18 @@ async function chargerAnnonces() {
 }
 
 function appliquerFiltres() {
-  const q    = (document.getElementById('search-input')?.value || '').toLowerCase();
-  const type = document.getElementById('type-filter')?.value || '';
-  const cat  = document.getElementById('cat-filter')?.value  || '';
-  const sort = document.getElementById('sort-filter')?.value || 'recent';
+  const q      = (document.getElementById('search-input')?.value || '').toLowerCase();
+  const type   = document.getElementById('type-filter')?.value   || '';
+  const cat    = document.getElementById('cat-filter')?.value    || '';
+  const sort   = document.getElementById('sort-filter')?.value   || 'recent';
+  const projet = document.getElementById('projet-filter')?.value || '';
 
   donneesFilrees = donneesSource.filter(a =>
     (!afficherFavorisOnly || favorisIDs.has(a.id)) &&
     (a.titre.toLowerCase().includes(q) || (a.description || '').toLowerCase().includes(q)) &&
-    (type === '' || a.type_annonce === type) &&
-    (cat  === '' || a.categorie === cat)
+    (type   === '' || a.type_annonce     === type) &&
+    (cat    === '' || a.categorie        === cat) &&
+    (projet === '' || a.projet_potentiel === projet)
   );
 
   if (sort === 'recent') donneesFilrees.sort((a,b) => new Date(b.date_publication) - new Date(a.date_publication));
@@ -205,15 +208,12 @@ function renderPagination() {
 }
 
 window.resetFiltres = () => {
-  document.getElementById('search-input').value = '';
-  document.getElementById('type-filter').value  = '';
-  document.getElementById('cat-filter').value   = '';
-  appliquerFiltres();
-};
+  document.getElementById('search-input').value  = '';
+  document.getElementById('type-filter').value   = '';
+  document.getElementById('cat-filter').value    = '';
+  const pf = document.getElementById('projet-filter');
+  if (pf) pf.value = '';
 
-
-window.ouvrirDetail = (id) => {
-  const annonce = donneesSource.find(a => a.id === id);
   if (!annonce) return;
 
   const icone = CAT_ICONES_MAP[annonce.categorie] || 'fa-box-open';

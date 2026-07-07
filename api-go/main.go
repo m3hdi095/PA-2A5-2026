@@ -5,6 +5,7 @@ package main
 // TODO: si le projet grandit, envisager d'adopter Echo ou Fiber pour le routing avancé.
 
 import (
+    "fmt"
     "log"
     "net/http"
     "time"
@@ -14,6 +15,7 @@ import (
     "upcycleconnect/api/handlers"
     "upcycleconnect/api/middleware"
     "upcycleconnect/api/services"
+    "upcycleconnect/api/utils"
 )
 
 func main() {
@@ -38,6 +40,14 @@ func main() {
         for {
             svc.EnvoyerRappels()
             time.Sleep(1 * time.Hour)
+        }
+    }()
+
+    // notification 30 jours avant expiration des contrats pro
+    go func() {
+        for {
+            notifierContratsExpirants()
+            time.Sleep(24 * time.Hour)
         }
     }()
 
@@ -123,6 +133,7 @@ func main() {
 	mux.HandleFunc("POST /api/evenements", middleware.AuthMiddleware(handlers.CreateEvenement))
 	mux.HandleFunc("PUT /api/evenements/{id}", middleware.AuthMiddleware(middleware.RoleMiddleware("admin", "salarie")(handlers.UpdateEvenement)))
 	mux.HandleFunc("DELETE /api/evenements/{id}", middleware.AuthMiddleware(middleware.RoleMiddleware("admin")(handlers.DeleteEvenement)))
+	mux.HandleFunc("PUT /api/evenements/{id}/annuler", middleware.AuthMiddleware(middleware.RoleMiddleware("salarie")(handlers.AnnulerEvenementSalarie)))
 	mux.HandleFunc("POST /api/evenements/inscription", middleware.AuthMiddleware(handlers.InscrireEvenement))
 	mux.HandleFunc("DELETE /api/evenements/{id}/inscription", middleware.AuthMiddleware(handlers.SeDesinscrire))
 	mux.HandleFunc("GET /api/evenements/mes-inscriptions", middleware.AuthMiddleware(handlers.MesInscriptions))
@@ -181,9 +192,12 @@ func main() {
 	mux.HandleFunc("POST /api/abonnements/upgrade", middleware.AuthMiddleware(handlers.UpgradeAbonnement))
 	mux.HandleFunc("POST /api/abonnements/resilier", middleware.AuthMiddleware(handlers.ResilierAbonnement))
 	mux.HandleFunc("GET /api/abonnements/factures", middleware.AuthMiddleware(handlers.MesFacturesAbonnement))
+	mux.HandleFunc("GET /api/paiements/mes-factures", middleware.AuthMiddleware(handlers.MesFactures))
 
 	// Upcycling Score
 	mux.HandleFunc("GET /api/score", middleware.AuthMiddleware(handlers.GetScore))
+	// stats consolidées prestataire (kg, co2, dépôts, projets)
+	mux.HandleFunc("GET /api/stats/pro", middleware.AuthMiddleware(handlers.StatsPro))
 	// Questionnaires satisfaction post-événement
 	mux.HandleFunc("POST /api/evenements/{id}/questionnaire", middleware.AuthMiddleware(handlers.CreateQuestionnaire))
 	mux.HandleFunc("GET /api/evenements/{id}/questionnaire", middleware.AuthMiddleware(handlers.GetQuestionnaire))
@@ -235,4 +249,30 @@ func main() {
 
 	log.Println("API UpcycleConnect démarrée sur le port 8080")
 	log.Fatal(http.ListenAndServe(":8080", handler))
+}
+
+func notifierContratsExpirants() {
+    rows, err := database.DB.Query(
+        `SELECT c.id_contrat, c.type_contrat, c.date_fin, u.email, u.prenom
+         FROM contrat c
+         JOIN professionnel p ON p.id_professionnel = c.id_professionnel
+         JOIN utilisateur u ON u.id_utilisateur = p.id_utilisateur
+         WHERE c.statut = 'actif'
+           AND c.date_fin BETWEEN CURDATE() + INTERVAL 29 DAY AND CURDATE() + INTERVAL 30 DAY`)
+    if err != nil {
+        return
+    }
+    defer rows.Close()
+    for rows.Next() {
+        var id uint
+        var typeContrat, email, prenom string
+        var dateFin string
+        if err := rows.Scan(&id, &typeContrat, &dateFin, &email, &prenom); err != nil {
+            continue
+        }
+        body := fmt.Sprintf(`<p>Bonjour %s,</p>
+<p>Votre contrat <strong>%s</strong> arrive à expiration le <strong>%s</strong>.</p>
+<p>Connectez-vous à votre espace professionnel pour le renouveler.</p>`, prenom, typeContrat, dateFin)
+        utils.SendEmail(email, "Votre contrat UpcycleConnect expire bientôt", body)
+    }
 }

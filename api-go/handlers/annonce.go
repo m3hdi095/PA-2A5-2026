@@ -21,16 +21,17 @@ var annonceService = services.NewAnnonceService()
 func CreateAnnonce(w http.ResponseWriter, r *http.Request) {
 	// on prend que ce qu'il faut du body, le reste on ignore
 	var input struct {
-		Titre        string   `json:"titre"`
-		Description  string   `json:"description"`
-		TypeAnnonce  string   `json:"type_annonce"`
-		Prix         float64  `json:"prix"`
-		IDObjet      uint     `json:"id_objet"`
-		CategorieID  *uint    `json:"categorie_id"`
-		Etat         string   `json:"etat"`
-		Localisation string   `json:"localisation"`
-		Latitude     *float64 `json:"latitude,omitempty"`
-		Longitude    *float64 `json:"longitude,omitempty"`
+		Titre           string   `json:"titre"`
+		Description     string   `json:"description"`
+		TypeAnnonce     string   `json:"type_annonce"`
+		Prix            float64  `json:"prix"`
+		IDObjet         uint     `json:"id_objet"`
+		CategorieID     *uint    `json:"categorie_id"`
+		Etat            string   `json:"etat"`
+		Localisation    string   `json:"localisation"`
+		Latitude        *float64 `json:"latitude,omitempty"`
+		Longitude       *float64 `json:"longitude,omitempty"`
+		ProjetPotentiel string   `json:"projet_potentiel"`
 	}
 	if err := json.NewDecoder(r.Body).Decode(&input); err != nil {
 		http.Error(w, `{"error":"Données invalides"}`, http.StatusBadRequest)
@@ -63,15 +64,16 @@ func CreateAnnonce(w http.ResponseWriter, r *http.Request) {
 	}
 
 	annonce := &models.Annonce{
-		Titre:         input.Titre,
-		Description:   input.Description,
-		TypeAnnonce:   input.TypeAnnonce,
-		Prix:          input.Prix,
-		Localisation:  input.Localisation,
-		Latitude:      input.Latitude,
-		Longitude:     input.Longitude,
-		IDUtilisateur: userID,
-		IDObjet:       objetID,
+		Titre:           input.Titre,
+		Description:     input.Description,
+		TypeAnnonce:     input.TypeAnnonce,
+		Prix:            input.Prix,
+		Localisation:    input.Localisation,
+		Latitude:        input.Latitude,
+		Longitude:       input.Longitude,
+		IDUtilisateur:   userID,
+		IDObjet:         objetID,
+		ProjetPotentiel: input.ProjetPotentiel,
 	}
 
 	if err := annonceService.CreateAnnonce(annonce); err != nil {
@@ -86,6 +88,7 @@ func CreateAnnonce(w http.ResponseWriter, r *http.Request) {
 
 func ListAnnonces(w http.ResponseWriter, r *http.Request) {
 	filtre := r.URL.Query().Get("filter")
+	projetPotentiel := r.URL.Query().Get("projet_potentiel")
 	page, _ := strconv.Atoi(r.URL.Query().Get("page"))
 	if page < 1 {
 		page = 1
@@ -98,7 +101,7 @@ func ListAnnonces(w http.ResponseWriter, r *http.Request) {
 	lon, _ := strconv.ParseFloat(r.URL.Query().Get("lon"), 64)
 	rayon, _ := strconv.ParseFloat(r.URL.Query().Get("rayon"), 64)
 
-	listeAnnonces, err := annonceService.ListAnnonces(filtre, page, 20, lang, lat, lon, rayon)
+	listeAnnonces, err := annonceService.ListAnnonces(filtre, projetPotentiel, page, 20, lang, lat, lon, rayon)
 	if err != nil {
 		log.Println("Erreur listing annonces:", err)
 		http.Error(w, `{"error":"Erreur interne"}`, http.StatusInternalServerError)
