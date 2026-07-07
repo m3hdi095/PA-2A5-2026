@@ -44,7 +44,7 @@ async function apiFetch(chemin, options = {}) {
 
 // i18n
 let _tr = {};
-let _lang = localStorage.getItem('uc_lang') || 'fr';
+let _lang = localStorage.getItem('uc_lang') || (['fr','en'].includes((navigator.language || 'fr').split('-')[0]) ? (navigator.language || 'fr').split('-')[0] : 'fr');
 
 async function chargerTraductions() {
   try {
@@ -450,6 +450,31 @@ async function initLayout(_nomPage) {
 
   chargerBadgeValidations();
   initNotifBell();
+  initOneSignal(utilisateur.id, utilisateur.role);
+}
+
+async function initOneSignal(userID, userRole) {
+  try {
+    const res = await fetch(`${apiBase}/config`);
+    if (!res.ok) return;
+    const cfg = await res.json();
+    const appId = cfg.onesignal_app_id;
+    if (!appId) return;
+
+    window.OneSignalDeferred = window.OneSignalDeferred || [];
+
+    const s = document.createElement('script');
+    s.src = 'https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js';
+    s.defer = true;
+    s.onload = () => {
+      OneSignalDeferred.push(async function(OneSignal) {
+        await OneSignal.init({ appId, notifyButton: { enable: true } });
+        if (userID) OneSignal.User.addTag('user_id', String(userID));
+        if (userRole) OneSignal.User.addTag('role', userRole);
+      });
+    };
+    document.head.appendChild(s);
+  } catch {}
 }
 
 // injecter Font Awesome si pas déjà chargé

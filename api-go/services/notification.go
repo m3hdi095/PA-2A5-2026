@@ -55,5 +55,11 @@ func (s *NotificationService) BroadcastToSegment(segment, titre, message string)
     if err != nil {
         return 0, err
     }
-    return s.repo.BulkCreate(titre, message, "info", "push", ids)
+    count, err := s.repo.BulkCreate(titre, message, "info", "push", ids)
+    if err != nil {
+        return 0, err
+    }
+    // envoi push OneSignal (best-effort, ne bloque pas si les clés manquent)
+    _ = utils.BroadcastPushNotification(segment, titre, message)
+    return count, nil
 }

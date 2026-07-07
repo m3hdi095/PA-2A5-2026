@@ -7,6 +7,7 @@ package handlers
 import (
 	"upcycleconnect/api/middleware"
     "encoding/json"
+    "fmt"
     "net/http"
     "strconv"
     "time"
@@ -109,6 +110,7 @@ func InscrireEvenement(w http.ResponseWriter, r *http.Request) {
     }
     database.AddUpcyclingScore(userID, 3, "inscription_evenement")
     go envoyerEmailInscriptionEvenement(userID, req.EvenementID)
+    go envoyerEmailFormateurInscription(userID, req.EvenementID)
     go creerFactureManuel(userID, "evenement")
     w.WriteHeader(http.StatusCreated)
     json.NewEncoder(w).Encode(map[string]string{"status": "inscrit"})
@@ -206,6 +208,21 @@ func DeleteEvenement(w http.ResponseWriter, r *http.Request) {
     w.WriteHeader(http.StatusNoContent)
 }
 
+func AnnulerEvenementSalarie(w http.ResponseWriter, r *http.Request) {
+    id, err := strconv.Atoi(r.PathValue("id"))
+    if err != nil || id <= 0 {
+        http.Error(w, `{"error":"ID invalide"}`, http.StatusBadRequest)
+        return
+    }
+    userID := r.Context().Value(middleware.ContextUserID).(uint)
+    if err := evenementService.AnnulerEvenementSalarie(uint(id), userID); err != nil {
+        jsonError(w, err.Error(), http.StatusForbidden)
+        return
+    }
+    w.Header().Set("Content-Type", "application/json")
+    json.NewEncoder(w).Encode(map[string]string{"status": "annule"})
+}
+
 func ValidateEvenement(w http.ResponseWriter, r *http.Request) {
     role := r.Context().Value(middleware.ContextRole).(string)
     if role != "admin" {
@@ -249,6 +266,31 @@ func MesCreations(w http.ResponseWriter, r *http.Request) {
     }
     w.Header().Set("Content-Type", "application/json")
     json.NewEncoder(w).Encode(events)
+}
+
+func envoyerEmailFormateurInscription(participantID, eventID uint) {
+    var emailFormateur, prenomFormateur, titreEvent string
+    var prenomParticipant, nomParticipant string
+    var nbInscrits int
+    database.DB.QueryRow(
+        `SELECT u.email, u.prenom, e.titre,
+                (SELECT CONCAT(p.prenom, ' ', p.nom) FROM utilisateur p WHERE p.id_utilisateur = ?) AS participant,
+                (SELECT COUNT(*) FROM inscription i WHERE i.id_evenement = e.id_evenement AND i.statut = 'confirme') AS nb
+         FROM evenement e
+         JOIN salarie s ON s.id_salarie = e.id_salarie_createur
+         JOIN utilisateur u ON u.id_utilisateur = s.id_utilisateur
+         WHERE e.id_evenement = ?`,
+        participantID, eventID,
+    ).Scan(&emailFormateur, &prenomFormateur, &titreEvent, &nomParticipant, &nbInscrits)
+    if emailFormateur == "" {
+        return
+    }
+    _ = prenomParticipant
+    body := fmt.Sprintf(`<p>Bonjour %s,</p>
+<p>Un nouveau participant s'est inscrit à votre événement <strong>%s</strong>.</p>
+<p>Participant : <strong>%s</strong><br>Nombre total d'inscrits : <strong>%d</strong></p>`,
+        prenomFormateur, titreEvent, nomParticipant, nbInscrits)
+    utils.SendEmail(emailFormateur, "Nouvelle inscription : "+titreEvent, body)
 }
 
 func envoyerEmailInscriptionEvenement(userID, eventID uint) {

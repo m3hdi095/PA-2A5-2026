@@ -80,6 +80,7 @@
   "form_titre":                "Title",
   "form_categorie":            "Category",
   "form_statut":               "Status",
+  "form_date_fin":             "End date (optional)",
   "form_contenu":              "Content",
   "opt_brouillon":             "Draft",
   "opt_publie":                "Published",
@@ -251,5 +252,10 @@
   "q_succes_envoye":            "Questionnaire sent to participants!",
   "q_err_chargement":           "Loading error.",
   "q_aucune_reponse":           "No responses received yet",
-  "q_anonyme":                  "Anonymous"
+  "q_anonyme":                  "Anonymous",
+
+  "ev_btn_annuler_event":  "Cancel event",
+  "ev_confirm_annuler":    "Cancel the event « {titre} »? All registered participants will be refunded and notified by email.",
+  "ev_succes_annule":      "Event cancelled. Participants have been refunded and notified.",
+  "ev_err_annuler":        "Unable to cancel this event."
 }
