@@ -44,10 +44,5 @@ func Connect() {
         valeur TEXT NOT NULL DEFAULT '',
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`)
-<<<<<<< Updated upstream
 	DB.Exec(`ALTER TABLE utilisateur ADD COLUMN onesignal_player_id VARCHAR(100) NULL`)
 }
-=======
-    DB.Exec(`ALTER TABLE utilisateur ADD COLUMN onesignal_player_id VARCHAR(100) NULL`)
-}
->>>>>>> Stashed changes

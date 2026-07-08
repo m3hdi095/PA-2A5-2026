@@ -8,13 +8,8 @@ import (
 	"strconv"
 	"upcycleconnect/api/middleware"
 
-<<<<<<< Updated upstream
 	"upcycleconnect/api/database"
 	"upcycleconnect/api/services"
-=======
-    "upcycleconnect/api/database"
-    "upcycleconnect/api/services"
->>>>>>> Stashed changes
 )
 
 var notificationService = services.NewNotificationService()
@@ -99,7 +94,6 @@ func MarkNotificationRead(w http.ResponseWriter, r *http.Request) {
 }
 
 func MarkAllNotificationsRead(w http.ResponseWriter, r *http.Request) {
-<<<<<<< Updated upstream
 	userID := r.Context().Value(middleware.ContextUserID).(uint)
 	if err := notificationService.MarkAllAsRead(userID); err != nil {
 		http.Error(w, `{"error":"Erreur"}`, http.StatusInternalServerError)
@@ -122,27 +116,3 @@ func RegisterPlayerID(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(map[string]string{"status": "ok"})
 }
-=======
-    userID := r.Context().Value(middleware.ContextUserID).(uint)
-    if err := notificationService.MarkAllAsRead(userID); err != nil {
-        http.Error(w, `{"error":"Erreur"}`, http.StatusInternalServerError)
-        return
-    }
-    w.WriteHeader(http.StatusOK)
-    json.NewEncoder(w).Encode(map[string]string{"status": "ok"})
-}
-
-func RegisterPlayerID(w http.ResponseWriter, r *http.Request) {
-    userID := r.Context().Value(middleware.ContextUserID).(uint)
-    var req struct {
-        PlayerID string `json:"player_id"`
-    }
-    if err := json.NewDecoder(r.Body).Decode(&req); err != nil || req.PlayerID == "" {
-        http.Error(w, `{"error":"Données invalides"}`, http.StatusBadRequest)
-        return
-    }
-    database.DB.Exec(`UPDATE utilisateur SET onesignal_player_id = ? WHERE id_utilisateur = ?`, req.PlayerID, userID)
-    w.Header().Set("Content-Type", "application/json")
-    json.NewEncoder(w).Encode(map[string]string{"status": "ok"})
-}
->>>>>>> Stashed changes
