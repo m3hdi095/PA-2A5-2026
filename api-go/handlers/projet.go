@@ -95,6 +95,7 @@ func ListUserProjets(w http.ResponseWriter, r *http.Request) {
 }
 
 func UpdateProjet(w http.ResponseWriter, r *http.Request) {
+<<<<<<< Updated upstream
 	userID := r.Context().Value(middleware.ContextUserID).(uint)
 	id, err := strconv.ParseUint(r.PathValue("id"), 10, 32)
 	if err != nil {
@@ -130,6 +131,43 @@ func UpdateProjet(w http.ResponseWriter, r *http.Request) {
 	}
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(map[string]string{"status": "ok"})
+=======
+    userID := r.Context().Value(middleware.ContextUserID).(uint)
+    id, err := strconv.ParseUint(r.PathValue("id"), 10, 32)
+    if err != nil {
+        http.Error(w, `{"error":"ID invalide"}`, http.StatusBadRequest)
+        return
+    }
+    var req struct {
+        Statut            string `json:"statut"`
+        PartageCommunaute *bool  `json:"partage_communaute,omitempty"`
+    }
+    if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+        http.Error(w, `{"error":"Données invalides"}`, http.StatusBadRequest)
+        return
+    }
+    if req.Statut != "" {
+        if err := projetService.UpdateStatut(uint(id), userID, req.Statut); err != nil {
+            jsonError(w, err.Error(), http.StatusBadRequest)
+            return
+        }
+    }
+    if req.PartageCommunaute != nil {
+        newStatut := "en_cours"
+        if *req.PartageCommunaute {
+            newStatut = "en_attente"
+        }
+        if _, err := database.DB.Exec(
+            `UPDATE projet_upcycling SET partage_communaute = ?, statut = ? WHERE id_projet = ? AND id_utilisateur = ?`,
+            *req.PartageCommunaute, newStatut, uint(id), userID,
+        ); err != nil {
+            jsonError(w, err.Error(), http.StatusInternalServerError)
+            return
+        }
+    }
+    w.Header().Set("Content-Type", "application/json")
+    json.NewEncoder(w).Encode(map[string]string{"status": "ok"})
+>>>>>>> Stashed changes
 }
 
 func AdminListProjetsEnAttente(w http.ResponseWriter, r *http.Request) {

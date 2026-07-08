@@ -21,24 +21,6 @@
     </h1>
     <p class="page-title-sub" data-i18n="projets_subtitle">Partagez vos créations et découvrez celles de la communauté</p>
   </div>
-  <div class="page-title-actions">
-    <button class="btn btn-primary" id="btn-nouveau-projet">
-      <i class="fa-solid fa-plus" aria-hidden="true"></i>
-      <span data-i18n="projets_btn_nouveau">Nouveau projet</span>
-    </button>
-  </div>
-</div>
-
-<!-- Tabs -->
-<div class="tabs-row animate-in" style="display:flex;gap:8px;margin-bottom:20px;border-bottom:2px solid var(--border);padding-bottom:0">
-  <button class="tab-btn active" id="tab-communaute" onclick="switchTab('communaute')">
-    <i class="fa-solid fa-users" aria-hidden="true"></i>
-    <span data-i18n="projets_tab_communaute">Communauté</span>
-  </button>
-  <button class="tab-btn" id="tab-mes" onclick="switchTab('mes')">
-    <i class="fa-solid fa-user" aria-hidden="true"></i>
-    <span data-i18n="projets_tab_mes">Mes projets</span>
-  </button>
 </div>
 
 <!-- Grille communauté -->
@@ -46,51 +28,6 @@
   <div class="projets-grid" id="grid-communaute"></div>
 </div>
 
-<!-- Grille mes projets -->
-<div id="panel-mes" class="animate-in" style="display:none">
-  <div class="projets-grid" id="grid-mes"></div>
-</div>
-
-<!-- Modal nouveau projet -->
-<div class="modal-overlay" id="modal-projet">
-  <div class="modal" style="max-width:520px">
-    <div class="modal-header">
-      <h2 class="modal-title"><i class="fa-solid fa-hammer"></i> <span data-i18n="projets_modal_titre">Nouveau projet</span></h2>
-      <button class="modal-close" id="modal-close-projet" aria-label="Fermer"><i class="fa-solid fa-xmark"></i></button>
-    </div>
-    <div class="modal-body">
-      <form id="form-projet" novalidate>
-        <div class="form-group">
-          <label class="form-label" data-i18n="projets_label_titre">Titre</label>
-          <input type="text" id="p-titre" class="form-control" required/>
-        </div>
-        <div class="form-group">
-          <label class="form-label" data-i18n="projets_label_description">Description</label>
-          <textarea id="p-description" class="form-control" rows="4"></textarea>
-        </div>
-        <div class="form-group">
-          <label class="form-label" data-i18n="projets_label_date_debut">Date de début</label>
-          <input type="date" id="p-date-debut" class="form-control"/>
-        </div>
-        <div class="form-group">
-          <label class="form-label" data-i18n="projets_label_kg">Kg de déchets évités (estimation)</label>
-          <input type="number" id="p-kg" class="form-control" min="0" step="0.1" value="0"/>
-        </div>
-        <div class="form-group" style="display:flex;align-items:center;gap:10px;margin-top:4px">
-          <input type="checkbox" id="p-partage" style="width:16px;height:16px;accent-color:var(--green-700)"/>
-          <label for="p-partage" class="form-label" style="margin:0;cursor:pointer" data-i18n="projets_label_partage">Partager avec la communauté</label>
-        </div>
-      </form>
-    </div>
-    <div class="modal-footer">
-      <button class="btn btn-ghost" id="modal-cancel-projet" data-i18n="btn_cancel">Annuler</button>
-      <button class="btn btn-primary" id="btn-submit-projet">
-        <i class="fa-solid fa-check" aria-hidden="true"></i>
-        <span data-i18n="projets_btn_soumettre">Créer le projet</span>
-      </button>
-    </div>
-  </div>
-</div>
 
 <style>
 .tabs-row { border-bottom: 2px solid var(--border); }
@@ -141,17 +78,7 @@
 
 <script src="js/layout.js"></script>
 <script>
-let _tabActive = 'communaute';
 let _projetsCommunaute = [];
-let _mesProjets = [];
-
-function switchTab(tab) {
-  _tabActive = tab;
-  document.getElementById('tab-communaute').classList.toggle('active', tab === 'communaute');
-  document.getElementById('tab-mes').classList.toggle('active', tab === 'mes');
-  document.getElementById('panel-communaute').style.display = tab === 'communaute' ? '' : 'none';
-  document.getElementById('panel-mes').style.display       = tab === 'mes'         ? '' : 'none';
-}
 
 function statutBadge(statut) {
   const map = {
@@ -195,74 +122,13 @@ async function chargerCommunaute() {
   grid.innerHTML = _projetsCommunaute.map(renderProjet).join('');
 }
 
-async function chargerMesProjets() {
-  const res = await apiFetch('/projets/mes-projets');
-  const grid = document.getElementById('grid-mes');
-  if (res?.ok) {
-    const data = await res.json();
-    _mesProjets = Array.isArray(data) ? data : [];
-  }
-  if (!_mesProjets.length) {
-    grid.innerHTML = `<div class="empty-state"><i class="fa-solid fa-hammer"></i><p>${t('projets_empty_mes')}</p></div>`;
-    return;
-  }
-  grid.innerHTML = _mesProjets.map(renderProjet).join('');
-}
-
 function esc(s) {
   return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 }
 
 document.addEventListener('DOMContentLoaded', async () => {
   await initLayout('projets');
-  await Promise.all([chargerCommunaute(), chargerMesProjets()]);
-
-  document.getElementById('btn-nouveau-projet').addEventListener('click', () => {
-    document.getElementById('form-projet').reset();
-    document.getElementById('modal-projet').classList.add('open');
-  });
-  document.getElementById('modal-close-projet').addEventListener('click', () => {
-    document.getElementById('modal-projet').classList.remove('open');
-  });
-  document.getElementById('modal-cancel-projet').addEventListener('click', () => {
-    document.getElementById('modal-projet').classList.remove('open');
-  });
-  document.getElementById('modal-projet').addEventListener('click', e => {
-    if (e.target === document.getElementById('modal-projet')) document.getElementById('modal-projet').classList.remove('open');
-  });
-
-  document.getElementById('btn-submit-projet').addEventListener('click', async () => {
-    const titre = document.getElementById('p-titre').value.trim();
-    if (!titre) { showToast(t('projets_err_titre'), 'warning'); return; }
-
-    const btn = document.getElementById('btn-submit-projet');
-    btn.disabled = true;
-
-    const payload = {
-      titre,
-      description:       document.getElementById('p-description').value.trim(),
-      date_debut:        document.getElementById('p-date-debut').value || null,
-      kg_dechets_evites: parseFloat(document.getElementById('p-kg').value) || 0,
-      partage_communaute: document.getElementById('p-partage').checked,
-    };
-
-    try {
-      const res = await apiFetch('/projets', { method: 'POST', body: JSON.stringify(payload) });
-      if (res?.ok) {
-        document.getElementById('modal-projet').classList.remove('open');
-        showToast(t('projets_toast_cree'), 'success');
-        await Promise.all([chargerCommunaute(), chargerMesProjets()]);
-        switchTab('mes');
-      } else {
-        const err = await res?.json().catch(() => ({}));
-        showToast(err?.error || t('error_network'), 'error');
-      }
-    } catch {
-      showToast(t('error_network'), 'error');
-    } finally {
-      btn.disabled = false;
-    }
-  });
+  await chargerCommunaute();
 });
 </script>
 

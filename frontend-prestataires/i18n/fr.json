@@ -318,6 +318,7 @@
   "forum_btn_signaler":    "Signaler",
   "forum_signal_ok":       "Signalement envoyé. Merci !",
 
+<<<<<<< Updated upstream
   "abo_renouvellement":       "Renouvellement",
   "abo_aucun_renouvellement": "Plan gratuit",
   "abo_feat_free_1":          "3 réservations / mois",
@@ -361,4 +362,7 @@
   "abo_export_premium_requis":   "Export disponible avec l'abonnement Premium activé",
 
   "btn_cancel":                  "Annuler"
+=======
+  "btn_cancel": "Annuler"
+>>>>>>> Stashed changes
 }
