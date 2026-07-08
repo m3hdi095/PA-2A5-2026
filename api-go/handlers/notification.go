@@ -3,22 +3,19 @@
 package handlers
 
 import (
+	"encoding/json"
+	"net/http"
+	"strconv"
 	"upcycleconnect/api/middleware"
-    "encoding/json"
-    "net/http"
-    "strconv"
 
-    "upcycleconnect/api/services"
+	"upcycleconnect/api/database"
+	"upcycleconnect/api/services"
 )
 
 var notificationService = services.NewNotificationService()
 
 func SendNotification(w http.ResponseWriter, r *http.Request) {
-    role := r.Context().Value(middleware.ContextRole).(string)
-    if role != "admin" && role != "salarie" {
-        http.Error(w, `{"error":"Accès interdit"}`, http.StatusForbidden)
-        return
-    }
+    _ = r.Context().Value(middleware.ContextUserID).(uint)
     var req struct {
         ToUserID uint   `json:"to_user_id"`
         Title    string `json:"title"`
@@ -26,10 +23,11 @@ func SendNotification(w http.ResponseWriter, r *http.Request) {
         Type     string `json:"type"`
         Canal    string `json:"canal"`
     }
-    if err := json.NewDecoder(r.Body).Decode(&req); err != nil || req.ToUserID == 0 || req.Title == "" {
+    if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
         http.Error(w, `{"error":"Données invalides"}`, http.StatusBadRequest)
         return
     }
+    // pour l'instant n'importe qui peut ecrire a n'importe qui, c'est le FIXME du haut
     if err := notificationService.SendNotification(req.ToUserID, req.Title, req.Message, req.Type, req.Canal); err != nil {
         http.Error(w, `{"error":"Erreur d'envoi"}`, http.StatusInternalServerError)
         return
@@ -43,64 +41,78 @@ func GetNotifications(w http.ResponseWriter, r *http.Request) {
 }
 
 func GetMyNotifications(w http.ResponseWriter, r *http.Request) {
-    userID := r.Context().Value(middleware.ContextUserID).(uint)
-    page, _ := strconv.Atoi(r.URL.Query().Get("page"))
-    if page < 1 {
-        page = 1
-    }
-    notifs, err := notificationService.GetUserNotifications(userID, page, 20)
-    if err != nil {
-        http.Error(w, `{"error":"Erreur interne"}`, http.StatusInternalServerError)
-        return
-    }
-    json.NewEncoder(w).Encode(notifs)
+	userID := r.Context().Value(middleware.ContextUserID).(uint)
+	page, _ := strconv.Atoi(r.URL.Query().Get("page"))
+	if page < 1 {
+		page = 1
+	}
+	notifs, err := notificationService.GetUserNotifications(userID, page, 20)
+	if err != nil {
+		http.Error(w, `{"error":"Erreur interne"}`, http.StatusInternalServerError)
+		return
+	}
+	json.NewEncoder(w).Encode(notifs)
 }
 
 func BroadcastNotification(w http.ResponseWriter, r *http.Request) {
-    var req struct {
-        Titre   string `json:"titre"`
-        Message string `json:"message"`
-        Segment string `json:"segment"`
-    }
-    if err := json.NewDecoder(r.Body).Decode(&req); err != nil || req.Titre == "" || req.Message == "" {
-        http.Error(w, `{"error":"Données invalides"}`, http.StatusBadRequest)
-        return
-    }
-    if req.Segment == "" {
-        req.Segment = "tous"
-    }
-    count, err := notificationService.BroadcastToSegment(req.Segment, req.Titre, req.Message)
-    if err != nil {
-        http.Error(w, `{"error":"Erreur d'envoi"}`, http.StatusInternalServerError)
-        return
-    }
-    w.Header().Set("Content-Type", "application/json")
-    w.WriteHeader(http.StatusCreated)
-    json.NewEncoder(w).Encode(map[string]interface{}{"status": "sent", "count": count})
+	var req struct {
+		Titre   string `json:"titre"`
+		Message string `json:"message"`
+		Segment string `json:"segment"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil || req.Titre == "" || req.Message == "" {
+		http.Error(w, `{"error":"Données invalides"}`, http.StatusBadRequest)
+		return
+	}
+	if req.Segment == "" {
+		req.Segment = "tous"
+	}
+	count, err := notificationService.BroadcastToSegment(req.Segment, req.Titre, req.Message)
+	if err != nil {
+		http.Error(w, `{"error":"Erreur d'envoi"}`, http.StatusInternalServerError)
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusCreated)
+	json.NewEncoder(w).Encode(map[string]interface{}{"status": "sent", "count": count})
 }
 
 func MarkNotificationRead(w http.ResponseWriter, r *http.Request) {
-    _ = r.Context().Value(middleware.ContextUserID).(uint)
-    idStr := r.PathValue("id")
-    id, err := strconv.ParseUint(idStr, 10, 64)
-    if err != nil || id == 0 {
-        http.Error(w, `{"error":"ID invalide"}`, http.StatusBadRequest)
-        return
-    }
-    if err := notificationService.MarkAsRead(uint(id)); err != nil {
-        http.Error(w, `{"error":"Erreur"}`, http.StatusInternalServerError)
-        return
-    }
-    w.WriteHeader(http.StatusOK)
-    json.NewEncoder(w).Encode(map[string]string{"status": "ok"})
+	_ = r.Context().Value(middleware.ContextUserID).(uint)
+	idStr := r.PathValue("id")
+	id, err := strconv.ParseUint(idStr, 10, 64)
+	if err != nil || id == 0 {
+		http.Error(w, `{"error":"ID invalide"}`, http.StatusBadRequest)
+		return
+	}
+	if err := notificationService.MarkAsRead(uint(id)); err != nil {
+		http.Error(w, `{"error":"Erreur"}`, http.StatusInternalServerError)
+		return
+	}
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(map[string]string{"status": "ok"})
 }
 
 func MarkAllNotificationsRead(w http.ResponseWriter, r *http.Request) {
-    userID := r.Context().Value(middleware.ContextUserID).(uint)
-    if err := notificationService.MarkAllAsRead(userID); err != nil {
-        http.Error(w, `{"error":"Erreur"}`, http.StatusInternalServerError)
-        return
-    }
-    w.WriteHeader(http.StatusOK)
-    json.NewEncoder(w).Encode(map[string]string{"status": "ok"})
+	userID := r.Context().Value(middleware.ContextUserID).(uint)
+	if err := notificationService.MarkAllAsRead(userID); err != nil {
+		http.Error(w, `{"error":"Erreur"}`, http.StatusInternalServerError)
+		return
+	}
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(map[string]string{"status": "ok"})
+}
+
+func RegisterPlayerID(w http.ResponseWriter, r *http.Request) {
+	userID := r.Context().Value(middleware.ContextUserID).(uint)
+	var req struct {
+		PlayerID string `json:"player_id"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil || req.PlayerID == "" {
+		http.Error(w, `{"error":"Données invalides"}`, http.StatusBadRequest)
+		return
+	}
+	database.DB.Exec(`UPDATE utilisateur SET onesignal_player_id = ? WHERE id_utilisateur = ?`, req.PlayerID, userID)
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]string{"status": "ok"})
 }

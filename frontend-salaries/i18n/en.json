@@ -267,5 +267,13 @@
   "mod_signalement_label":          "pending report(s)",
   "mod_en_attente":                 "pending",
   "auth_compte_active":             "Account activated. You can sign in.",
-  "auth_btn_loading":               "Signing in…"
+  "auth_btn_loading":               "Signing in…",
+
+  "form_date_debut":        "Start date",
+  "form_description":       "Description",
+  "opt_cloture":            "Closed",
+  "opt_en_attente":         "Pending",
+  "opt_valide":             "Approved",
+  "sal_auth_email_placeholder": "your.email@company.com",
+  "toast_error":            "An error occurred."
 }

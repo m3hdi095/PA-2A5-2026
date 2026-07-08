@@ -264,5 +264,13 @@
   "projets_badge_attente":    "Pending",
   "projets_kg_label":         "kg avoided",
   "projets_score_label":      "impact pts",
-  "filter_toutes_cats":       "All categories"
+  "filter_toutes_cats":       "All categories",
+
+  "btn_cancel":                  "Cancel",
+  "depot_select_conteneur":      "Select a container",
+  "filter_proximite":            "Nearby",
+  "filter_rayon":                "Radius",
+  "planning_historique_title":   "History",
+  "annonce_empty":               "No listing matches your search.",
+  "formation_inscription_error": "Error during registration."
 }

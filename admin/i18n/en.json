@@ -362,6 +362,7 @@
   "prest_inscrits":            "registered",
   "prest_btn_edit":            "Edit",
 
+  "dashboard_alertes":         "Alerts",
   "dashboard_no_activity":     "No recent activity.",
   "dashboard_activity_text":   "registered as",
   "dashboard_chart_new_regs":  "New registrations",
@@ -431,5 +432,16 @@
   "page_contrats":             "Contracts",
   "page_publicite":            "Advertising",
   "page_tournees":             "Collection routes",
-  "page_publicites":           "Advertising"
+  "page_publicites":           "Advertising",
+
+  "btn_rafraichir":            "Refresh",
+  "cont_add_title":            "Add a container",
+  "cont_form_adresse":         "Address",
+  "cont_form_ville":           "City",
+  "prest_statut_en_attente":   "Pending",
+  "auth_error_unavailable":    "Service unavailable. Please try again.",
+  "cat_toast_save_error":      "Error while saving.",
+  "prest_toast_save_error":    "Error while saving.",
+  "toast_error":               "An error occurred.",
+  "users_toast_deleted":       "User deleted."
 }

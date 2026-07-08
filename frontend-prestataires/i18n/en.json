@@ -358,5 +358,7 @@
   "abo_confirm_resiliation":     "Cancel your Premium subscription? It will remain active until the end of the month.",
   "abo_resiliation_programmee":  "Cancellation scheduled for end of month.",
   "abo_err_resiliation":         "Error while cancelling",
-  "abo_export_premium_requis":   "Export available with an active Premium subscription"
+  "abo_export_premium_requis":   "Export available with an active Premium subscription",
+
+  "btn_cancel":                  "Cancel"
 }

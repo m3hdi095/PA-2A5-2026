@@ -264,5 +264,13 @@
   "projets_badge_attente":    "En attente",
   "projets_kg_label":         "kg évités",
   "projets_score_label":      "pts d'impact",
-  "filter_toutes_cats":       "Toutes catégories"
+  "filter_toutes_cats":       "Toutes catégories",
+
+  "btn_cancel":                  "Annuler",
+  "depot_select_conteneur":      "Sélectionner un conteneur",
+  "filter_proximite":            "Proximité",
+  "filter_rayon":                "Rayon",
+  "planning_historique_title":   "Historique",
+  "annonce_empty":               "Aucune annonce ne correspond à votre recherche.",
+  "formation_inscription_error": "Erreur lors de l'inscription."
 }

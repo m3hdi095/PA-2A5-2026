@@ -432,5 +432,16 @@
   "page_contrats":             "Contrats",
   "page_publicite":            "Publicités",
   "page_tournees":             "Tournées de collecte",
-  "page_publicites":           "Publicités"
+  "page_publicites":           "Publicités",
+
+  "btn_rafraichir":            "Rafraîchir",
+  "cont_add_title":            "Ajouter un conteneur",
+  "cont_form_adresse":         "Adresse",
+  "cont_form_ville":           "Ville",
+  "prest_statut_en_attente":   "En attente",
+  "auth_error_unavailable":    "Service indisponible. Réessayez.",
+  "cat_toast_save_error":      "Erreur lors de l'enregistrement.",
+  "prest_toast_save_error":    "Erreur lors de l'enregistrement.",
+  "toast_error":               "Une erreur est survenue.",
+  "users_toast_deleted":       "Utilisateur supprimé."
 }

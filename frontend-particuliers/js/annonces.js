@@ -431,6 +431,7 @@ window.reserverAnnonce = async (id) => {
       showToast('Don réservé !', 'success');
       annoncesData = annoncesData.filter(a => a.id !== id);
       appliquerFiltres();
+      await basculerMessages(id);
       return;
     }
     const d = res ? await res.json().catch(() => ({})) : {};
@@ -476,6 +477,7 @@ window.confirmerPaiementAnnonce = async () => {
         annoncesData = annoncesData.filter(a => a.id !== annonce.id);
         _annonceAPayer = null;
         appliquerFiltres();
+        await basculerMessages(annonce.id);
         return;
       }
       const d = res ? await res.json().catch(() => ({})) : {};

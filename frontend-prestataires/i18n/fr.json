@@ -358,5 +358,7 @@
   "abo_confirm_resiliation":     "Résilier votre abonnement Premium ? Il restera actif jusqu'à la fin du mois.",
   "abo_resiliation_programmee":  "Résiliation programmée en fin de mois.",
   "abo_err_resiliation":         "Erreur lors de la résiliation",
-  "abo_export_premium_requis":   "Export disponible avec l'abonnement Premium activé"
+  "abo_export_premium_requis":   "Export disponible avec l'abonnement Premium activé",
+
+  "btn_cancel":                  "Annuler"
 }

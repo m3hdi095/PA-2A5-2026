@@ -267,5 +267,13 @@
   "mod_signalement_label":          "signalement(s) en attente",
   "mod_en_attente":                 "en attente",
   "auth_compte_active":             "Compte activé avec succès. Vous pouvez vous connecter.",
-  "auth_btn_loading":               "Connexion…"
+  "auth_btn_loading":               "Connexion…",
+
+  "form_date_debut":        "Date de début",
+  "form_description":       "Description",
+  "opt_cloture":            "Clôturé",
+  "opt_en_attente":         "En attente",
+  "opt_valide":             "Validé",
+  "sal_auth_email_placeholder": "votre.email@entreprise.fr",
+  "toast_error":            "Une erreur est survenue."
 }
