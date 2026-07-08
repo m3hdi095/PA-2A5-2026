@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8"/>
+  <link rel="icon" type="image/png" href="../brand_assets/Favicon.png"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Projets upcycling | Espace Particuliers</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=Montserrat:wght@400;500;600&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" crossorigin="anonymous"/>
+  <link rel="stylesheet" href="css/style.css"/>
+</head>
+<body>
+
+<div class="page-title-row animate-in">
+  <div>
+    <h1>
+      <div class="page-title-icon green">
+        <i class="fa-solid fa-hammer" aria-hidden="true"></i>
+      </div>
+      <span data-i18n="projets_title">Projets upcycling</span>
+    </h1>
+    <p class="page-title-sub" data-i18n="projets_subtitle">Partagez vos créations et découvrez celles de la communauté</p>
+  </div>
+  <div class="page-title-actions">
+    <button class="btn btn-primary" id="btn-nouveau-projet">
+      <i class="fa-solid fa-plus" aria-hidden="true"></i>
+      <span data-i18n="projets_btn_nouveau">Nouveau projet</span>
+    </button>
+  </div>
+</div>
+
+<!-- Tabs -->
+<div class="tabs-row animate-in" style="display:flex;gap:8px;margin-bottom:20px;border-bottom:2px solid var(--border);padding-bottom:0">
+  <button class="tab-btn active" id="tab-communaute" onclick="switchTab('communaute')">
+    <i class="fa-solid fa-users" aria-hidden="true"></i>
+    <span data-i18n="projets_tab_communaute">Communauté</span>
+  </button>
+  <button class="tab-btn" id="tab-mes" onclick="switchTab('mes')">
+    <i class="fa-solid fa-user" aria-hidden="true"></i>
+    <span data-i18n="projets_tab_mes">Mes projets</span>
+  </button>
+</div>
+
+<!-- Grille communauté -->
+<div id="panel-communaute" class="animate-in">
+  <div class="projets-grid" id="grid-communaute"></div>
+</div>
+
+<!-- Grille mes projets -->
+<div id="panel-mes" class="animate-in" style="display:none">
+  <div class="projets-grid" id="grid-mes"></div>
+</div>
+
+<!-- Modal nouveau projet -->
+<div class="modal-overlay" id="modal-projet">
+  <div class="modal" style="max-width:520px">
+    <div class="modal-header">
+      <h2 class="modal-title"><i class="fa-solid fa-hammer"></i> <span data-i18n="projets_modal_titre">Nouveau projet</span></h2>
+      <button class="modal-close" id="modal-close-projet" aria-label="Fermer"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <div class="modal-body">
+      <form id="form-projet" novalidate>
+        <div class="form-group">
+          <label class="form-label" data-i18n="projets_label_titre">Titre</label>
+          <input type="text" id="p-titre" class="form-control" required/>
+        </div>
+        <div class="form-group">
+          <label class="form-label" data-i18n="projets_label_description">Description</label>
+          <textarea id="p-description" class="form-control" rows="4"></textarea>
+        </div>
+        <div class="form-group">
+          <label class="form-label" data-i18n="projets_label_date_debut">Date de début</label>
+          <input type="date" id="p-date-debut" class="form-control"/>
+        </div>
+        <div class="form-group">
+          <label class="form-label" data-i18n="projets_label_kg">Kg de déchets évités (estimation)</label>
+          <input type="number" id="p-kg" class="form-control" min="0" step="0.1" value="0"/>
+        </div>
+        <div class="form-group" style="display:flex;align-items:center;gap:10px;margin-top:4px">
+          <input type="checkbox" id="p-partage" style="width:16px;height:16px;accent-color:var(--green-700)"/>
+          <label for="p-partage" class="form-label" style="margin:0;cursor:pointer" data-i18n="projets_label_partage">Partager avec la communauté</label>
+        </div>
+      </form>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" id="modal-cancel-projet" data-i18n="btn_cancel">Annuler</button>
+      <button class="btn btn-primary" id="btn-submit-projet">
+        <i class="fa-solid fa-check" aria-hidden="true"></i>
+        <span data-i18n="projets_btn_soumettre">Créer le projet</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<style>
+.tabs-row { border-bottom: 2px solid var(--border); }
+.tab-btn {
+  background: none;
+  border: none;
+  padding: 10px 20px;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-muted);
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -2px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: color .15s, border-color .15s;
+}
+.tab-btn.active {
+  color: var(--green-700);
+  border-bottom-color: var(--green-700);
+}
+.tab-btn:hover { color: var(--green-700); }
+.projets-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 16px;
+  margin-top: 4px;
+}
+.projet-card {
+  background: var(--card-bg, #fff);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  transition: box-shadow .15s, transform .15s;
+}
+.projet-card:hover { box-shadow: 0 4px 20px rgba(0,0,0,.08); transform: translateY(-2px); }
+.projet-card-title { font-weight: 700; font-size: 15px; color: var(--text); }
+.projet-card-desc { font-size: 13px; color: var(--text-muted); line-height: 1.5; }
+.projet-card-meta { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 4px; }
+.projet-meta-item { display: flex; align-items: center; gap: 5px; font-size: 12px; color: var(--text-muted); }
+.projet-meta-item i { color: var(--green-600, #4ade80); }
+</style>
+
+<script src="js/layout.js"></script>
+<script>
+let _tabActive = 'communaute';
+let _projetsCommunaute = [];
+let _mesProjets = [];
+
+function switchTab(tab) {
+  _tabActive = tab;
+  document.getElementById('tab-communaute').classList.toggle('active', tab === 'communaute');
+  document.getElementById('tab-mes').classList.toggle('active', tab === 'mes');
+  document.getElementById('panel-communaute').style.display = tab === 'communaute' ? '' : 'none';
+  document.getElementById('panel-mes').style.display       = tab === 'mes'         ? '' : 'none';
+}
+
+function statutBadge(statut) {
+  const map = {
+    en_cours:   { label: t('projets_badge_cours'),   cls: 'badge-warning' },
+    en_attente: { label: t('projets_badge_attente'),  cls: 'badge-gray'   },
+    termine:    { label: t('projets_badge_termine'),  cls: 'badge-success' },
+  };
+  const s = map[statut] || { label: statut, cls: 'badge-gray' };
+  return `<span class="badge ${s.cls}">${s.label}</span>`;
+}
+
+function renderProjet(p) {
+  const locale = _lang === 'en' ? 'en-GB' : 'fr-FR';
+  const dateStr = p.date_debut ? new Date(p.date_debut).toLocaleDateString(locale, { day: 'numeric', month: 'short', year: 'numeric' }) : '';
+  return `
+    <div class="projet-card">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px">
+        <div class="projet-card-title">${esc(p.titre)}</div>
+        ${statutBadge(p.statut)}
+      </div>
+      ${p.description ? `<div class="projet-card-desc">${esc(p.description)}</div>` : ''}
+      <div class="projet-card-meta">
+        ${p.kg_dechets_evites > 0 ? `<div class="projet-meta-item"><i class="fa-solid fa-leaf"></i> ${p.kg_dechets_evites} ${t('projets_kg_label')}</div>` : ''}
+        ${p.score_impact > 0 ? `<div class="projet-meta-item"><i class="fa-solid fa-star"></i> ${p.score_impact} ${t('projets_score_label')}</div>` : ''}
+        ${dateStr ? `<div class="projet-meta-item"><i class="fa-regular fa-calendar"></i> ${dateStr}</div>` : ''}
+      </div>
+    </div>`;
+}
+
+async function chargerCommunaute() {
+  const res = await apiFetch('/projets');
+  const grid = document.getElementById('grid-communaute');
+  if (res?.ok) {
+    const data = await res.json();
+    _projetsCommunaute = Array.isArray(data) ? data : [];
+  }
+  if (!_projetsCommunaute.length) {
+    grid.innerHTML = `<div class="empty-state"><i class="fa-solid fa-hammer"></i><p>${t('projets_empty_communaute')}</p></div>`;
+    return;
+  }
+  grid.innerHTML = _projetsCommunaute.map(renderProjet).join('');
+}
+
+async function chargerMesProjets() {
+  const res = await apiFetch('/projets/mes-projets');
+  const grid = document.getElementById('grid-mes');
+  if (res?.ok) {
+    const data = await res.json();
+    _mesProjets = Array.isArray(data) ? data : [];
+  }
+  if (!_mesProjets.length) {
+    grid.innerHTML = `<div class="empty-state"><i class="fa-solid fa-hammer"></i><p>${t('projets_empty_mes')}</p></div>`;
+    return;
+  }
+  grid.innerHTML = _mesProjets.map(renderProjet).join('');
+}
+
+function esc(s) {
+  return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+document.addEventListener('DOMContentLoaded', async () => {
+  await initLayout('projets');
+  await Promise.all([chargerCommunaute(), chargerMesProjets()]);
+
+  document.getElementById('btn-nouveau-projet').addEventListener('click', () => {
+    document.getElementById('form-projet').reset();
+    document.getElementById('modal-projet').classList.add('open');
+  });
+  document.getElementById('modal-close-projet').addEventListener('click', () => {
+    document.getElementById('modal-projet').classList.remove('open');
+  });
+  document.getElementById('modal-cancel-projet').addEventListener('click', () => {
+    document.getElementById('modal-projet').classList.remove('open');
+  });
+  document.getElementById('modal-projet').addEventListener('click', e => {
+    if (e.target === document.getElementById('modal-projet')) document.getElementById('modal-projet').classList.remove('open');
+  });
+
+  document.getElementById('btn-submit-projet').addEventListener('click', async () => {
+    const titre = document.getElementById('p-titre').value.trim();
+    if (!titre) { showToast(t('projets_err_titre'), 'warning'); return; }
+
+    const btn = document.getElementById('btn-submit-projet');
+    btn.disabled = true;
+
+    const payload = {
+      titre,
+      description:       document.getElementById('p-description').value.trim(),
+      date_debut:        document.getElementById('p-date-debut').value || null,
+      kg_dechets_evites: parseFloat(document.getElementById('p-kg').value) || 0,
+      partage_communaute: document.getElementById('p-partage').checked,
+    };
+
+    try {
+      const res = await apiFetch('/projets', { method: 'POST', body: JSON.stringify(payload) });
+      if (res?.ok) {
+        document.getElementById('modal-projet').classList.remove('open');
+        showToast(t('projets_toast_cree'), 'success');
+        await Promise.all([chargerCommunaute(), chargerMesProjets()]);
+        switchTab('mes');
+      } else {
+        const err = await res?.json().catch(() => ({}));
+        showToast(err?.error || t('error_network'), 'error');
+      }
+    } catch {
+      showToast(t('error_network'), 'error');
+    } finally {
+      btn.disabled = false;
+    }
+  });
+});
+</script>
+
+</body>
+</html>

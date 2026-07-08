@@ -179,5 +179,36 @@
   "ann_aucun_message":    "Aucun message. Soyez le premier à contacter le vendeur !",
 
   "conseil_valide_jusqu": "Valable jusqu'au",
-  "nav_forum":            "Forum"
+  "nav_forum":            "Forum",
+
+  "nav_projets":              "Projets",
+  "sidebar_score":            "Score :",
+  "sidebar_pts":              "pts",
+  "formation_voir_toutes":    "Voir toutes les formations",
+  "formation_confirm_facture":"Inscription confirmée ! Votre facture est disponible dans votre profil.",
+  "q_reponse_oui":            "Oui",
+  "q_reponse_non":            "Non",
+
+  "projets_title":            "Projets upcycling",
+  "projets_subtitle":         "Partagez vos créations et découvrez celles de la communauté",
+  "projets_tab_communaute":   "Communauté",
+  "projets_tab_mes":          "Mes projets",
+  "projets_btn_nouveau":      "Nouveau projet",
+  "projets_empty_communaute": "Aucun projet partagé pour le moment.",
+  "projets_empty_mes":        "Vous n'avez pas encore de projet.",
+  "projets_modal_titre":      "Nouveau projet",
+  "projets_label_titre":      "Titre",
+  "projets_label_description":"Description",
+  "projets_label_date_debut": "Date de début",
+  "projets_label_kg":         "Kg de déchets évités (estimation)",
+  "projets_label_partage":    "Partager avec la communauté (soumis à validation)",
+  "projets_btn_soumettre":    "Créer le projet",
+  "projets_err_titre":        "Le titre est obligatoire.",
+  "projets_toast_cree":       "Projet créé ! +15 points.",
+  "projets_badge_cours":      "En cours",
+  "projets_badge_termine":    "Terminé",
+  "projets_badge_attente":    "En attente",
+  "projets_kg_label":         "kg évités",
+  "projets_score_label":      "pts d'impact",
+  "filter_toutes_cats":       "Toutes catégories"
 }

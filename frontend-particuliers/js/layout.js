@@ -109,6 +109,10 @@ function buildSidebarHTML() {
     </div>
     <div class="nav-section">
       <span class="nav-section-label">${_lang === 'en' ? 'Community' : 'Communauté'}</span>
+      <a href="projets.html" class="nav-link" data-page="projets">
+        <i class="fa-solid fa-hammer" aria-hidden="true"></i>
+        ${t('nav_projets')}
+      </a>
       <a href="conseils.html" class="nav-link" data-page="conseils">
         <i class="fa-solid fa-lightbulb" aria-hidden="true"></i>
         ${_lang === 'en' ? 'Tips & advice' : 'Espace conseil'}
@@ -132,7 +136,7 @@ function buildSidebarHTML() {
     <div class="user-avatar" id="sidebar-user-avatar">P</div>
     <div class="user-meta">
       <div class="user-name" id="sidebar-user-name">Particulier</div>
-      <div class="user-score" id="sidebar-user-score">Score : -</div>
+      <div class="user-score" id="sidebar-user-score">${t('sidebar_score')} -</div>
     </div>
     <button class="btn-logout" id="logout" data-i18n-title="nav_logout" title="${t('nav_logout')}" aria-label="${t('nav_logout')}">
       <i class="fa-solid fa-right-from-bracket" aria-hidden="true"></i>
@@ -291,7 +295,7 @@ async function initLayout(nomPage) {
   const scoreEl  = document.getElementById('sidebar-user-score');
   const avatarEl = document.getElementById('sidebar-user-avatar');
   if (nomEl)    nomEl.textContent    = nomAff;
-  if (scoreEl)  scoreEl.textContent  = `Score : ${score} pts`;
+  if (scoreEl)  scoreEl.textContent  = `${t('sidebar_score')} ${score} ${t('sidebar_pts')}`;
   if (avatarEl) avatarEl.textContent = initiale;
 
   const tbAvatar = document.getElementById('topbar-avatar');

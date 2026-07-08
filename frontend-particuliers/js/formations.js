@@ -55,7 +55,7 @@ function renderFormations() {
   if (filtreType) list = list.filter(f => f.type === filtreType);
 
   if (!list.length) {
-    container.innerHTML = `<div class="empty-state"><i class="fa-solid fa-graduation-cap" aria-hidden="true"></i><p>${t('formation_no_filter')}</p><button class="btn btn-outline" onclick="resetFiltreFormations()"><i class="fa-solid fa-rotate-left" aria-hidden="true"></i> Voir toutes les formations</button></div>`;
+    container.innerHTML = `<div class="empty-state"><i class="fa-solid fa-graduation-cap" aria-hidden="true"></i><p>${t('formation_no_filter')}</p><button class="btn btn-outline" onclick="resetFiltreFormations()"><i class="fa-solid fa-rotate-left" aria-hidden="true"></i> ${t('formation_voir_toutes')}</button></div>`;
     return;
   }
 
@@ -177,7 +177,7 @@ window.confirmerPaiementFormation = async () => {
       if (paymentIntent?.status === 'succeeded') {
         await apiFetch('/evenements/inscription', { method: 'POST', body: JSON.stringify({ evenement_id: _paiementEventId }) });
         document.getElementById('modal-paiement-formation').classList.remove('open');
-        showToast('Inscription confirmée ! Votre facture est disponible dans votre profil.', 'success');
+        showToast(t('formation_confirm_facture'), 'success');
         await chargerFormations();
         return;
       }
@@ -256,8 +256,8 @@ window.ouvrirQuestionnairePart = async (eventId, titre) => {
       </div>`;
     } else if (q.type === 'oui_non') {
       input = `<div style="display:flex;gap:16px;margin-top:4px">
-        <label style="display:flex;align-items:center;gap:4px;font-size:13px;cursor:pointer"><input type="radio" name="q_${i}" value="Oui"> Oui</label>
-        <label style="display:flex;align-items:center;gap:4px;font-size:13px;cursor:pointer"><input type="radio" name="q_${i}" value="Non"> Non</label>
+        <label style="display:flex;align-items:center;gap:4px;font-size:13px;cursor:pointer"><input type="radio" name="q_${i}" value="oui"> ${t('q_reponse_oui')}</label>
+        <label style="display:flex;align-items:center;gap:4px;font-size:13px;cursor:pointer"><input type="radio" name="q_${i}" value="non"> ${t('q_reponse_non')}</label>
       </div>`;
     } else {
       input = `<textarea class="form-control" id="q_rep_${i}" rows="2" placeholder="Votre réponse..." style="font-size:13px;margin-top:4px"></textarea>`;

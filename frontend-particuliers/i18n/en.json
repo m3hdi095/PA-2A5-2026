@@ -179,5 +179,36 @@
   "ann_aucun_message":    "No messages yet. Be the first to contact the seller!",
 
   "conseil_valide_jusqu": "Valid until",
-  "nav_forum":            "Forum"
+  "nav_forum":            "Forum",
+
+  "nav_projets":              "Projects",
+  "sidebar_score":            "Score:",
+  "sidebar_pts":              "pts",
+  "formation_voir_toutes":    "View all sessions",
+  "formation_confirm_facture":"Registration confirmed! Your invoice is available in your profile.",
+  "q_reponse_oui":            "Yes",
+  "q_reponse_non":            "No",
+
+  "projets_title":            "Upcycling projects",
+  "projets_subtitle":         "Share your creations and discover those of the community",
+  "projets_tab_communaute":   "Community",
+  "projets_tab_mes":          "My projects",
+  "projets_btn_nouveau":      "New project",
+  "projets_empty_communaute": "No shared projects yet.",
+  "projets_empty_mes":        "You have no projects yet.",
+  "projets_modal_titre":      "New project",
+  "projets_label_titre":      "Title",
+  "projets_label_description":"Description",
+  "projets_label_date_debut": "Start date",
+  "projets_label_kg":         "Kg of waste avoided (estimate)",
+  "projets_label_partage":    "Share with community (subject to approval)",
+  "projets_btn_soumettre":    "Create project",
+  "projets_err_titre":        "Title is required.",
+  "projets_toast_cree":       "Project created! +15 points.",
+  "projets_badge_cours":      "In progress",
+  "projets_badge_termine":    "Done",
+  "projets_badge_attente":    "Pending",
+  "projets_kg_label":         "kg avoided",
+  "projets_score_label":      "impact pts",
+  "filter_toutes_cats":       "All categories"
 }

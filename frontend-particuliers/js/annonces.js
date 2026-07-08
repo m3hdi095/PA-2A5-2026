@@ -165,7 +165,7 @@ async function chargerCategories() {
     const catFiltreEl = document.getElementById('f-categorie');
     const catFormulaireEl = document.getElementById('a-categorie');
     if (catFiltreEl) {
-      catFiltreEl.innerHTML = `<option value="">${catFiltreEl.options[0]?.text || 'Toutes catégories'}</option>`;
+      catFiltreEl.innerHTML = `<option value="">${t('filter_toutes_cats')}</option>`;
       cats.forEach(c => catFiltreEl.insertAdjacentHTML('beforeend', `<option value="${esc(c.nom)}">${esc(c.nom)}</option>`));
     }
     if (catFormulaireEl) {
@@ -293,9 +293,14 @@ function renderAnnonces() {
           <button class="btn btn-outline btn-sm" onclick="ouvrirDetail(${a.id})" style="flex:1">
             <i class="fa-solid fa-eye" aria-hidden="true"></i> Détail
           </button>
-          <button class="btn btn-primary btn-sm" onclick="contacterAuteur(${a.id})" style="flex:1">
-            <i class="fa-regular fa-envelope" aria-hidden="true"></i> Contacter
-          </button>
+          ${a.type_annonce === 'vente' && a.prix > 0
+            ? `<button class="btn btn-primary btn-sm" onclick="reserverAnnonce(${a.id})" style="flex:1">
+                 <i class="fa-solid fa-credit-card" aria-hidden="true"></i> Payer
+               </button>`
+            : `<button class="btn btn-primary btn-sm" onclick="contacterAuteur(${a.id})" style="flex:1">
+                 <i class="fa-regular fa-envelope" aria-hidden="true"></i> Contacter
+               </button>`
+          }
         </div>
       </div>`;
   }).join('');
@@ -357,11 +362,132 @@ window.ouvrirDetail = async (id) => {
       </div>
     </div>
     <p style="font-size:13.5px;line-height:1.7;color:var(--text-soft);margin-bottom:16px">${esc(a.description || '')}</p>
-    <button class="btn btn-primary" style="width:100%;justify-content:center" onclick="contacterAuteur(${a.id})">
-      <i class="fa-solid fa-envelope" aria-hidden="true"></i> Contacter le déposant
-    </button>`;
+    ${a.type_annonce === 'vente' && a.prix > 0
+      ? `<button class="btn btn-primary" style="width:100%;justify-content:center" onclick="document.getElementById('modal-detail').classList.remove('open');reserverAnnonce(${a.id})">
+           <i class="fa-solid fa-credit-card" aria-hidden="true"></i> Payer et réserver – ${a.prix.toFixed(2)} €
+         </button>`
+      : `<button class="btn btn-primary" style="width:100%;justify-content:center" onclick="contacterAuteur(${a.id})">
+           <i class="fa-solid fa-envelope" aria-hidden="true"></i> Contacter le déposant
+         </button>`
+    }`;
   modal.classList.add('open');
 };
+
+// Paiement Stripe pour les annonces de vente 
+
+let _stripe = null;
+let _cardElement = null;
+let _annonceAPayer = null;
+
+async function getStripePK() {
+  try {
+    const res = await fetch(`${apiBase}/config`);
+    if (res.ok) { const d = await res.json(); return d.stripe_pk || ''; }
+  } catch {}
+  return '';
+}
+
+async function initStripeAnnonce() {
+  if (_stripe && _cardElement) return;
+  const pk = await getStripePK();
+  if (!pk || !window.Stripe) return;
+  _stripe = Stripe(pk);
+  const elements = _stripe.elements();
+  _cardElement = elements.create('card', {
+    style: { base: { fontFamily: 'Poppins, sans-serif', fontSize: '14px', color: '#302e2c' } },
+  });
+  _cardElement.mount('#card-element-annonce');
+  _cardElement.on('change', e => {
+    const errEl = document.getElementById('card-error-annonce');
+    if (e.error) { errEl.textContent = e.error.message; errEl.style.display = 'block'; }
+    else { errEl.style.display = 'none'; }
+  });
+}
+
+window.fermerModalPaiement = () => {
+  document.getElementById('modal-paiement-annonce')?.classList.remove('open');
+};
+
+window.reserverAnnonce = async (id) => {
+  const annonce = annoncesData.find(a => a.id === id);
+  if (!annonce) return;
+
+  if (annonce.type_annonce === 'vente' && annonce.prix > 0) {
+    _annonceAPayer = annonce;
+    document.getElementById('paiement-annonce-info').innerHTML =
+      `<strong>${esc(annonce.titre)}</strong><br>
+       <span style="font-size:22px;font-weight:800;color:var(--teal-700);font-family:Poppins,sans-serif">${annonce.prix.toFixed(2)} €</span>`;
+    const btn = document.getElementById('btn-payer-annonce');
+    if (btn) btn.innerHTML = `<i class="fa-brands fa-stripe-s"></i> Payer ${annonce.prix.toFixed(2)} €`;
+    document.getElementById('modal-paiement-annonce').classList.add('open');
+    await initStripeAnnonce();
+    return;
+  }
+
+  if (!confirm(`Confirmer la récupération de "${esc(annonce.titre)}" ?`)) return;
+  try {
+    const res = await apiFetch(`/annonces/${id}/reserver`, { method: 'POST' });
+    if (res?.ok) {
+      showToast('Don réservé !', 'success');
+      annoncesData = annoncesData.filter(a => a.id !== id);
+      appliquerFiltres();
+      return;
+    }
+    const d = res ? await res.json().catch(() => ({})) : {};
+    showToast(d.error || 'Réservation impossible', 'error');
+  } catch { showToast('Service indisponible.', 'error'); }
+};
+
+window.confirmerPaiementAnnonce = async () => {
+  if (!_annonceAPayer) return;
+  if (!_stripe || !_cardElement) { showToast('Configuration Stripe manquante.', 'error'); return; }
+
+  const btn = document.getElementById('btn-payer-annonce');
+  const errEl = document.getElementById('card-error-annonce');
+  errEl.style.display = 'none';
+  if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Traitement...'; }
+
+  const annonce = _annonceAPayer;
+  try {
+    const piRes = await apiFetch('/create-payment-intent', {
+      method: 'POST',
+      body: JSON.stringify({ amount: annonce.prix, currency: 'eur', type: 'transaction', reference_id: annonce.id }),
+    });
+    if (!piRes?.ok) { showToast('Impossible de créer le paiement.', 'error'); return; }
+    const { client_secret } = await piRes.json();
+
+    const { error, paymentIntent } = await _stripe.confirmCardPayment(client_secret, {
+      payment_method: { card: _cardElement },
+    });
+    if (error) {
+      errEl.textContent = error.message;
+      errEl.style.display = 'block';
+      return;
+    }
+
+    if (paymentIntent.status === 'succeeded') {
+      const res = await apiFetch(`/annonces/${annonce.id}/reserver`, {
+        method: 'POST',
+        body: JSON.stringify({ payment_intent_id: paymentIntent.id }),
+      });
+      if (res?.ok) {
+        fermerModalPaiement();
+        showToast('Achat confirmé ! Facture disponible dans votre profil.', 'success');
+        annoncesData = annoncesData.filter(a => a.id !== annonce.id);
+        _annonceAPayer = null;
+        appliquerFiltres();
+        return;
+      }
+      const d = res ? await res.json().catch(() => ({})) : {};
+      showToast(d.error || 'Paiement reçu mais réservation échouée.', 'error');
+    }
+  } catch { showToast('Service indisponible.', 'error'); }
+  finally {
+    if (btn) { btn.disabled = false; btn.innerHTML = `<i class="fa-brands fa-stripe-s"></i> Payer ${annonce.prix.toFixed(2)} €`; }
+  }
+};
+
+// ─── Prévisualisation photos avant envoi ──────────────────────────────────────
 
 // prévisualisation photos avant envoi
 document.addEventListener('DOMContentLoaded', () => {
