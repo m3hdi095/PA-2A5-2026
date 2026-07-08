@@ -72,7 +72,7 @@ function renderTable() {
   }).join('');
 
   const badge = document.getElementById('badge-count');
-  if (badge) badge.textContent = formations.filter(f => f.statut === 'valide').length + ' actives';
+  if (badge) badge.textContent = formations.filter(f => f.statut === 'valide').length + ' ' + t('sal_badge_actives');
 }
 
 function ouvrirModal(id) {
@@ -104,7 +104,55 @@ function fermerModal() {
   document.getElementById('modal-formation').classList.remove('open');
 }
 
-window.ouvrirModal       = ouvrirModal;
+window.ouvrirModal = ouvrirModal;
+
+window.ouvrirQuestionnaire = async (formationId) => {
+  let q = null;
+  try {
+    const res = await apiFetch(`/evenements/${formationId}/questionnaire`);
+    if (res?.ok) q = await res.json();
+  } catch {}
+
+  const titre = formations.find(f => f.id === formationId)?.titre || `Formation #${formationId}`;
+
+  if (!q || !q.id) {
+    // Pas encore de questionnaire — proposer d'en créer un avec 3 questions par défaut
+    const questions = [
+      { question: 'Comment évaluez-vous cette formation ?', type: 'note' },
+      { question: 'Les objectifs annoncés ont-ils été atteints ?', type: 'oui_non' },
+      { question: 'Commentaire libre', type: 'texte' },
+    ];
+    if (!confirm(`Créer un questionnaire de satisfaction pour « ${titre} » ?\n(3 questions standard)`)) return;
+    try {
+      const res2 = await apiFetch(`/evenements/${formationId}/questionnaire`, {
+        method: 'POST',
+        body: JSON.stringify({ questions: JSON.stringify(questions) }),
+      });
+      if (!res2?.ok) { showToast('Erreur lors de la création du questionnaire', 'error'); return; }
+      const created = await res2.json();
+      q = created;
+      showToast('Questionnaire créé !', 'success');
+    } catch { showToast('Erreur réseau', 'error'); return; }
+  }
+
+  // Questionnaire existant — proposer de l'envoyer aux participants
+  const statut = q.statut || 'brouillon';
+  const action = statut === 'brouillon'
+    ? `Envoyer le questionnaire aux participants de « ${titre} » ?`
+    : `Le questionnaire a déjà été envoyé (statut : ${statut}).\nVoir les réponses dans l'onglet résultats.`;
+
+  if (statut !== 'envoye' && confirm(action)) {
+    try {
+      const res3 = await apiFetch(`/questionnaires/${q.id}/envoyer`, { method: 'POST' });
+      if (res3?.ok) {
+        showToast('Questionnaire envoyé aux participants !', 'success');
+        fetchFormations();
+      } else {
+        showToast('Erreur lors de l\'envoi', 'error');
+      }
+    } catch { showToast('Erreur réseau', 'error'); }
+  }
+};
 window.supprimerFormation = async (id) => {
   if (!confirm(t('confirm_action'))) return;
   try {
@@ -145,7 +193,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       statut:      document.getElementById('f-statut').value,
       description: document.getElementById('f-description').value.trim(),
     };
-    if (!data.titre || !data.date_debut) { showToast('Titre et date obligatoires', 'warning'); return; }
+    if (!data.titre || !data.date_debut) { showToast(t('ev_err_obligatoire'), 'warning'); return; }
 
     try {
       const res = await apiFetch(id ? `/evenements/${id}` : '/evenements', {
@@ -153,12 +201,12 @@ document.addEventListener('DOMContentLoaded', async () => {
         body:   JSON.stringify(data),
       });
       if (res?.ok) {
-        showToast(id ? 'Formation mise à jour' : 'Formation créée', 'success');
+        showToast(id ? t('sal_toast_formation_maj') : t('sal_toast_formation_cree'), 'success');
         fermerModal();
         fetchFormations();
         return;
       }
-      let msg = 'Erreur lors de la sauvegarde';
+      let msg = t('ev_err_enregistrement');
       try {
         const err = await res.json();
         if (err?.error) msg = err.error;
@@ -167,6 +215,6 @@ document.addEventListener('DOMContentLoaded', async () => {
       return;
     } catch {}
 
-    showToast('Erreur lors de la sauvegarde', 'error');
+    showToast(t('ev_err_enregistrement'), 'error');
   });
 });

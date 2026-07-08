@@ -72,8 +72,15 @@ function bindForms(utilisateur) {
   });
 }
 
-window.demanderSuppression = () => {
-  if (confirm(t('profil_confirm_desactiver'))) {
-    showToast(t('profil_toast_desactiver'), 'warning');
-  }
+window.demanderSuppression = async () => {
+  if (!confirm(t('profil_confirm_desactiver'))) return;
+  try {
+    const res = await apiFetch('/users/me', { method: 'DELETE' });
+    if (res?.ok) {
+      showToast(t('profil_toast_desactiver'), 'info');
+      setTimeout(() => { clearToken(); window.location.href = 'index.html'; }, 1500);
+      return;
+    }
+  } catch {}
+  showToast('Erreur lors de la désactivation', 'error');
 };

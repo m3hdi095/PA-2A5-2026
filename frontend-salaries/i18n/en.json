@@ -158,7 +158,7 @@
   "profil_toast_updated":        "Profile updated.",
   "profil_toast_pwd_updated":    "Password updated.",
   "profil_confirm_desactiver":   "Are you sure you want to disable your account? Reversible within 30 days.",
-  "profil_toast_desactiver":     "Request sent. Our team will contact you.",
+  "profil_toast_desactiver":     "Account deactivated. Goodbye.",
   "sal_badge_complet":           "Full",
   "sal_badge_annule":            "Cancelled",
   "sal_badge_ouvert":            "Open",
@@ -257,5 +257,15 @@
   "ev_btn_annuler_event":  "Cancel event",
   "ev_confirm_annuler":    "Cancel the event « {titre} »? All registered participants will be refunded and notified by email.",
   "ev_succes_annule":      "Event cancelled. Participants have been refunded and notified.",
-  "ev_err_annuler":        "Unable to cancel this event."
+  "ev_err_annuler":        "Unable to cancel this event.",
+
+  "sal_toast_formation_cree":       "Session created",
+  "sal_toast_formation_maj":        "Session updated",
+  "sal_badge_actives":              "active",
+  "sal_toast_commentaire_approuve": "Comment approved",
+  "sal_toast_commentaire_refuse":   "Comment rejected",
+  "mod_signalement_label":          "pending report(s)",
+  "mod_en_attente":                 "pending",
+  "auth_compte_active":             "Account activated. You can sign in.",
+  "auth_btn_loading":               "Signing in…"
 }

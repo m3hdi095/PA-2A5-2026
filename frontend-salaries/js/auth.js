@@ -1,6 +1,8 @@
 // auth salaries
 
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
+  await chargerTraductions();
+
   const token = localStorage.getItem('uc_sal_token');
   if (token) { window.location.href = 'dashboard.html'; return; }
 
@@ -8,7 +10,7 @@ document.addEventListener('DOMContentLoaded', () => {
   if (new URLSearchParams(window.location.search).get('verified') === '1') {
     const banner = document.getElementById('auth-error') || document.createElement('p');
     banner.id = 'auth-error';
-    banner.textContent = 'Compte activé avec succès. Vous pouvez vous connecter.';
+    banner.textContent = t('auth_compte_active');
     banner.style.cssText = 'background:#e6f4ea;color:#2d4a3e;padding:10px 14px;border-radius:8px;margin-bottom:12px;font-size:.9rem;';
     document.getElementById('form-login')?.prepend(banner);
   }
@@ -41,7 +43,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!email || !password) { showError('Veuillez remplir tous les champs.'); return; }
 
     const btn = formLogin.querySelector('[type="submit"]');
-    if (btn) { btn.disabled = true; btn.textContent = 'Connexion...'; }
+    if (btn) { btn.disabled = true; btn.textContent = t('auth_btn_loading'); }
 
     try {
       const res = await apiFetch('/auth/login', {
@@ -65,7 +67,7 @@ document.addEventListener('DOMContentLoaded', () => {
     } catch {
       showError('Service indisponible. Vérifiez votre connexion et réessayez.');
     } finally {
-      if (btn) { btn.disabled = false; btn.textContent = 'Se connecter'; }
+      if (btn) { btn.disabled = false; btn.textContent = t('auth_btn_login'); }
     }
   });
 });
