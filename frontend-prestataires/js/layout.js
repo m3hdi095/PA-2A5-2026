@@ -131,7 +131,7 @@ function buildSidebarHTML() {
       <span class="nav-section-label">${t('nav_section_compte')}</span>
       <a href="stats.html" class="nav-link" data-page="stats">
         <i class="fa-solid fa-chart-line" aria-hidden="true"></i>
-        ${_lang === 'en' ? 'Statistics' : 'Statistiques'}
+        ${t('nav_stats')}
       </a>
       <a href="abonnement.html" class="nav-link" data-page="abonnement">
         <i class="fa-solid fa-crown" aria-hidden="true"></i>
@@ -139,11 +139,11 @@ function buildSidebarHTML() {
       </a>
       <a href="contrats.html" class="nav-link" data-page="contrats">
         <i class="fa-solid fa-file-contract" aria-hidden="true"></i>
-        Mes contrats
+        ${t('nav_contrats')}
       </a>
       <a href="publicites.html" class="nav-link" data-page="publicites">
         <i class="fa-solid fa-bullhorn" aria-hidden="true"></i>
-        Publicités
+        ${t('nav_publicites')}
       </a>
       <a href="profil.html" class="nav-link" data-page="profil">
         <i class="fa-solid fa-user-tie" aria-hidden="true"></i>
@@ -156,7 +156,7 @@ function buildSidebarHTML() {
     <div class="user-avatar" id="sidebar-user-avatar">P</div>
     <div class="user-meta">
       <div class="user-name" id="sidebar-user-name">Professionnel</div>
-      <div class="user-plan" id="sidebar-user-plan">${_lang === 'en' ? 'Free plan' : 'Plan Gratuit'}</div>
+      <div class="user-plan" id="sidebar-user-plan">${t('nav_plan_gratuit')}</div>
     </div>
     <button class="btn-logout" id="logout" title="${t('btn_deconnexion')}" aria-label="${t('btn_deconnexion')}">
       <i class="fa-solid fa-right-from-bracket" aria-hidden="true"></i>
@@ -356,7 +356,7 @@ async function initLayout(nomPage) {
   const planEl   = document.getElementById('sidebar-user-plan');
   const avatarEl = document.getElementById('sidebar-user-avatar');
   if (nomEl)    nomEl.textContent    = nomAff;
-  if (planEl)   planEl.textContent   = plan === 'premium' ? 'Plan Premium' : 'Plan Gratuit';
+  if (planEl)   planEl.textContent   = plan === 'premium' ? t('nav_plan_premium') : t('nav_plan_gratuit');
   if (avatarEl) avatarEl.textContent = initiale;
 
   const tbAvatar = document.getElementById('topbar-avatar');

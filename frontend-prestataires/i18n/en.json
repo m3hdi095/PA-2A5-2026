@@ -225,5 +225,16 @@
   "profil_pwd_actuel":        "Current password",
   "profil_pwd_nouveau":       "New password",
 
-  "nav_forum":                "Forum"
+  "nav_forum":                "Forum",
+
+  "nav_stats":                "Statistics",
+  "nav_contrats":             "My contracts",
+  "nav_publicites":           "Advertising",
+  "nav_plan_gratuit":         "Free plan",
+  "nav_plan_premium":         "Premium plan",
+  "pro_plan_premium_actif":   "Premium plan active",
+  "pro_plan_premium_sub":     "You enjoy material alerts, featured listings and advanced statistics.",
+  "pro_plan_premium_cta":     "Manage subscription",
+  "pro_plan_gratuit_titre":   "You're on the Free plan",
+  "pro_plan_gratuit_sub":     "Upgrade to Premium to unlock material alerts, featured listings and advanced stats."
 }

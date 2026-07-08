@@ -225,5 +225,16 @@
   "profil_pwd_actuel":        "Mot de passe actuel",
   "profil_pwd_nouveau":       "Nouveau mot de passe",
 
-  "nav_forum":                "Forum"
+  "nav_forum":                "Forum",
+
+  "nav_stats":                "Statistiques",
+  "nav_contrats":             "Mes contrats",
+  "nav_publicites":           "Publicités",
+  "nav_plan_gratuit":         "Plan Gratuit",
+  "nav_plan_premium":         "Plan Premium",
+  "pro_plan_premium_actif":   "Plan Premium actif",
+  "pro_plan_premium_sub":     "Vous bénéficiez des alertes matériaux, de la mise en avant et des statistiques avancées.",
+  "pro_plan_premium_cta":     "Gérer mon abonnement",
+  "pro_plan_gratuit_titre":   "Vous êtes sur le Plan Gratuit",
+  "pro_plan_gratuit_sub":     "Passez Premium pour débloquer les alertes matériaux, la mise en avant et les stats avancées."
 }

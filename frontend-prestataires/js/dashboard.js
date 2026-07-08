@@ -24,20 +24,20 @@ function afficherBandeauPlan(utilisateur) {
     banner.style.borderColor = 'var(--green-300)';
     document.getElementById('plan-banner-icon').className = 'fa-solid fa-crown';
     document.getElementById('plan-banner-icon').style.color = 'var(--green-700)';
-    document.getElementById('plan-banner-title').textContent = 'Plan Premium actif';
-    document.getElementById('plan-banner-sub').textContent = 'Vous bénéficiez des alertes matériaux, de la mise en avant et des statistiques avancées.';
+    document.getElementById('plan-banner-title').textContent = t('pro_plan_premium_actif');
+    document.getElementById('plan-banner-sub').textContent = t('pro_plan_premium_sub');
     const cta = document.getElementById('plan-banner-cta');
-    cta.textContent = 'Gérer mon abonnement';
+    cta.textContent = t('pro_plan_premium_cta');
     cta.className = 'btn btn-outline btn-sm';
   } else {
     banner.style.background = 'var(--beige-light,#faf8f5)';
     banner.style.borderColor = 'var(--border)';
     document.getElementById('plan-banner-icon').className = 'fa-solid fa-arrow-up-right-dots';
     document.getElementById('plan-banner-icon').style.color = 'var(--uc-teal)';
-    document.getElementById('plan-banner-title').textContent = 'Vous êtes sur le Plan Gratuit';
-    document.getElementById('plan-banner-sub').textContent = 'Passez Premium pour débloquer les alertes matériaux, la mise en avant et les stats avancées.';
+    document.getElementById('plan-banner-title').textContent = t('pro_plan_gratuit_titre');
+    document.getElementById('plan-banner-sub').textContent = t('pro_plan_gratuit_sub');
     const cta = document.getElementById('plan-banner-cta');
-    cta.textContent = 'Passer Premium';
+    cta.textContent = t('btn_upgrade');
     cta.className = 'btn btn-primary btn-sm';
   }
 }
