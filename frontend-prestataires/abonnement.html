@@ -42,9 +42,9 @@
         <div style="font-size:14px;color:var(--text-muted);font-weight:500" id="plan-desc-current">3 annonces/mois · 10 contacts/jour · Stats basiques</div>
       </div>
       <div style="text-align:center;padding:20px;background:var(--green-50);border-radius:var(--radius-lg);min-width:140px">
-        <div style="font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px">Renouvellement</div>
+        <div style="font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px" data-i18n="abo_renouvellement">Renouvellement</div>
         <div style="font-family:Poppins,sans-serif;font-size:16px;font-weight:800;color:var(--text)">- €/mois</div>
-        <div id="plan-renewal-date" style="font-size:12px;color:var(--text-muted);margin-top:4px">Plan gratuit</div>
+        <div id="plan-renewal-date" style="font-size:12px;color:var(--text-muted);margin-top:4px" data-i18n="abo_aucun_renouvellement">Plan gratuit</div>
       </div>
       <div>
         <button class="btn btn-premium btn-lg" onclick="lancerUpgrade()">
@@ -67,31 +67,31 @@
     <div class="plan-features">
       <div class="plan-feature">
         <i class="fa-solid fa-check" aria-hidden="true"></i>
-        3 réservations / mois
+        <span data-i18n="abo_feat_free_1">3 réservations / mois</span>
       </div>
       <div class="plan-feature">
         <i class="fa-solid fa-check" aria-hidden="true"></i>
-        10 consultations annonces / jour
+        <span data-i18n="abo_feat_free_2">10 consultations annonces / jour</span>
       </div>
       <div class="plan-feature">
         <i class="fa-solid fa-check" aria-hidden="true"></i>
-        Statistiques basiques
+        <span data-i18n="abo_feat_free_3">Statistiques basiques</span>
       </div>
       <div class="plan-feature">
         <i class="fa-solid fa-check" aria-hidden="true"></i>
-        Accès carte conteneurs
+        <span data-i18n="abo_feat_free_4">Accès carte conteneurs</span>
       </div>
       <div class="plan-feature disabled">
         <i class="fa-solid fa-xmark" aria-hidden="true"></i>
-        Alertes prioritaires
+        <span data-i18n="abo_feat_free_5">Alertes prioritaires</span>
       </div>
       <div class="plan-feature disabled">
         <i class="fa-solid fa-xmark" aria-hidden="true"></i>
-        Stats avancées & export CSV
+        <span data-i18n="abo_feat_free_6">Stats avancées & export CSV</span>
       </div>
       <div class="plan-feature disabled">
         <i class="fa-solid fa-xmark" aria-hidden="true"></i>
-        Support prioritaire
+        <span data-i18n="abo_feat_free_7">Support prioritaire</span>
       </div>
     </div>
     <button class="btn btn-outline" disabled style="width:100%;opacity:0.5;cursor:default" data-i18n="plan_actuel">
@@ -106,31 +106,31 @@
     <div class="plan-features">
       <div class="plan-feature">
         <i class="fa-solid fa-check" aria-hidden="true"></i>
-        Réservations illimitées
+        <span data-i18n="abo_feat_premium_1">Réservations illimitées</span>
       </div>
       <div class="plan-feature">
         <i class="fa-solid fa-check" aria-hidden="true"></i>
-        Consultations illimitées
+        <span data-i18n="abo_feat_premium_2">Consultations illimitées</span>
       </div>
       <div class="plan-feature">
         <i class="fa-solid fa-check" aria-hidden="true"></i>
-        Statistiques avancées
+        <span data-i18n="abo_feat_premium_3">Statistiques avancées</span>
       </div>
       <div class="plan-feature">
         <i class="fa-solid fa-check" aria-hidden="true"></i>
-        Alertes matériaux prioritaires
+        <span data-i18n="abo_feat_premium_4">Alertes matériaux prioritaires</span>
       </div>
       <div class="plan-feature">
         <i class="fa-solid fa-check" aria-hidden="true"></i>
-        Export CSV de vos données
+        <span data-i18n="abo_feat_premium_5">Export CSV de vos données</span>
       </div>
       <div class="plan-feature">
         <i class="fa-solid fa-check" aria-hidden="true"></i>
-        Factures PDF automatiques
+        <span data-i18n="abo_feat_premium_6">Factures PDF automatiques</span>
       </div>
       <div class="plan-feature">
         <i class="fa-solid fa-check" aria-hidden="true"></i>
-        Support prioritaire 24h
+        <span data-i18n="abo_feat_premium_7">Support prioritaire 24h</span>
       </div>
     </div>
     <button class="btn btn-secondary" onclick="lancerUpgrade()" style="width:100%;background:var(--green-200);color:var(--green-900);border-color:transparent;font-weight:700">
@@ -166,7 +166,7 @@
         <tr>
           <td colspan="6" style="text-align:center;padding:40px;color:var(--text-muted)">
             <i class="fa-solid fa-file-invoice" style="font-size:28px;color:var(--green-200);display:block;margin-bottom:10px" aria-hidden="true"></i>
-            Aucune facture. Vous êtes sur le plan gratuit.
+            <span data-i18n="abo_aucune_facture">Aucune facture. Vous êtes sur le plan gratuit.</span>
           </td>
         </tr>
       </tbody>
@@ -187,32 +187,32 @@
     <div class="modal-body">
       <div style="background:var(--green-50);border-radius:var(--radius-lg);padding:20px;text-align:center;margin-bottom:20px">
         <div style="font-family:Poppins,sans-serif;font-size:28px;font-weight:800;color:var(--green-700)"><span id="prix-premium-modal">15</span> €</div>
-        <div style="font-size:13px;color:var(--text-muted);margin-top:2px">par mois · annulable à tout moment</div>
+        <div style="font-size:13px;color:var(--text-muted);margin-top:2px" data-i18n="abo_modal_par_mois">par mois · annulable à tout moment</div>
       </div>
       <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:20px">
         <div class="plan-feature" style="color:var(--text)">
           <i class="fa-solid fa-check" style="color:var(--green-700)" aria-hidden="true"></i>
-          Réservations & contacts illimités
+          <span data-i18n="abo_modal_feat_1">Réservations & contacts illimités</span>
         </div>
         <div class="plan-feature" style="color:var(--text)">
           <i class="fa-solid fa-check" style="color:var(--green-700)" aria-hidden="true"></i>
-          Alertes matériaux prioritaires
+          <span data-i18n="abo_feat_premium_4">Alertes matériaux prioritaires</span>
         </div>
         <div class="plan-feature" style="color:var(--text)">
           <i class="fa-solid fa-check" style="color:var(--green-700)" aria-hidden="true"></i>
-          Stats avancées + export CSV
+          <span data-i18n="abo_modal_feat_3">Stats avancées + export CSV</span>
         </div>
       </div>
       <div style="margin-bottom:16px">
-        <label style="font-size:12px;font-weight:600;color:var(--text-muted);display:block;margin-bottom:6px">Carte bancaire</label>
+        <label style="font-size:12px;font-weight:600;color:var(--text-muted);display:block;margin-bottom:6px" data-i18n="abo_carte_bancaire">Carte bancaire</label>
         <div id="card-element-abo" style="border:1px solid var(--border-color);border-radius:8px;padding:12px;background:#fafafa"></div>
         <div id="card-error-abo" style="color:#c0392b;font-size:12px;margin-top:6px;display:none"></div>
       </div>
       <button id="btn-payer-abo" class="btn btn-premium" style="width:100%;padding:14px;font-size:14px" onclick="confirmerStripe()">
         <i class="fa-brands fa-stripe-s" aria-hidden="true"></i>
-        Payer avec Stripe : <span id="prix-premium-btn">15</span> €/mois
+        <span data-i18n="abo_btn_payer_stripe">Payer avec Stripe :</span> <span id="prix-premium-btn">15</span> €/mois
       </button>
-      <p style="font-size:11px;color:var(--text-muted);text-align:center;margin-top:12px">
+      <p style="font-size:11px;color:var(--text-muted);text-align:center;margin-top:12px" data-i18n="abo_paiement_securise">
         Paiement sécurisé · Stripe · Annulable à tout moment
       </p>
     </div>
@@ -255,15 +255,15 @@ async function chargerPlan() {
     planActuel = a.type_abonnement || 'freemium';
     const isPremium = planActuel === 'mensuel';
 
-    document.getElementById('plan-titre-current').textContent = isPremium ? 'Plan Premium' : 'Plan Gratuit';
+    document.getElementById('plan-titre-current').textContent = isPremium ? t('abo_plan_premium_nom') : t('abo_plan_gratuit_nom');
     document.getElementById('plan-desc-current').textContent  = isPremium
-      ? 'Réservations illimitées · Alertes prioritaires · Stats avancées'
-      : '3 réservations/mois · 10 contacts/jour · Stats basiques';
+      ? t('abo_desc_premium')
+      : t('abo_desc_gratuit');
 
     if (isPremium && a.date_fin) {
       const locale = _lang === 'en' ? 'en-GB' : 'fr-FR';
       const dateAff = new Date(a.date_fin).toLocaleDateString(locale, { day:'numeric', month:'long', year:'numeric' });
-      document.getElementById('plan-renewal-date').textContent = 'Renouvellement le ' + dateAff;
+      document.getElementById('plan-renewal-date').textContent = t('abo_renouvellement_le') + ' ' + dateAff;
       document.querySelector('[id="plan-renewal-date"]').previousElementSibling.textContent = (a.prix_mensuel || 15).toFixed(2).replace('.',',') + ' €/mois';
     }
 
@@ -272,7 +272,7 @@ async function chargerPlan() {
     if (isPremium && btnUpgrade) {
       btnUpgrade.outerHTML = `<button class="btn btn-outline btn-lg" onclick="confirmerResilier()">
         <i class="fa-solid fa-circle-xmark" aria-hidden="true"></i>
-        <span>Résilier l'abonnement</span>
+        <span>${t('abo_btn_resilier_abo')}</span>
       </button>`;
     }
 
@@ -289,12 +289,12 @@ async function chargerPlan() {
         btnCard.disabled = false;
         btnCard.style.opacity = '0.5';
         btnCard.style.cursor = 'default';
-        btnCard.textContent = 'Plan précédent';
+        btnCard.textContent = t('abo_plan_precedent');
       }
       if (btnCard && titre === 'Premium' && isPremium) {
         btnCard.disabled = true;
         btnCard.style.opacity = '0.5';
-        btnCard.textContent = 'Plan actuel';
+        btnCard.textContent = t('plan_actuel');
       }
     });
   } catch {}
@@ -310,7 +310,7 @@ async function chargerFactures() {
   const tbody = document.getElementById('factures-body');
   if (!tbody) return;
   if (!factures.length) {
-    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:20px;color:var(--text-muted)">Aucune facture disponible.</td></tr>';
+    tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;padding:20px;color:var(--text-muted)">${t('abo_aucune_facture_dispo')}</td></tr>`;
     return;
   }
   const STAT = { 'payee':'badge-success', 'payée':'badge-success', 'en_attente':'badge-warning', 'impayee':'badge-red', 'impayée':'badge-red' };
@@ -421,7 +421,7 @@ window.confirmerStripe = async () => {
   errEl.style.display = 'none';
 
   if (!_stripe || !_cardElement) {
-    showToast('Configuration Stripe manquante.', 'error');
+    showToast(t('abo_config_stripe_manquante'), 'error');
     return;
   }
 
@@ -433,7 +433,7 @@ window.confirmerStripe = async () => {
       method: 'POST',
       body: JSON.stringify({ amount: 15, currency: 'eur', type: 'abonnement', reference_id: 0 }),
     });
-    if (!piRes?.ok) { showToast('Impossible de créer le paiement.', 'error'); return; }
+    if (!piRes?.ok) { showToast(t('abo_err_creation_paiement'), 'error'); return; }
     const { client_secret } = await piRes.json();
 
     // 2. confirmer avec la carte saisie
@@ -446,42 +446,45 @@ window.confirmerStripe = async () => {
       return;
     }
 
-    // 3. activer le premium côté serveur
+    // 3. activer le premium côté serveur (on envoie l'id du PaymentIntent pour vérification)
     if (paymentIntent.status === 'succeeded') {
-      const res = await apiFetch('/abonnements/upgrade', { method: 'POST' });
+      const res = await apiFetch('/abonnements/upgrade', {
+        method: 'POST',
+        body: JSON.stringify({ payment_intent_id: paymentIntent.id }),
+      });
       if (res?.ok) {
         fermerUpgrade();
-        showToast('Abonnement Premium activé !', 'success');
+        showToast(t('abo_succes_activation'), 'success');
         await chargerPlan();
         await chargerFactures();
       } else {
-        showToast('Paiement reçu mais activation échouée. Contactez le support.', 'error');
+        showToast(t('abo_err_activation'), 'error');
       }
     }
   } catch {
-    showToast('Service indisponible. Réessayez.', 'error');
+    showToast(t('abo_service_indisponible'), 'error');
   } finally {
-    if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fa-brands fa-stripe-s"></i> Payer avec Stripe : 15 €/mois'; }
+    if (btn) { btn.disabled = false; btn.innerHTML = `<i class="fa-brands fa-stripe-s"></i> ${t('abo_btn_payer_stripe')} 15 €/mois`; }
   }
 };
 
 window.confirmerResilier = async () => {
-  if (!confirm('Résilier votre abonnement Premium ? Il restera actif jusqu\'à la fin du mois.')) return;
+  if (!confirm(t('abo_confirm_resiliation'))) return;
   try {
     const res = await apiFetch('/abonnements/resilier', { method: 'POST' });
     if (res?.ok) {
-      showToast('Résiliation programmée en fin de mois.', 'success');
+      showToast(t('abo_resiliation_programmee'), 'success');
       await chargerPlan();
       return;
     }
     const err = res ? await res.json().catch(() => ({})) : {};
-    showToast(err.error || 'Erreur lors de la résiliation', 'error');
+    showToast(err.error || t('abo_err_resiliation'), 'error');
   } catch {
-    showToast('Service indisponible. Réessayez.', 'error');
+    showToast(t('abo_service_indisponible'), 'error');
   }
 };
 
-window.exporterFactures = () => showToast('Export disponible avec l\'abonnement Premium activé', 'info');
+window.exporterFactures = () => showToast(t('abo_export_premium_requis'), 'info');
 </script>
 
 </body>

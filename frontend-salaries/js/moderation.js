@@ -64,7 +64,7 @@ function updateBadge() {
   const badge = document.getElementById('badge-signalements');
   if (!badge) return;
   const n = signalements.length;
-  badge.textContent = n + ' signalement' + (n !== 1 ? 's' : '') + ' en attente';
+  badge.textContent = n + ' ' + t('mod_signalement_label');
   badge.className   = n === 0 ? 'badge badge-success' : 'badge badge-warning';
 }
 
@@ -124,7 +124,7 @@ function renderCommentaires() {
 
   if (badge) {
     badge.style.display = '';
-    badge.textContent = commentairesEnAttente.length + ' en attente';
+    badge.textContent = commentairesEnAttente.length + ' ' + t('mod_en_attente');
   }
 
   container.innerHTML = commentairesEnAttente.map((c, i) => `
@@ -156,7 +156,7 @@ window.modererCommentaire = async (id, decision) => {
     if (res?.ok) {
       commentairesEnAttente = commentairesEnAttente.filter(c => c.id !== id);
       renderCommentaires();
-      showToast(decision === 'approuve' ? 'Commentaire approuvé' : 'Commentaire refusé', decision === 'approuve' ? 'success' : 'warning');
+      showToast(decision === 'approuve' ? t('sal_toast_commentaire_approuve') : t('sal_toast_commentaire_refuse'), decision === 'approuve' ? 'success' : 'warning');
       return;
     }
     showToast('Erreur', 'error');

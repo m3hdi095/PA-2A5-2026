@@ -335,10 +335,17 @@ window.deconnexion = () => {
   window.location.href = 'index.html';
 };
 
-window.demanderSuppression = () => {
-  if (confirm('Êtes-vous sûr de vouloir désactiver votre compte ? Cette action est réversible sous 30 jours.')) {
-    showToast('Demande de désactivation envoyée. Notre équipe vous contactera.', 'warning');
-  }
+window.demanderSuppression = async () => {
+  if (!confirm('Êtes-vous sûr de vouloir désactiver votre compte ? Cette action est réversible sous 30 jours.')) return;
+  try {
+    const res = await apiFetch('/users/me', { method: 'DELETE' });
+    if (res?.ok) {
+      showToast('Compte désactivé. À bientôt.', 'info');
+      setTimeout(() => { clearToken(); window.location.href = 'index.html'; }, 1500);
+      return;
+    }
+  } catch {}
+  showToast('Erreur lors de la désactivation', 'error');
 };
 </script>
 

@@ -75,15 +75,24 @@ func GetQuestionnaire(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	role, _ := r.Context().Value(middleware.ContextRole).(string)
+
 	var q struct {
 		ID        uint   `json:"id"`
 		Questions string `json:"questions"`
 		Statut    string `json:"statut"`
 	}
-	err = database.DB.QueryRow(
-		`SELECT id_questionnaire, questions, statut FROM questionnaire_satisfaction WHERE id_evenement = ? AND statut = 'envoye' LIMIT 1`,
-		eventID,
-	).Scan(&q.ID, &q.Questions, &q.Statut)
+
+	var query string
+	if role == "salarie" || role == "admin" {
+		// salarié : voir brouillon ET envoye
+		query = `SELECT id_questionnaire, questions, statut FROM questionnaire_satisfaction WHERE id_evenement = ? ORDER BY id_questionnaire DESC LIMIT 1`
+	} else {
+		// participant : seulement les questionnaires envoyés
+		query = `SELECT id_questionnaire, questions, statut FROM questionnaire_satisfaction WHERE id_evenement = ? AND statut = 'envoye' LIMIT 1`
+	}
+
+	err = database.DB.QueryRow(query, eventID).Scan(&q.ID, &q.Questions, &q.Statut)
 	if err != nil {
 		http.Error(w, `{"error":"Questionnaire introuvable"}`, http.StatusNotFound)
 		return

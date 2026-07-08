@@ -116,6 +116,10 @@ function renderProjets() {
               Voir
             </button>
             ${btnsStatut}
+            <button class="btn btn-ghost btn-sm" style="font-size:11px" onclick="toggleCommunaute(${p.id}, ${!p.partage_communaute})">
+              <i class="fa-solid ${p.partage_communaute ? 'fa-eye-slash' : 'fa-users'}" aria-hidden="true"></i>
+              ${p.partage_communaute ? 'Retirer' : 'Publier'}
+            </button>
           </div>
         </div>
       </div>`;
@@ -203,6 +207,29 @@ window.changerStatut = async (id, statut) => {
       if (p) p.statut = statut;
       renderProjets();
       showToast('Statut mis à jour', 'success');
+    } else {
+      const d = res ? await res.json().catch(() => ({})) : {};
+      showToast(d.error || 'Erreur lors de la mise à jour', 'error');
+    }
+  } catch {
+    showToast('Service indisponible.', 'error');
+  }
+};
+
+window.toggleCommunaute = async (id, valeur) => {
+  try {
+    const res = await apiFetch(`/projets/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify({ partage_communaute: valeur }),
+    });
+    if (res?.ok) {
+      const p = projetsData.find(x => x.id === id);
+      if (p) {
+        p.partage_communaute = valeur;
+        p.statut = valeur ? 'attente' : 'en_cours';
+      }
+      renderProjets();
+      showToast(valeur ? 'Projet soumis à la communauté' : 'Projet retiré de la communauté', 'success');
     } else {
       const d = res ? await res.json().catch(() => ({})) : {};
       showToast(d.error || 'Erreur lors de la mise à jour', 'error');

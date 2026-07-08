@@ -1,8 +1,7 @@
 package services
 
-// abonnements prestataires, freemium vers mensuel
-// le webhook active l'abonnement apres paiement Stripe, Upgrade() c'est le cas manuel sans verification
-// FIXME: Upgrade() s'active sans attendre Stripe, a corriger
+// abonnements prestataires, freemium vers premium
+// Upgrade() est appelé par le handler seulement après vérification du PaymentIntent Stripe
 
 import (
 	"errors"

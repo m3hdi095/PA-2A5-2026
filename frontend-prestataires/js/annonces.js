@@ -213,7 +213,11 @@ window.resetFiltres = () => {
   document.getElementById('cat-filter').value    = '';
   const pf = document.getElementById('projet-filter');
   if (pf) pf.value = '';
+  appliquerFiltres();
+};
 
+window.ouvrirDetail = (id) => {
+  const annonce = donneesSource.find(a => a.id === id);
   if (!annonce) return;
 
   const icone = CAT_ICONES_MAP[annonce.categorie] || 'fa-box-open';
@@ -264,11 +268,11 @@ window.resetFiltres = () => {
 
   document.getElementById('btn-reserver-modal').onclick = () => {
     fermerModalDetail();
-    reserverAnnonce(id);
+    reserverAnnonce(annonce.id);
   };
   document.getElementById('btn-contacter-modal').onclick = () => {
     fermerModalDetail();
-    ouvrirConversation(id);
+    ouvrirConversation(annonce.id);
   };
 
   document.getElementById('modal-detail').classList.add('open');
@@ -388,12 +392,24 @@ window.fermerModalMsg = () => {
 window.reserverAnnonce = async (id) => {
   const annonce = donneesSource.find(a => a.id === id);
   if (!annonce) return;
-  const label = annonce.type_annonce === 'don' ? 'récupérer ce don' : `acheter "${escPro(annonce.titre)}" pour ${annonce.prix} €`;
-  if (!confirm(`Confirmer : ${label} ?`)) return;
+
+  if (annonce.type_annonce === 'vente' && annonce.prix > 0) {
+    _annonceAPayer = annonce;
+    document.getElementById('paiement-annonce-info').innerHTML =
+      `<strong>${escPro(annonce.titre)}</strong><br>
+       <span style="font-size:22px;font-weight:800;color:var(--green-700);font-family:Poppins,sans-serif">${annonce.prix} €</span>`;
+    const btn = document.getElementById('btn-payer-annonce');
+    if (btn) btn.innerHTML = `<i class="fa-brands fa-stripe-s"></i> Payer ${annonce.prix} €`;
+    document.getElementById('modal-paiement-annonce').classList.add('open');
+    await initStripeAnnonce();
+    return;
+  }
+
+  if (!confirm(`Confirmer la récupération de "${escPro(annonce.titre)}" ?`)) return;
   try {
     const res = await apiFetch(`/annonces/${id}/reserver`, { method: 'POST' });
     if (res?.ok) {
-      showToast(annonce.type_annonce === 'don' ? 'Don réservé avec succès !' : 'Achat confirmé !', 'success');
+      showToast('Don réservé avec succès !', 'success');
       donneesSource = donneesSource.filter(a => a.id !== id);
       appliquerFiltres();
       return;
@@ -401,6 +417,88 @@ window.reserverAnnonce = async (id) => {
     const d = res ? await res.json().catch(() => ({})) : {};
     showToast(d.error || 'Réservation impossible', 'error');
   } catch { showToast('Service indisponible.', 'error'); }
+};
+
+let _stripe = null;
+let _cardElement = null;
+let _annonceAPayer = null;
+
+async function getStripePK() {
+  try {
+    const res = await fetch(`${apiBase}/config`);
+    if (res.ok) { const d = await res.json(); return d.stripe_pk || ''; }
+  } catch {}
+  return '';
+}
+
+async function initStripeAnnonce() {
+  if (_stripe && _cardElement) return;
+  const pk = await getStripePK();
+  if (!pk || !window.Stripe) return;
+  _stripe = Stripe(pk);
+  const elements = _stripe.elements();
+  _cardElement = elements.create('card', {
+    style: { base: { fontFamily: 'Poppins, sans-serif', fontSize: '14px', color: '#302e2c' } },
+  });
+  _cardElement.mount('#card-element-annonce');
+  _cardElement.on('change', e => {
+    const errEl = document.getElementById('card-error-annonce');
+    if (e.error) { errEl.textContent = e.error.message; errEl.style.display = 'block'; }
+    else { errEl.style.display = 'none'; }
+  });
+}
+
+window.fermerModalPaiement = () => {
+  document.getElementById('modal-paiement-annonce')?.classList.remove('open');
+};
+
+window.confirmerPaiementAnnonce = async () => {
+  if (!_annonceAPayer) return;
+  if (!_stripe || !_cardElement) { showToast('Configuration Stripe manquante.', 'error'); return; }
+
+  const btn = document.getElementById('btn-payer-annonce');
+  const errEl = document.getElementById('card-error-annonce');
+  errEl.style.display = 'none';
+  if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Traitement...'; }
+
+  const annonce = _annonceAPayer;
+  try {
+    const piRes = await apiFetch('/create-payment-intent', {
+      method: 'POST',
+      body: JSON.stringify({ amount: annonce.prix, currency: 'eur', type: 'transaction', reference_id: annonce.id }),
+    });
+    if (!piRes?.ok) { showToast('Impossible de créer le paiement.', 'error'); return; }
+    const { client_secret } = await piRes.json();
+
+    const { error, paymentIntent } = await _stripe.confirmCardPayment(client_secret, {
+      payment_method: { card: _cardElement },
+    });
+    if (error) {
+      errEl.textContent = error.message;
+      errEl.style.display = 'block';
+      return;
+    }
+
+    if (paymentIntent.status === 'succeeded') {
+      const res = await apiFetch(`/annonces/${annonce.id}/reserver`, {
+        method: 'POST',
+        body: JSON.stringify({ payment_intent_id: paymentIntent.id }),
+      });
+      if (res?.ok) {
+        fermerModalPaiement();
+        showToast('Achat confirmé ! Facture disponible dans votre profil.', 'success');
+        donneesSource = donneesSource.filter(a => a.id !== annonce.id);
+        _annonceAPayer = null;
+        appliquerFiltres();
+        return;
+      }
+      const d = res ? await res.json().catch(() => ({})) : {};
+      showToast(d.error || 'Paiement reçu mais réservation échouée.', 'error');
+    }
+  } catch { showToast('Service indisponible.', 'error'); }
+  finally {
+    if (btn) { btn.disabled = false; btn.innerHTML = `<i class="fa-brands fa-stripe-s"></i> Payer ${annonce.prix} €`; }
+  }
 };
 
 function escPro(str) {

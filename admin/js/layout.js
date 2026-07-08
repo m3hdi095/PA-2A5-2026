@@ -123,11 +123,11 @@ function buildSidebarHTML() {
       </a>
       <a href="contrats.html" class="nav-link" data-page="contrats">
         <i class="fa-solid fa-file-contract" aria-hidden="true"></i>
-        Contrats
+        ${t('nav_contrats')}
       </a>
       <a href="tournees.html" class="nav-link" data-page="tournees">
         <i class="fa-solid fa-truck" aria-hidden="true"></i>
-        Tournées
+        ${t('nav_tournees')}
       </a>
       <a href="notifications.html" class="nav-link" data-page="notifications">
         <i class="fa-solid fa-bell" aria-hidden="true"></i>
@@ -148,7 +148,7 @@ function buildSidebarHTML() {
     <div class="user-avatar" id="sidebar-user-avatar">A</div>
     <div class="user-meta">
       <div class="user-name" id="sidebar-user-name">Admin</div>
-      <div class="user-role" id="sidebar-user-role">${_lang === 'en' ? 'Administrator' : 'Administrateur'}</div>
+      <div class="user-role" id="sidebar-user-role">${t('nav_role_admin')}</div>
     </div>
     <button class="btn-logout" id="logout" title="${t('nav_logout')}" aria-label="${t('nav_logout')}">
       <i class="fa-solid fa-right-from-bracket" aria-hidden="true"></i>
@@ -157,21 +157,27 @@ function buildSidebarHTML() {
 </aside>`;
 }
 
-// noms des pages pour le breadcrumb
-const PAGE_NOMS = {
-  dashboard:     'Tableau de bord',
-  users:         'Utilisateurs',
-  validations:   'Validations',
-  categories:    'Catégories',
-  prestations:   'Prestations',
-  factures:      'Facturation',
-  conteneurs:    'Conteneurs',
-  notifications: 'Notifications',
-  parametres:    'Paramètres',
-};
+// noms des pages pour le breadcrumb (appelé après chargerTraductions pour que t() fonctionne)
+function getPageNoms() {
+  return {
+    dashboard:     t('page_dashboard'),
+    users:         t('page_users'),
+    validations:   t('page_validations'),
+    categories:    t('page_categories'),
+    prestations:   t('page_prestations'),
+    factures:      t('page_factures'),
+    conteneurs:    t('page_conteneurs'),
+    notifications: t('page_notifications'),
+    parametres:    t('page_parametres'),
+    contrats:      t('page_contrats'),
+    publicite:     t('page_publicite'),
+    tournees:      t('page_tournees'),
+    publicites:    t('page_publicites'),
+  };
+}
 
 function buildTopbarHTML(nomPage) {
-  const titrePages = PAGE_NOMS[nomPage] || nomPage;
+  const titrePages = getPageNoms()[nomPage] || nomPage;
   const estDashboard = nomPage === 'dashboard';
   return `
 <header class="topbar" id="topbar">
@@ -439,7 +445,7 @@ async function initLayout(_nomPage) {
   const roleEl   = document.getElementById('sidebar-user-role');
   const avatarEl = document.getElementById('sidebar-user-avatar');
   if (nomEl)    nomEl.textContent    = nomAffiche;
-  if (roleEl)   roleEl.textContent   = 'Administrateur';
+  if (roleEl)   roleEl.textContent   = t('nav_role_admin');
   if (avatarEl) avatarEl.textContent = initiale;
 
   // Topbar aussi

@@ -7,6 +7,7 @@ import (
 	"crypto/rand"
 	"encoding/hex"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"time"
 
@@ -58,8 +59,8 @@ func ForgotPassword(w http.ResponseWriter, r *http.Request) {
 
 func ResetPassword(w http.ResponseWriter, r *http.Request) {
 	var input struct {
-		Token       string `json:"token"`
-		NouveauMdp  string `json:"nouveau_mdp"`
+		Token      string `json:"token"`
+		NouveauMdp string `json:"nouveau_mdp"`
 	}
 	if err := json.NewDecoder(r.Body).Decode(&input); err != nil || input.Token == "" || input.NouveauMdp == "" {
 		http.Error(w, `{"error":"Données invalides"}`, http.StatusBadRequest)
@@ -107,18 +108,21 @@ func SendVerificationEmail(userID uint, email, prenom string) {
 func VerifyEmail(w http.ResponseWriter, r *http.Request) {
 	token := r.URL.Query().Get("token")
 	if token == "" {
-		http.Error(w, `{"error":"Token manquant"}`, http.StatusBadRequest)
+		w.Header().Set("Content-Type", "text/html; charset=utf-8")
+		w.WriteHeader(http.StatusBadRequest)
+		fmt.Fprint(w, verifyPage("Token manquant", "Aucun token de vérification fourni.", ""))
 		return
 	}
 
-	// on récupère le rôle avant de modifier pour pouvoir rediriger vers le bon espace
 	var userID uint
 	var role string
 	err := database.DB.QueryRow(
 		`SELECT id_utilisateur, role FROM utilisateur WHERE email_token = ?`, token,
 	).Scan(&userID, &role)
 	if err != nil {
-		http.Error(w, `{"error":"Token invalide ou déjà utilisé"}`, http.StatusBadRequest)
+		w.Header().Set("Content-Type", "text/html; charset=utf-8")
+		w.WriteHeader(http.StatusBadRequest)
+		fmt.Fprint(w, verifyPage("Lien invalide ou déjà utilisé", "Ce lien a déjà été utilisé ou est expiré. Vous pouvez vous connecter directement si votre compte est actif.", ""))
 		return
 	}
 
@@ -126,14 +130,40 @@ func VerifyEmail(w http.ResponseWriter, r *http.Request) {
 		`UPDATE utilisateur SET actif = 1, email_verifie = 1, email_token = NULL WHERE id_utilisateur = ?`, userID,
 	)
 
-	redirects := map[string]string{
-		"particulier":   "/frontend-particuliers/index.html?verified=1",
-		"professionnel": "/frontend-prestataires/index.html?verified=1",
-		"salarie":       "/frontend-salaries/index.html?verified=1",
+	loginPaths := map[string]string{
+		"particulier":   "/frontend-particuliers/index.html",
+		"professionnel": "/frontend-prestataires/index.html",
+		"salarie":       "/frontend-salaries/index.html",
 	}
-	path, ok := redirects[role]
+	loginPath, ok := loginPaths[role]
 	if !ok {
-		path = "/index.html?verified=1"
+		loginPath = "/index.html"
 	}
-	http.Redirect(w, r, config.AppConfig.BaseURL+path, http.StatusFound)
+	loginURL := config.AppConfig.BaseURL + loginPath
+
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	fmt.Fprint(w, verifyPage("✓ Compte activé avec succès !", "Votre adresse email a été vérifiée. Vous allez être redirigé vers la page de connexion…", loginURL))
+}
+
+func verifyPage(titre, message, loginURL string) string {
+	meta := ""
+	link := ""
+	if loginURL != "" {
+		meta = fmt.Sprintf(`<meta http-equiv="refresh" content="4;url=%s">`, loginURL)
+		link = fmt.Sprintf(`<p><a href="%s">Cliquer ici si la redirection ne fonctionne pas</a></p>`, loginURL)
+	}
+	return fmt.Sprintf(`<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">%s
+<title>Vérification email UpcycleConnect</title>
+<style>body{font-family:sans-serif;text-align:center;padding:80px 20px;color:#1c1917;background:#f9fafb}
+h2{color:#0d9488;margin-bottom:16px}p{color:#57534e}a{color:#0d9488}</style>
+</head>
+<body>
+<h2>%s</h2>
+<p>%s</p>
+%s
+</body>
+</html>`, meta, titre, message, link)
 }

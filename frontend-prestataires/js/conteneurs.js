@@ -261,7 +261,7 @@ window.confirmerScan = async () => {
           _stripeCardScan = elements.create('card', { style: { base: { fontFamily: 'Poppins, sans-serif', fontSize: '14px' } } });
           _stripeCardScan.mount('#card-element-scan');
         } else if (!stripe && cardEl) {
-          cardEl.innerHTML = '<p style="font-size:12px;color:var(--text-muted);text-align:center;padding:8px">Stripe non configuré (mode démo)</p>';
+          cardEl.innerHTML = '<p style="font-size:12px;color:var(--danger);text-align:center;padding:8px"><i class="fa-solid fa-circle-exclamation"></i> Paiement en ligne indisponible. Contactez l\'administrateur.</p>';
         }
         fermerModalScan();
         document.getElementById('modal-paiement-scan')?.classList.add('open');

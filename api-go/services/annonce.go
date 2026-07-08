@@ -2,7 +2,6 @@ package services
 
 // logique des annonces de materiaux
 // les annonces arrivent en brouillon, l'admin doit valider avant qu'elles soient visibles
-// TODO: envoyer une notification à l'auteur quand son annonce est validée ou refusée
 
 import (
 	"errors"
@@ -109,17 +108,22 @@ func (s *AnnonceService) ValidateAnnonce(id uint, adminID uint, decision, commen
 	if err != nil {
 		return err
 	}
-	if decision == "validee" {
-		ownerID := propriétaireAnnonce(id)
-		if ownerID != 0 {
+	ownerID := propriétaireAnnonce(id)
+	if ownerID != 0 {
+		notifSvc := NewNotificationService()
+		if decision == "validee" {
 			database.AddUpcyclingScore(ownerID, 5, "annonce_validee")
-			notifSvc := NewNotificationService()
 			_ = notifSvc.SendNotification(ownerID,
 				"Annonce validée !",
 				"Votre annonce a été validée et est maintenant visible par tous les membres.",
 				"info", "push")
+			database.DB.Exec(`UPDATE annonce SET date_expiration = DATE_ADD(NOW(), INTERVAL 30 DAY) WHERE id_annonce = ?`, id)
+		} else {
+			_ = notifSvc.SendNotification(ownerID,
+				"Annonce refusée",
+				"Votre annonce n'a pas été validée. Contactez un administrateur pour plus d'informations.",
+				"warning", "push")
 		}
-		database.DB.Exec(`UPDATE annonce SET date_expiration = DATE_ADD(NOW(), INTERVAL 30 DAY) WHERE id_annonce = ?`, id)
 	}
 	return s.repo.UpdateStatus(id, decision)
 }

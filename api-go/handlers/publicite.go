@@ -90,6 +90,10 @@ func CreatePublicite(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, `{"error":"Données invalides"}`, http.StatusBadRequest)
 		return
 	}
+	if input.IDProfessionnel == 0 {
+		http.Error(w, `{"error":"ID du professionnel partenaire manquant ou invalide"}`, http.StatusBadRequest)
+		return
+	}
 	adminID := r.Context().Value(middleware.ContextUserID).(uint)
 	res, err := database.DB.Exec(
 		`INSERT INTO publicite (titre, type_pub, budget_mensuel, date_debut, date_fin, statut, id_professionnel, id_admin_validation)

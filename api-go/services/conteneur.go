@@ -116,15 +116,6 @@ func (s *ConteneurService) ValidateDepot(depotID uint, adminID uint, accept bool
 			}
 			go s.sendNotif(depot.IDParticulier, "Depot valide",
 				fmt.Sprintf("Votre depot a ete valide. Presentez le code barre %s pour deposer votre objet.", depot.CodeBarreRetrait))
-		}
-	} else {
-		err = s.depotRepo.UpdateStatus(depotID, "refuse", nil, motif)
-		if err == nil {
-			msg := "Votre dépôt a été refusé."
-			if motif != "" {
-				msg += " Motif : " + motif
-			}
-			go s.sendNotif(depot.IDParticulier, "Dépôt refusé", msg)
 			go func(d *models.Depot) {
 				userRepo := &repositories.UserRepository{}
 				user, err := userRepo.GetByID(d.IDParticulier)
@@ -134,7 +125,15 @@ func (s *ConteneurService) ValidateDepot(depotID uint, adminID uint, accept bool
 					_ = utils.SendEmail(user.Email, sujet, corps)
 				}
 			}(depot)
-
+		}
+	} else {
+		err = s.depotRepo.UpdateStatus(depotID, "refuse", nil, motif)
+		if err == nil {
+			msg := "Votre dépôt a été refusé."
+			if motif != "" {
+				msg += " Motif : " + motif
+			}
+			go s.sendNotif(depot.IDParticulier, "Dépôt refusé", msg)
 		}
 	}
 	return err

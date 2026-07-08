@@ -57,10 +57,10 @@ func (r *UserRepository) GetByEmail(email string) (*models.Utilisateur, error) {
 }
 
 func (r *UserRepository) Create(user *models.Utilisateur) error {
-	query := `INSERT INTO utilisateur (email, mot_de_passe, nom, prenom, role, adresse, ville, code_postal, telephone, langue_preferee)
-              VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+	query := `INSERT INTO utilisateur (email, mot_de_passe, nom, prenom, role, adresse, ville, code_postal, telephone, langue_preferee, actif)
+              VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
 	result, err := database.DB.Exec(query, user.Email, user.MotDePasse, user.Nom, user.Prenom, user.Role,
-		user.Adresse, user.Ville, user.CodePostal, user.Telephone, user.LanguePreferee)
+		user.Adresse, user.Ville, user.CodePostal, user.Telephone, user.LanguePreferee, user.Actif)
 	if err != nil {
 		return err
 	}
@@ -72,7 +72,7 @@ func (r *UserRepository) Create(user *models.Utilisateur) error {
 	case "particulier":
 		database.DB.Exec(`INSERT IGNORE INTO particulier (id_particulier, upcycling_score_total) VALUES (?, 0)`, user.ID)
 	case "professionnel":
-		database.DB.Exec(`INSERT IGNORE INTO professionnel (id_professionnel, nom_entreprise, siret, type_metier, niveau_abonnement) VALUES (?, '', '', '', 'free')`, user.ID)
+		database.DB.Exec(`INSERT IGNORE INTO professionnel (id_professionnel, nom_entreprise, siret, type_metier, niveau_abonnement) VALUES (?, '', '', '', 'freemium')`, user.ID)
 	}
 	return nil
 }
@@ -359,7 +359,9 @@ func (r *DepotRepository) UpdateRecuperation(id uint, dateRecup time.Time) error
 }
 
 func (r *DepotRepository) GetByID(id uint) (*models.Depot, error) {
-	row := database.DB.QueryRow("SELECT id_depot, statut, date_demande, date_validation, date_depot, date_recuperation, code_ouverture, code_barre_retrait, motif_refus, id_particulier, id_conteneur, id_objet FROM depot WHERE id_depot = ?", id)
+	row := database.DB.QueryRow(`SELECT id_depot, statut, date_demande, date_validation, date_depot, date_recuperation,
+		COALESCE(code_ouverture,''), COALESCE(code_barre_retrait,''), COALESCE(motif_refus,''),
+		id_particulier, id_conteneur, id_objet FROM depot WHERE id_depot = ?`, id)
 	var d models.Depot
 	err := row.Scan(&d.ID, &d.Statut, &d.DateDemande, &d.DateValidation, &d.DateDepot, &d.DateRecuperation, &d.CodeOuverture, &d.CodeBarreRetrait, &d.MotifRefus, &d.IDParticulier, &d.IDConteneur, &d.IDObjet)
 	if err == sql.ErrNoRows {
@@ -1018,7 +1020,9 @@ func (r *DepotRepository) ListExpiredValides() ([]models.Depot, error) {
 
 func (r *DepotRepository) GetByCodeBarre(code string) (*models.Depot, error) {
 	row := database.DB.QueryRow(
-		"SELECT id_depot, statut, date_demande, date_validation, date_depot, date_recuperation, code_ouverture, code_barre_retrait, motif_refus, id_particulier, id_conteneur, id_objet FROM depot WHERE code_barre_retrait = ? LIMIT 1",
+		`SELECT id_depot, statut, date_demande, date_validation, date_depot, date_recuperation,
+		COALESCE(code_ouverture,''), COALESCE(code_barre_retrait,''), COALESCE(motif_refus,''),
+		id_particulier, id_conteneur, id_objet FROM depot WHERE code_barre_retrait = ? LIMIT 1`,
 		code,
 	)
 	d := &models.Depot{}
