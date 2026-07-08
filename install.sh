@@ -143,3 +143,4 @@ echo "   API     : http://localhost:8080/api"
 echo ""
 echo "  Compte admin par défaut : admin@upcycleconnect.fr / admin2026"
 echo "  (changez le mot de passe après la première connexion)"
+@

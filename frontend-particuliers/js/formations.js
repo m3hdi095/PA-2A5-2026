@@ -177,7 +177,7 @@ window.confirmerPaiementFormation = async () => {
       if (paymentIntent?.status === 'succeeded') {
         await apiFetch('/evenements/inscription', { method: 'POST', body: JSON.stringify({ evenement_id: _paiementEventId }) });
         document.getElementById('modal-paiement-formation').classList.remove('open');
-        showToast('Inscription confirmée ! Votre facture sera envoyée par email.', 'success');
+        showToast('Inscription confirmée ! Votre facture est disponible dans votre profil.', 'success');
         await chargerFormations();
         return;
       }

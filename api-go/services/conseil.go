@@ -22,12 +22,12 @@ func (s *ConseilService) ListPublies(lang string) ([]models.ArticleConseil, erro
 		`SELECT c.id_conseil,
 			COALESCE(MAX(t_titre.valeur_traduite), c.titre),
 			COALESCE(MAX(t_contenu.valeur_traduite), c.contenu),
-			c.statut, c.date_publication, c.id_salarie_redacteur, c.id_admin_validation
+			c.statut, c.date_publication, c.id_salarie_redacteur, c.id_admin_validation, c.date_fin
 		FROM conseil c
 		LEFT JOIN traduction t_titre   ON t_titre.table_concernee   = 'conseil' AND t_titre.id_enregistrement   = c.id_conseil AND t_titre.champ   = 'titre'   AND t_titre.langue   = ?
 		LEFT JOIN traduction t_contenu ON t_contenu.table_concernee = 'conseil' AND t_contenu.id_enregistrement = c.id_conseil AND t_contenu.champ = 'contenu' AND t_contenu.langue = ?
 		WHERE c.statut = 'publie'
-		GROUP BY c.id_conseil, c.titre, c.contenu, c.statut, c.date_publication, c.id_salarie_redacteur, c.id_admin_validation
+		GROUP BY c.id_conseil, c.titre, c.contenu, c.statut, c.date_publication, c.id_salarie_redacteur, c.id_admin_validation, c.date_fin
 		ORDER BY c.date_publication DESC`,
 		lang, lang,
 	)
@@ -39,7 +39,7 @@ func (s *ConseilService) ListPublies(lang string) ([]models.ArticleConseil, erro
 	var articles []models.ArticleConseil
 	for rows.Next() {
 		var a models.ArticleConseil
-		rows.Scan(&a.ID, &a.Titre, &a.Contenu, &a.Statut, &a.DatePublication, &a.IDSalarieRedacteur, &a.IDAdminValidation)
+		rows.Scan(&a.ID, &a.Titre, &a.Contenu, &a.Statut, &a.DatePublication, &a.IDSalarieRedacteur, &a.IDAdminValidation, &a.DateFin)
 		articles = append(articles, a)
 	}
 	return articles, nil
@@ -47,7 +47,7 @@ func (s *ConseilService) ListPublies(lang string) ([]models.ArticleConseil, erro
 
 func (s *ConseilService) ListMesArticles(salarieID uint) ([]models.ArticleConseil, error) {
 	rows, err := database.DB.Query(
-		`SELECT id_conseil, titre, contenu, statut, date_publication, id_salarie_redacteur, id_admin_validation
+		`SELECT id_conseil, titre, contenu, statut, date_publication, id_salarie_redacteur, id_admin_validation, date_fin
          FROM conseil WHERE id_salarie_redacteur = ? ORDER BY date_publication DESC`,
 		salarieID,
 	)
@@ -59,7 +59,7 @@ func (s *ConseilService) ListMesArticles(salarieID uint) ([]models.ArticleConsei
 	var articles []models.ArticleConseil
 	for rows.Next() {
 		var a models.ArticleConseil
-		rows.Scan(&a.ID, &a.Titre, &a.Contenu, &a.Statut, &a.DatePublication, &a.IDSalarieRedacteur, &a.IDAdminValidation)
+		rows.Scan(&a.ID, &a.Titre, &a.Contenu, &a.Statut, &a.DatePublication, &a.IDSalarieRedacteur, &a.IDAdminValidation, &a.DateFin)
 		articles = append(articles, a)
 	}
 	return articles, nil
@@ -68,7 +68,7 @@ func (s *ConseilService) ListMesArticles(salarieID uint) ([]models.ArticleConsei
 func (s *ConseilService) ListEnAttente() ([]models.ArticleConseil, error) {
 	rows, err := database.DB.Query(
 		`SELECT c.id_conseil, c.titre, c.contenu, c.statut, c.date_publication,
-		        c.id_salarie_redacteur,
+		        c.id_salarie_redacteur, c.date_fin,
 		        CONCAT(COALESCE(u.prenom,''), ' ', COALESCE(u.nom,''))
 		 FROM conseil c
 		 LEFT JOIN utilisateur u ON u.id_utilisateur = c.id_salarie_redacteur
@@ -82,7 +82,7 @@ func (s *ConseilService) ListEnAttente() ([]models.ArticleConseil, error) {
 	var articles []models.ArticleConseil
 	for rows.Next() {
 		var a models.ArticleConseil
-		rows.Scan(&a.ID, &a.Titre, &a.Contenu, &a.Statut, &a.DatePublication, &a.IDSalarieRedacteur, &a.Auteur)
+		rows.Scan(&a.ID, &a.Titre, &a.Contenu, &a.Statut, &a.DatePublication, &a.IDSalarieRedacteur, &a.DateFin, &a.Auteur)
 		articles = append(articles, a)
 	}
 	return articles, nil
@@ -94,8 +94,8 @@ func (s *ConseilService) Create(article *models.ArticleConseil) error {
 	}
 	article.Statut = "en_attente"
 	result, err := database.DB.Exec(
-		`INSERT INTO conseil (titre, contenu, statut, id_salarie_redacteur) VALUES (?, ?, ?, ?)`,
-		article.Titre, article.Contenu, article.Statut, article.IDSalarieRedacteur,
+		`INSERT INTO conseil (titre, contenu, statut, id_salarie_redacteur, date_fin) VALUES (?, ?, ?, ?, ?)`,
+		article.Titre, article.Contenu, article.Statut, article.IDSalarieRedacteur, article.DateFin,
 	)
 	if err != nil {
 		return err
@@ -120,8 +120,8 @@ func (s *ConseilService) Update(article *models.ArticleConseil, salarieID uint) 
 		return errors.New("un article publié ne peut pas être modifié")
 	}
 	_, err = database.DB.Exec(
-		`UPDATE conseil SET titre = ?, contenu = ?, statut = 'en_attente' WHERE id_conseil = ?`,
-		article.Titre, article.Contenu, article.ID,
+		`UPDATE conseil SET titre = ?, contenu = ?, date_fin = ?, statut = 'en_attente' WHERE id_conseil = ?`,
+		article.Titre, article.Contenu, article.DateFin, article.ID,
 	)
 	return err
 }

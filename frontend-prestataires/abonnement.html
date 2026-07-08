@@ -313,7 +313,7 @@ async function chargerFactures() {
     tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:20px;color:var(--text-muted)">Aucune facture disponible.</td></tr>';
     return;
   }
-  const STAT = { 'payée':'badge-success', 'en_attente':'badge-warning', 'impayée':'badge-red' };
+  const STAT = { 'payee':'badge-success', 'payée':'badge-success', 'en_attente':'badge-warning', 'impayee':'badge-red', 'impayée':'badge-red' };
   const locale = _lang === 'en' ? 'en-GB' : 'fr-FR';
   tbody.innerHTML = factures.map((f, i) => `
     <tr>

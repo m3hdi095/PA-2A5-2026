@@ -27,6 +27,59 @@ func getPaiementService() *services.PaiementService {
 	return services.NewPaiementService()
 }
 
+// creerFactureManuel est appelé par les handlers métier (upgrade, inscription, récupération)
+// quand le webhook Stripe ne peut pas atteindre localhost en dev, ou arrive trop tard.
+// INSERT IGNORE sur numero_facture (UNIQUE) évite le doublon si le webhook tire quand même.
+func creerFactureManuel(userID uint, typePaiement string) {
+	var paiementID uint
+	var montant float64
+	err := database.DB.QueryRow(
+		`SELECT id_paiement, montant FROM paiement
+		 WHERE id_utilisateur = ? AND type_paiement = ?
+		 ORDER BY date_paiement DESC LIMIT 1`,
+		userID, typePaiement,
+	).Scan(&paiementID, &montant)
+	if err != nil || paiementID == 0 {
+		log.Printf("creerFactureManuel: pas de paiement '%s' trouvé pour user=%d", typePaiement, userID)
+		return
+	}
+
+	database.DB.Exec(`UPDATE paiement SET statut = 'paye' WHERE id_paiement = ?`, paiementID)
+
+	var nomClient string
+	database.DB.QueryRow(
+		`SELECT CONCAT(prenom, ' ', nom) FROM utilisateur WHERE id_utilisateur = ?`, userID,
+	).Scan(&nomClient)
+
+	montantHT := montant / 1.2
+	factureNum := fmt.Sprintf("UC-%05d", paiementID)
+	filename := fmt.Sprintf("uploads/factures/facture_%d.pdf", paiementID)
+	os.MkdirAll("uploads/factures", 0755)
+
+	pdfPath := ""
+	factureData := utils.FactureData{
+		Numero:     factureNum,
+		Date:       time.Now().Format("02/01/2006"),
+		NomClient:  nomClient,
+		MontantHT:  montantHT,
+		TVA:        20,
+		MontantTTC: montant,
+	}
+	if err := utils.GenerateInvoice(factureData, filename); err != nil {
+		log.Printf("creerFactureManuel: erreur PDF type=%s user=%d: %v", typePaiement, userID, err)
+	} else {
+		pdfPath = filename
+	}
+
+	if _, err := database.DB.Exec(
+		`INSERT IGNORE INTO facture (numero_facture, montant_ht, tva, statut, fichier_pdf, id_utilisateur, id_paiement)
+		 VALUES (?, ?, 20, 'payee', ?, ?, ?)`,
+		factureNum, montantHT, pdfPath, userID, paiementID,
+	); err != nil {
+		log.Printf("creerFactureManuel: erreur INSERT facture type=%s user=%d: %v", typePaiement, userID, err)
+	}
+}
+
 func CreatePaymentIntent(w http.ResponseWriter, r *http.Request) {
 	userID := r.Context().Value(middleware.ContextUserID).(uint)
 	var req struct {
@@ -185,4 +238,45 @@ func handlePaymentSucceeded(pi stripe.PaymentIntent) {
 	); err != nil {
 		log.Printf("Erreur INSERT facture (paiement=%d, user=%d, stripe=%s): %v", paiementID, userID, pi.ID, err)
 	}
+}
+
+func MesFactures(w http.ResponseWriter, r *http.Request) {
+	userID := r.Context().Value(middleware.ContextUserID).(uint)
+	rows, err := database.DB.Query(
+		`SELECT numero_facture, date_emission, montant_ht, tva, montant_ttc, statut, COALESCE(fichier_pdf, '')
+		 FROM facture
+		 WHERE id_utilisateur = ?
+		 ORDER BY date_emission DESC`,
+		userID,
+	)
+	if err != nil {
+		http.Error(w, `{"error":"Erreur interne"}`, http.StatusInternalServerError)
+		return
+	}
+	defer rows.Close()
+	type FactureItem struct {
+		Numero     string  `json:"numero"`
+		Date       string  `json:"date"`
+		MontantHT  float64 `json:"montant_ht"`
+		TVA        float64 `json:"tva"`
+		MontantTTC float64 `json:"montant_ttc"`
+		Statut     string  `json:"statut"`
+		PDF        string  `json:"pdf_url,omitempty"`
+	}
+	result := make([]FactureItem, 0)
+	for rows.Next() {
+		var f FactureItem
+		var dateRaw time.Time
+		var pdf string
+		if err := rows.Scan(&f.Numero, &dateRaw, &f.MontantHT, &f.TVA, &f.MontantTTC, &f.Statut, &pdf); err != nil {
+			continue
+		}
+		f.Date = dateRaw.Format("02/01/2006")
+		if pdf != "" {
+			f.PDF = "/" + pdf
+		}
+		result = append(result, f)
+	}
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(result)
 }

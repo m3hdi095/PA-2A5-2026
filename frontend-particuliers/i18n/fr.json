@@ -96,6 +96,16 @@
   "filter_plus_recent":     "Plus récentes",
   "filter_prix_asc":        "Prix croissant",
   "filter_prix_desc":       "Prix décroissant",
+  "filter_tous_projets":    "Tous projets",
+  "filter_proj_meuble":     "Meubles",
+  "filter_proj_vetement":   "Vêtements",
+  "filter_proj_decoration": "Décoration",
+  "filter_proj_art":        "Art & Création",
+  "filter_proj_jardin":     "Jardin",
+  "filter_proj_construction": "Construction",
+  "filter_proj_autre":      "Autre projet",
+  "annonce_projet_potentiel": "Projet potentiel",
+  "annonce_proj_aucun":     "Non spécifié",
 
   "btn_contacter":          "Contacter le déposant",
   "btn_sinscrire":          "S'inscrire",
@@ -203,5 +213,25 @@
   "forum_signal_harc":     "Harcèlement",
   "forum_signal_autre":    "Autre",
   "forum_btn_signaler":    "Signaler",
-  "forum_signal_ok":       "Signalement envoyé. Merci !"
+  "forum_signal_ok":       "Signalement envoyé. Merci !",
+
+  "score_aucune_action":          "Aucune action enregistrée pour le moment.",
+  "motif_depot_conteneur":        "Dépôt en conteneur",
+  "motif_creation_projet":        "Projet upcycling créé",
+  "motif_annonce_validee":        "Annonce validée",
+  "motif_inscription_evenement":  "Inscription à un événement",
+  "motif_questionnaire_complete": "Questionnaire de satisfaction rempli",
+  "motif_projet_partage":         "Projet partagé avec la communauté",
+
+  "ann_chargement":       "Chargement…",
+  "ann_mes_annonces":     "Mes annonces",
+  "ann_toutes":           "Toutes les annonces",
+  "ann_aucune_publiee":   "Vous n'avez pas encore publié d'annonce.",
+  "ann_btn_publier":      "Publier une annonce",
+  "ann_aucune_favori":    "Aucune annonce en favori",
+  "ann_aucun_critere":    "Aucune annonce ne correspond à vos critères",
+  "ann_aucune_conv":      "Aucune conversation",
+  "ann_aucun_message":    "Aucun message. Soyez le premier à contacter le vendeur !",
+
+  "conseil_valide_jusqu": "Valable jusqu'au"
 }

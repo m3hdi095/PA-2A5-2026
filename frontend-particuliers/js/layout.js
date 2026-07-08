@@ -25,7 +25,7 @@ async function apiFetch(chemin, options = {}) {
 
 // i18n
 let _tr = {};
-let _lang = localStorage.getItem('uc_lang') || 'fr';
+let _lang = localStorage.getItem('uc_lang') || (['fr','en'].includes((navigator.language || 'fr').split('-')[0]) ? (navigator.language || 'fr').split('-')[0] : 'fr');
 
 async function chargerTraductions() {
   try {
@@ -302,7 +302,7 @@ async function initLayout(nomPage) {
 
   initNotifBell();
   chargerBadgeMessages();
-  initOneSignal(utilisateur.id);
+  initOneSignal(utilisateur.id, utilisateur.role);
 
   if (utilisateur.tutoriel_vu === false || utilisateur.tutoriel_vu === 0) {
     lancerTutoriel();
@@ -311,7 +311,7 @@ async function initLayout(nomPage) {
   return utilisateur;
 }
 
-async function initOneSignal(userID) {
+async function initOneSignal(userID, userRole) {
   try {
     const res = await fetch(`${apiBase}/config`);
     if (!res.ok) return;
@@ -329,6 +329,9 @@ async function initOneSignal(userID) {
         await OneSignal.init({ appId, notifyButton: { enable: true } });
         if (userID) {
           OneSignal.User.addTag('user_id', String(userID));
+        }
+        if (userRole) {
+          OneSignal.User.addTag('role', userRole);
         }
       });
     };

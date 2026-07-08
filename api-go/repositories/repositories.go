@@ -162,9 +162,9 @@ func (r *UserRepository) ListIDsByRole(role string) ([]uint, error) {
 type AnnonceRepository struct{}
 
 func (r *AnnonceRepository) Create(annonce *models.Annonce) error {
-	query := `INSERT INTO annonce (titre, description, type_annonce, prix, localisation, date_publication, statut, id_utilisateur, id_objet)
-              VALUES (?, ?, ?, ?, ?, NOW(), 'en_attente', ?, ?)`
-	result, err := database.DB.Exec(query, annonce.Titre, annonce.Description, annonce.TypeAnnonce, annonce.Prix, annonce.Localisation, annonce.IDUtilisateur, annonce.IDObjet)
+	query := `INSERT INTO annonce (titre, description, type_annonce, prix, localisation, date_publication, statut, id_utilisateur, id_objet, projet_potentiel)
+              VALUES (?, ?, ?, ?, ?, NOW(), 'en_attente', ?, ?, ?)`
+	result, err := database.DB.Exec(query, annonce.Titre, annonce.Description, annonce.TypeAnnonce, annonce.Prix, annonce.Localisation, annonce.IDUtilisateur, annonce.IDObjet, annonce.ProjetPotentiel)
 	if err != nil {
 		return err
 	}
@@ -191,13 +191,18 @@ func (r *AnnonceRepository) GetByID(id uint) (*models.Annonce, error) {
 	return &a, err
 }
 
-func (r *AnnonceRepository) List(filter string, limit, offset int, lang string, lat, lon, rayon float64) ([]models.Annonce, error) {
+func (r *AnnonceRepository) List(filter, projetPotentiel string, limit, offset int, lang string, lat, lon, rayon float64) ([]models.Annonce, error) {
 	where := `WHERE a.statut = 'validee' AND (a.date_expiration IS NULL OR a.date_expiration > NOW())`
 	args := []interface{}{lang, lang}
 
 	if filter == "don" || filter == "vente" {
 		where += ` AND a.type_annonce = ?`
 		args = append(args, filter)
+	}
+
+	if projetPotentiel != "" {
+		where += ` AND a.projet_potentiel = ?`
+		args = append(args, projetPotentiel)
 	}
 
 	if rayon > 0 && lat != 0 && lon != 0 {
@@ -216,7 +221,8 @@ func (r *AnnonceRepository) List(filter string, limit, offset int, lang string, 
 		CONCAT(COALESCE(MAX(u.prenom),''), ' ', COALESCE(MAX(u.nom),'')),
 		COALESCE(a.localisation, MAX(u.ville), ''),
 		COUNT(DISTINCT ma.id),
-		COALESCE(MIN(ph.url), '')
+		COALESCE(MIN(ph.url), ''),
+		COALESCE(a.projet_potentiel, '')
 	FROM annonce a
 	LEFT JOIN objet o ON a.id_objet = o.id_objet
 	LEFT JOIN categorie c ON o.categorie_id = c.id_categorie
@@ -226,7 +232,7 @@ func (r *AnnonceRepository) List(filter string, limit, offset int, lang string, 
 	LEFT JOIN message_annonce ma ON ma.id_annonce = a.id_annonce
 	LEFT JOIN photo_annonce ph ON ph.id_annonce = a.id_annonce
 	` + where + `
-	GROUP BY a.id_annonce, a.titre, a.description, a.type_annonce, a.prix, a.date_publication, a.date_expiration, a.statut, a.id_utilisateur, a.id_objet, a.localisation
+	GROUP BY a.id_annonce, a.titre, a.description, a.type_annonce, a.prix, a.date_publication, a.date_expiration, a.statut, a.id_utilisateur, a.id_objet, a.localisation, a.projet_potentiel
 	ORDER BY a.date_publication DESC LIMIT ? OFFSET ?`
 
 	args = append(args, limit, offset)
@@ -238,7 +244,7 @@ func (r *AnnonceRepository) List(filter string, limit, offset int, lang string, 
 	annonces := make([]models.Annonce, 0)
 	for rows.Next() {
 		var a models.Annonce
-		err := rows.Scan(&a.ID, &a.Titre, &a.Description, &a.TypeAnnonce, &a.Prix, &a.DatePublication, &a.Statut, &a.IDUtilisateur, &a.IDObjet, &a.Categorie, &a.Auteur, &a.Localisation, &a.NbMessages, &a.PhotoPrincipale)
+		err := rows.Scan(&a.ID, &a.Titre, &a.Description, &a.TypeAnnonce, &a.Prix, &a.DatePublication, &a.Statut, &a.IDUtilisateur, &a.IDObjet, &a.Categorie, &a.Auteur, &a.Localisation, &a.NbMessages, &a.PhotoPrincipale, &a.ProjetPotentiel)
 		if err != nil {
 			return nil, err
 		}

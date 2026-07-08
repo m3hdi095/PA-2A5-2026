@@ -73,11 +73,15 @@ func (s *AbonnementService) Resilier(proID uint) error {
 }
 
 func (s *AbonnementService) ListFactures(proID uint) ([]models.Paiement, error) {
+	// on lit la table facture directement : la jointure via id_abonnement est cassée
+	// car reference_id=0 est envoyé depuis le frontend (id_abonnement reste NULL dans paiement)
 	rows, err := database.DB.Query(
-		`SELECT p.id_paiement, p.montant, p.moyen, p.date_paiement, p.ref_stripe, p.statut, p.type_paiement, p.id_abonnement
-         FROM paiement p
-         JOIN abonnement a ON a.id_abonnement = p.id_abonnement
-         WHERE a.id_professionnel = ? ORDER BY p.date_paiement DESC`,
+		`SELECT f.id_facture, f.montant_ttc, f.date_emission, f.statut
+         FROM facture f
+         LEFT JOIN paiement p ON p.id_paiement = f.id_paiement
+         WHERE f.id_utilisateur = ?
+           AND COALESCE(p.type_paiement, 'abonnement') = 'abonnement'
+         ORDER BY f.date_emission DESC`,
 		proID,
 	)
 	if err != nil {
@@ -88,7 +92,7 @@ func (s *AbonnementService) ListFactures(proID uint) ([]models.Paiement, error) 
 	var factures []models.Paiement
 	for rows.Next() {
 		var p models.Paiement
-		rows.Scan(&p.ID, &p.Montant, &p.Moyen, &p.DatePaiement, &p.RefStripe, &p.Statut, &p.TypePaiement, &p.IDAbonnement)
+		rows.Scan(&p.ID, &p.Montant, &p.DatePaiement, &p.Statut)
 		factures = append(factures, p)
 	}
 	return factures, nil

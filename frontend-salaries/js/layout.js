@@ -24,7 +24,7 @@ async function apiFetch(chemin, options = {}) {
 
 // i18n
 let _tr = {};
-let _lang = localStorage.getItem('uc_lang') || 'fr';
+let _lang = localStorage.getItem('uc_lang') || (['fr','en'].includes((navigator.language || 'fr').split('-')[0]) ? (navigator.language || 'fr').split('-')[0] : 'fr');
 
 async function chargerTraductions() {
   try {
@@ -266,6 +266,7 @@ async function initLayout(nomPage) {
   if (tbNom)    tbNom.textContent    = prenom || nomAff.split(' ')[0] || 'Moi';
 
   initNotifBell();
+  initOneSignal(utilisateur.id, utilisateur.role);
 
   if (utilisateur.tutoriel_vu === false || utilisateur.tutoriel_vu === 0) {
     lancerTutoriel();
@@ -447,6 +448,30 @@ function initNotifBell() {
 
 function escNotif(s) {
   return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+async function initOneSignal(userID, userRole) {
+  try {
+    const res = await fetch(`${apiBase}/config`);
+    if (!res.ok) return;
+    const cfg = await res.json();
+    const appId = cfg.onesignal_app_id;
+    if (!appId) return;
+
+    window.OneSignalDeferred = window.OneSignalDeferred || [];
+
+    const s = document.createElement('script');
+    s.src = 'https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js';
+    s.defer = true;
+    s.onload = () => {
+      OneSignalDeferred.push(async function(OneSignal) {
+        await OneSignal.init({ appId, notifyButton: { enable: true } });
+        if (userID) OneSignal.User.addTag('user_id', String(userID));
+        if (userRole) OneSignal.User.addTag('role', userRole);
+      });
+    };
+    document.head.appendChild(s);
+  } catch {}
 }
 
 (function() {

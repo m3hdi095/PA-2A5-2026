@@ -113,29 +113,21 @@ document.addEventListener('DOMContentLoaded', async () => {
 });
 
 async function chargerStats() {
-  let depots  = [];
-  let projets = [];
-  let score   = { kg_recycles: 0 };
+  let depots = [];
+  let stats  = { kg_recycles: 0, co2_economise: 0, nb_depots_recuperes: 0, nb_projets_termines: 0 };
 
-  const [resDepots, resProjets, resScore] = await Promise.all([
+  const [resDepots, resStats] = await Promise.all([
     apiFetch('/depots'),
-    apiFetch('/projets/mes-projets'),
-    apiFetch('/score'),
+    apiFetch('/stats/pro'),
   ]);
 
-  if (resDepots?.ok)  { const d = await resDepots.json();  if (Array.isArray(d)) depots  = d; }
-  if (resProjets?.ok) { const d = await resProjets.json(); if (Array.isArray(d)) projets = d; }
-  if (resScore?.ok)   { const d = await resScore.json();   score = d; }
+  if (resDepots?.ok) { const d = await resDepots.json(); if (Array.isArray(d)) depots = d; }
+  if (resStats?.ok)  { const d = await resStats.json();  stats = d; }
 
-  const recuperes  = depots.filter(d => d.statut === 'recupere');
-  const termines   = projets.filter(p => p.statut === 'termine');
-  const kgRecycles = Math.round(score.kg_recycles ?? 0);
-  const co2        = Math.round(kgRecycles * 0.9);
-
-  document.getElementById('stat-recup').textContent   = recuperes.length;
-  document.getElementById('stat-kg').textContent      = kgRecycles + ' kg';
-  document.getElementById('stat-co2').textContent     = co2 + ' kg';
-  document.getElementById('stat-projets').textContent = termines.length;
+  document.getElementById('stat-recup').textContent   = stats.nb_depots_recuperes ?? 0;
+  document.getElementById('stat-kg').textContent      = (stats.kg_recycles ?? 0) + ' kg';
+  document.getElementById('stat-co2').textContent     = (stats.co2_economise ?? 0) + ' kg';
+  document.getElementById('stat-projets').textContent = stats.nb_projets_termines ?? 0;
 
   // Graphe barres : dépôts par mois (6 derniers mois)
   const now = new Date();

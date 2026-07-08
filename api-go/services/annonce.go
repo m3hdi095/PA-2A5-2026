@@ -59,9 +59,9 @@ func (s *AnnonceService) GetAnnonce(id uint) (*models.Annonce, error) {
 	return s.repo.GetByID(id)
 }
 
-func (s *AnnonceService) ListAnnonces(filter string, page, pageSize int, lang string, lat, lon, rayon float64) ([]models.Annonce, error) {
+func (s *AnnonceService) ListAnnonces(filter, projetPotentiel string, page, pageSize int, lang string, lat, lon, rayon float64) ([]models.Annonce, error) {
 	offset := (page - 1) * pageSize
-	return s.repo.List(filter, pageSize, offset, lang, lat, lon, rayon)
+	return s.repo.List(filter, projetPotentiel, pageSize, offset, lang, lat, lon, rayon)
 }
 
 func (s *AnnonceService) ListMyAnnonces(userID uint, page, pageSize int) ([]models.Annonce, error) {

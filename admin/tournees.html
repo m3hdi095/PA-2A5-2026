@@ -16,13 +16,13 @@
       <div class="page-title-icon green">
         <i class="fa-solid fa-truck" aria-hidden="true"></i>
       </div>
-      Tournées de collecte
+      <span data-i18n="tourn_title">Tournées de collecte</span>
     </h1>
-    <p class="page-title-sub">Planification et suivi des tournées de collecte</p>
+    <p class="page-title-sub" data-i18n="tourn_subtitle">Planification et suivi des tournées de collecte</p>
   </div>
   <div class="page-title-actions">
     <button class="btn btn-primary" id="btn-nouvelle-tournee">
-      <i class="fa-solid fa-plus"></i> Nouvelle tournée
+      <i class="fa-solid fa-plus"></i> <span data-i18n="tourn_btn_new">Nouvelle tournée</span>
     </button>
   </div>
 </div>
@@ -33,21 +33,21 @@
     <div class="stat-icon teal"><i class="fa-solid fa-calendar-check"></i></div>
     <div class="stat-info">
       <div class="stat-value" id="stat-planifiees">—</div>
-      <div class="stat-label">Planifiées</div>
+      <div class="stat-label" data-i18n="tourn_stat_planifiees">Planifiées</div>
     </div>
   </div>
   <div class="stat-card">
     <div class="stat-icon green"><i class="fa-solid fa-truck-moving"></i></div>
     <div class="stat-info">
       <div class="stat-value" id="stat-en-cours">—</div>
-      <div class="stat-label">En cours</div>
+      <div class="stat-label" data-i18n="tourn_stat_en_cours">En cours</div>
     </div>
   </div>
   <div class="stat-card">
     <div class="stat-icon blue"><i class="fa-solid fa-flag-checkered"></i></div>
     <div class="stat-info">
       <div class="stat-value" id="stat-terminees">—</div>
-      <div class="stat-label">Terminées</div>
+      <div class="stat-label" data-i18n="tourn_stat_terminees">Terminées</div>
     </div>
   </div>
 </div>
@@ -56,10 +56,10 @@
 <section class="card animate-in" style="animation-delay:.1s">
   <div class="filter-row">
     <div class="filter-tabs" id="filtre-tournee-tabs" role="tablist">
-      <button class="filter-tab active" role="tab" data-statut="">Toutes</button>
-      <button class="filter-tab" role="tab" data-statut="planifiee">Planifiées</button>
-      <button class="filter-tab" role="tab" data-statut="en_cours">En cours</button>
-      <button class="filter-tab" role="tab" data-statut="terminee">Terminées</button>
+      <button class="filter-tab active" role="tab" data-statut="" data-i18n="tourn_tab_all">Toutes</button>
+      <button class="filter-tab" role="tab" data-statut="planifiee" data-i18n="tourn_tab_planifiee">Planifiées</button>
+      <button class="filter-tab" role="tab" data-statut="en_cours" data-i18n="tourn_tab_en_cours">En cours</button>
+      <button class="filter-tab" role="tab" data-statut="terminee" data-i18n="tourn_tab_terminee">Terminées</button>
     </div>
   </div>
 </section>
@@ -67,7 +67,7 @@
 <!-- Liste -->
 <section class="card animate-in" style="animation-delay:.15s">
   <div class="card-header">
-    <h2 class="card-title"><i class="fa-solid fa-route"></i> Planning des tournées</h2>
+    <h2 class="card-title"><i class="fa-solid fa-route"></i> <span data-i18n="tourn_planning_title">Planning des tournées</span></h2>
   </div>
   <div id="tournees-list"><div class="loading-skeleton" style="height:140px;border-radius:8px"></div></div>
 </section>
@@ -76,28 +76,28 @@
 <div id="modal-tournee" class="modal-overlay" style="display:none" role="dialog" aria-modal="true" aria-labelledby="modal-tournee-titre">
   <div class="modal-content" style="max-width:480px">
     <div class="modal-header">
-      <h3 id="modal-tournee-titre"><i class="fa-solid fa-truck"></i> Nouvelle tournée</h3>
+      <h3 id="modal-tournee-titre"><i class="fa-solid fa-truck"></i> <span data-i18n="tourn_modal_title">Nouvelle tournée</span></h3>
       <button class="modal-close" id="modal-tournee-close">&times;</button>
     </div>
     <form id="form-tournee" class="modal-body" novalidate>
       <div class="form-group">
-        <label class="form-label" for="t-date">Date de tournée <span class="required">*</span></label>
+        <label class="form-label" for="t-date"><span data-i18n="tourn_form_date">Date de tournée</span> <span class="required">*</span></label>
         <input type="date" id="t-date" class="form-control" required/>
       </div>
       <div class="form-group">
-        <label class="form-label" for="t-conteneurs">Conteneurs à collecter</label>
-        <input type="text" id="t-conteneurs" class="form-control" placeholder="Ex : C001, C002, C005"/>
-        <small class="form-hint">Identifiants séparés par des virgules</small>
+        <label class="form-label" for="t-conteneurs" data-i18n="tourn_form_conteneurs">Conteneurs à collecter</label>
+        <input type="text" id="t-conteneurs" class="form-control" data-i18n-placeholder="tourn_form_conteneurs_ph" placeholder="Ex : C001, C002, C005"/>
+        <small class="form-hint" data-i18n="tourn_form_conteneurs_hint">Identifiants séparés par des virgules</small>
       </div>
       <div class="form-group">
-        <label class="form-label" for="t-note">Note / instructions</label>
-        <textarea id="t-note" class="form-control" rows="3" placeholder="Instructions pour le chauffeur…"></textarea>
+        <label class="form-label" for="t-note" data-i18n="tourn_form_note">Note / instructions</label>
+        <textarea id="t-note" class="form-control" rows="3" data-i18n-placeholder="tourn_form_note_ph" placeholder="Instructions pour le chauffeur…"></textarea>
       </div>
       <p id="t-error" class="form-error" style="display:none"></p>
       <div class="modal-footer">
-        <button type="button" class="btn btn-outline" id="btn-t-annuler">Annuler</button>
+        <button type="button" class="btn btn-outline" id="btn-t-annuler" data-i18n="btn_cancel">Annuler</button>
         <button type="submit" class="btn btn-primary" id="btn-t-submit">
-          <i class="fa-solid fa-plus"></i> Créer la tournée
+          <i class="fa-solid fa-plus"></i> <span data-i18n="tourn_btn_creer">Créer la tournée</span>
         </button>
       </div>
     </form>
@@ -136,7 +136,7 @@ async function chargerTournees(statut) {
   const qs = statut ? `?statut=${encodeURIComponent(statut)}` : '';
   const res = await apiFetch(`/admin/tournees${qs}`);
   if (!res || !res.ok) {
-    el.innerHTML = '<p class="empty-state-msg"><i class="fa-solid fa-triangle-exclamation"></i> Erreur de chargement.</p>';
+    el.innerHTML = `<p class="empty-state-msg"><i class="fa-solid fa-triangle-exclamation"></i> ${t('tourn_err_load')}</p>`;
     return;
   }
   const tournees = await res.json();
@@ -148,16 +148,16 @@ async function chargerTournees(statut) {
   document.getElementById('stat-terminees').textContent  = stats.terminee;
 
   if (!tournees.length) {
-    el.innerHTML = `<div class="empty-state"><i class="fa-solid fa-calendar-xmark"></i><p>Aucune tournée${statut ? ' pour ce statut' : ''}</p></div>`;
+    el.innerHTML = `<div class="empty-state"><i class="fa-solid fa-calendar-xmark"></i><p>${t('tourn_empty')}${statut ? ' ' + t('tourn_empty_statut') : ''}</p></div>`;
     return;
   }
 
   const statutClass = { planifiee: 'badge-info', en_cours: 'badge-warning', terminee: 'badge-success' };
-  const statutLabel = { planifiee: 'Planifiée', en_cours: 'En cours', terminee: 'Terminée' };
+  const statutLabel = { planifiee: t('tourn_tab_planifiee'), en_cours: t('tourn_tab_en_cours'), terminee: t('tourn_tab_terminee') };
 
   el.innerHTML = `
     <table class="data-table">
-      <thead><tr><th>Date</th><th>Statut</th><th>Conteneurs</th><th>Note</th><th>Créée le</th></tr></thead>
+      <thead><tr><th>${t('tourn_th_date')}</th><th>${t('tourn_th_statut')}</th><th>${t('tourn_th_conteneurs')}</th><th>${t('tourn_th_note')}</th><th>${t('tourn_th_creee')}</th></tr></thead>
       <tbody>
         ${tournees.map(t => `
           <tr>
@@ -188,21 +188,21 @@ async function creerTournee(e) {
     .split(',').map(s => s.trim()).filter(Boolean);
   const note      = document.getElementById('t-note').value.trim();
 
-  if (!date) { afficherErreur('La date est obligatoire.'); return; }
+  if (!date) { afficherErreur(t('tourn_err_date')); return; }
 
   const btn = document.getElementById('btn-t-submit');
-  btn.disabled = true; btn.textContent = 'Création…';
+  btn.disabled = true; btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> ${t('tourn_creating')}`;
 
   const res = await apiFetch('/admin/tournees', {
     method: 'POST',
     body: JSON.stringify({ date_tournee: date, conteneurs, note }),
   });
 
-  btn.disabled = false; btn.innerHTML = '<i class="fa-solid fa-plus"></i> Créer la tournée';
+  btn.disabled = false; btn.innerHTML = `<i class="fa-solid fa-plus"></i> ${t('tourn_btn_creer')}`;
 
-  if (!res || !res.ok) { afficherErreur('Erreur lors de la création.'); return; }
+  if (!res || !res.ok) { afficherErreur(t('tourn_err_create')); return; }
   fermerModal();
-  showToast('Tournée créée avec succès', 'success');
+  showToast(t('tourn_toast_created'), 'success');
   chargerTournees(document.querySelector('#filtre-tournee-tabs .filter-tab.active')?.dataset.statut || '');
 }
 

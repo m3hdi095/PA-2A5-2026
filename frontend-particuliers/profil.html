@@ -128,6 +128,18 @@
       </div>
     </div>
 
+    <!-- Mes factures -->
+    <div class="card animate-in">
+      <div class="card-header">
+        <h2><i class="fa-solid fa-file-invoice" aria-hidden="true"></i> Mes factures</h2>
+      </div>
+      <div class="card-body">
+        <div id="factures-list" style="display:flex;flex-direction:column;gap:8px">
+          <p style="color:var(--text-muted);font-size:13px">Chargement…</p>
+        </div>
+      </div>
+    </div>
+
     <!-- Zone danger -->
     <div class="card animate-in" style="border-color:var(--danger-bg)">
       <div class="card-header" style="background:var(--danger-bg)">
@@ -232,6 +244,26 @@ document.addEventListener('DOMContentLoaded', async () => {
       showToast('Service indisponible. Réessayez.', 'error');
     }
   });
+});
+
+// Factures
+apiFetch('/paiements/mes-factures').then(async r => {
+  const el = document.getElementById('factures-list');
+  if (!el) return;
+  if (!r?.ok) { el.innerHTML = '<p style="color:var(--text-muted);font-size:13px">Aucune facture.</p>'; return; }
+  const data = await r.json();
+  if (!Array.isArray(data) || !data.length) { el.innerHTML = '<p style="color:var(--text-muted);font-size:13px">Aucune facture pour le moment.</p>'; return; }
+  el.innerHTML = data.map(f => `
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;border:1px solid var(--border);border-radius:8px;font-size:13px;gap:10px;flex-wrap:wrap">
+      <div>
+        <span style="font-weight:700;color:var(--text)">${f.numero}</span>
+        <span style="color:var(--text-muted);margin-left:8px">${f.date}</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:12px">
+        <span style="font-weight:600;color:var(--teal-700)">${f.montant_ttc.toFixed(2)} € TTC</span>
+        ${f.pdf_url ? `<a href="${f.pdf_url}" target="_blank" class="btn btn-outline btn-sm" style="padding:4px 10px;font-size:12px"><i class="fa-solid fa-download" aria-hidden="true"></i> PDF</a>` : ''}
+      </div>
+    </div>`).join('');
 });
 
 window.deconnexion = () => { clearToken(); window.location.href = 'index.html'; };

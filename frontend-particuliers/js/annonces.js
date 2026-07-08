@@ -11,7 +11,7 @@ const CAT_ICONES_MAP = {
 };
 
 const PAGE_SIZE = 9;
-let filtreActif = { recherche: '', type: '', categorie: '', tri: 'recent' };
+let filtreActif = { recherche: '', type: '', categorie: '', tri: 'recent', projet: '' };
 let pageActuelle = 1;
 let annoncesData = [];
 let viewMode = 'all'; // 'all' | 'mine'
@@ -19,16 +19,18 @@ let _gpsLat = null;
 let _gpsLon = null;
 
 function resetFiltres() {
-  filtreActif = { recherche: '', type: '', categorie: '', tri: 'recent' };
+  filtreActif = { recherche: '', type: '', categorie: '', tri: 'recent', projet: '' };
   pageActuelle = 1;
-  const rechEl = document.getElementById('f-recherche');
-  const typeEl = document.getElementById('f-type');
-  const catEl  = document.getElementById('f-categorie');
-  const triEl  = document.getElementById('f-tri');
-  if (rechEl) rechEl.value = '';
-  if (typeEl) typeEl.value = '';
-  if (catEl)  catEl.value  = '';
-  if (triEl)  triEl.value  = 'recent';
+  const rechEl   = document.getElementById('f-recherche');
+  const typeEl   = document.getElementById('f-type');
+  const catEl    = document.getElementById('f-categorie');
+  const triEl    = document.getElementById('f-tri');
+  const projetEl = document.getElementById('f-projet');
+  if (rechEl)   rechEl.value   = '';
+  if (typeEl)   typeEl.value   = '';
+  if (catEl)    catEl.value    = '';
+  if (triEl)    triEl.value    = 'recent';
+  if (projetEl) projetEl.value = '';
   renderAnnonces();
 }
 
@@ -44,6 +46,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   typeEl?.addEventListener('change', e => { filtreActif.type = e.target.value; pageActuelle = 1; renderAnnonces(); });
   catEl?.addEventListener('change',  e => { filtreActif.categorie = e.target.value; pageActuelle = 1; renderAnnonces(); });
   triEl?.addEventListener('change',  e => { filtreActif.tri = e.target.value; renderAnnonces(); });
+  document.getElementById('f-projet')?.addEventListener('change', e => { filtreActif.projet = e.target.value; pageActuelle = 1; renderAnnonces(); });
 
   document.getElementById('btn-mes-annonces')?.addEventListener('click', basculerMesAnnonces);
   document.getElementById('btn-messages')?.addEventListener('click', basculerMessages);
@@ -66,19 +69,19 @@ async function basculerMesAnnonces() {
   const btn = document.getElementById('btn-mes-annonces');
   if (viewMode === 'mine') {
     setViewMode('all');
-    if (btn) { btn.classList.remove('btn-primary'); btn.classList.add('btn-outline'); btn.innerHTML = '<i class="fa-solid fa-list" aria-hidden="true"></i> Mes annonces'; }
+    if (btn) { btn.classList.remove('btn-primary'); btn.classList.add('btn-outline'); btn.innerHTML = `<i class="fa-solid fa-list" aria-hidden="true"></i> ${t('ann_mes_annonces')}`; }
     renderAnnonces();
     return;
   }
   setViewMode('mine');
-  if (btn) { btn.classList.remove('btn-outline'); btn.classList.add('btn-primary'); btn.innerHTML = '<i class="fa-solid fa-list" aria-hidden="true"></i> Toutes les annonces'; }
+  if (btn) { btn.classList.remove('btn-outline'); btn.classList.add('btn-primary'); btn.innerHTML = `<i class="fa-solid fa-list" aria-hidden="true"></i> ${t('ann_toutes')}`; }
   await chargerMesAnnonces();
 }
 
 async function chargerMesAnnonces() {
   const container = document.getElementById('annonces-container');
   const totalEl = document.getElementById('total-annonces');
-  if (container) container.innerHTML = `<p style="color:var(--text-muted);text-align:center;padding:32px;grid-column:1/-1">Chargement...</p>`;
+  if (container) container.innerHTML = `<p style="color:var(--text-muted);text-align:center;padding:32px;grid-column:1/-1">${t('ann_chargement')}</p>`;
   document.getElementById('pagination-wrap').innerHTML = '';
 
   let mes = [];
@@ -90,7 +93,7 @@ async function chargerMesAnnonces() {
   if (totalEl) totalEl.textContent = `${mes.length} annonce${mes.length !== 1 ? 's' : ''}`;
 
   if (!mes.length) {
-    if (container) container.innerHTML = `<div class="empty-state" style="grid-column:1/-1"><i class="fa-solid fa-bullhorn" aria-hidden="true"></i><p>Vous n'avez pas encore publié d'annonce.</p><button class="btn btn-primary" onclick="document.getElementById('btn-nouvelle-annonce').click()"><i class="fa-solid fa-plus" aria-hidden="true"></i> Publier une annonce</button></div>`;
+    if (container) container.innerHTML = `<div class="empty-state" style="grid-column:1/-1"><i class="fa-solid fa-bullhorn" aria-hidden="true"></i><p>${t('ann_aucune_publiee')}</p><button class="btn btn-primary" onclick="document.getElementById('btn-nouvelle-annonce').click()"><i class="fa-solid fa-plus" aria-hidden="true"></i> ${t('ann_btn_publier')}</button></div>`;
     return;
   }
 
@@ -230,6 +233,7 @@ function getAnnoncesFiltered() {
   if (filtreActif.recherche)  list = list.filter(a => a.titre.toLowerCase().includes(filtreActif.recherche) || (a.description || '').toLowerCase().includes(filtreActif.recherche));
   if (filtreActif.type)       list = list.filter(a => a.type_annonce === filtreActif.type);
   if (filtreActif.categorie)  list = list.filter(a => a.categorie === filtreActif.categorie);
+  if (filtreActif.projet)     list = list.filter(a => a.projet_potentiel === filtreActif.projet);
   if (filtreActif.tri === 'prix_asc')  list.sort((a, b) => a.prix - b.prix);
   if (filtreActif.tri === 'prix_desc') list.sort((a, b) => b.prix - a.prix);
   return list;
@@ -249,7 +253,7 @@ function renderAnnonces() {
   if (totalEl) totalEl.textContent = `${total} annonce${total !== 1 ? 's' : ''}`;
 
   if (!slice.length) {
-    container.innerHTML = `<div class="empty-state"><i class="fa-solid fa-box-open" aria-hidden="true"></i><p>Aucune annonce ne correspond à votre recherche</p><button class="btn btn-outline" onclick="resetFiltres()"><i class="fa-solid fa-rotate-left" aria-hidden="true"></i> Réinitialiser les filtres</button></div>`;
+    container.innerHTML = `<div class="empty-state"><i class="fa-solid fa-box-open" aria-hidden="true"></i><p>${t('ann_aucun_critere')}</p><button class="btn btn-outline" onclick="resetFiltres()"><i class="fa-solid fa-rotate-left" aria-hidden="true"></i> Réinitialiser les filtres</button></div>`;
     document.getElementById('pagination-wrap').innerHTML = '';
     return;
   }
@@ -449,7 +453,7 @@ function setViewMode(mode) {
 async function chargerConversations() {
   const convItems = document.getElementById('conv-items');
   if (!convItems) return;
-  convItems.innerHTML = `<p style="padding:20px;color:var(--text-muted);text-align:center;font-size:12px">Chargement...</p>`;
+  convItems.innerHTML = `<p style="padding:20px;color:var(--text-muted);text-align:center;font-size:12px">${t('ann_chargement')}</p>`;
 
   let convs = [];
   try {
@@ -458,7 +462,7 @@ async function chargerConversations() {
   } catch {}
 
   if (!convs.length) {
-    convItems.innerHTML = `<div style="padding:32px 16px;text-align:center;color:var(--text-muted)"><i class="fa-regular fa-comment-dots" style="font-size:28px;margin-bottom:10px;display:block"></i><span style="font-size:12px">Aucune conversation</span></div>`;
+    convItems.innerHTML = `<div style="padding:32px 16px;text-align:center;color:var(--text-muted)"><i class="fa-regular fa-comment-dots" style="font-size:28px;margin-bottom:10px;display:block"></i><span style="font-size:12px">${t('ann_aucune_conv')}</span></div>`;
     return;
   }
 
@@ -500,7 +504,7 @@ window.ouvrirThreadConv = async (annonceId) => {
   const thread = document.getElementById('conv-thread');
   const inputWrap = document.getElementById('conv-input-wrap');
 
-  if (thread) thread.innerHTML = `<p style="color:var(--text-muted);text-align:center;padding:40px;font-size:12px">Chargement...</p>`;
+  if (thread) thread.innerHTML = `<p style="color:var(--text-muted);text-align:center;padding:40px;font-size:12px">${t('ann_chargement')}</p>`;
 
   let annonceTitre = `Annonce #${annonceId}`;
   let interlocNom = '';
@@ -540,7 +544,7 @@ function renderThreadConv(msgs) {
   const thread = document.getElementById('conv-thread');
   if (!thread) return;
   if (!msgs.length) {
-    thread.innerHTML = `<div style="text-align:center;padding:48px 16px;color:var(--text-muted)"><i class="fa-regular fa-comment-dots" style="font-size:32px;margin-bottom:12px;display:block"></i><span style="font-size:12px">Aucun message encore. Envoyez le premier !</span></div>`;
+    thread.innerHTML = `<div style="text-align:center;padding:48px 16px;color:var(--text-muted)"><i class="fa-regular fa-comment-dots" style="font-size:32px;margin-bottom:12px;display:block"></i><span style="font-size:12px">${t('ann_aucun_message')}</span></div>`;
     return;
   }
   const locale = _lang === 'en' ? 'en-GB' : 'fr-FR';
@@ -591,12 +595,13 @@ function fermerModal() { document.getElementById('modal-annonce').classList.remo
 async function soumettreAnnonce(e) {
   e.preventDefault();
   const payload = {
-    titre:        document.getElementById('a-titre').value.trim(),
-    description:  document.getElementById('a-desc').value.trim(),
-    type_annonce: document.getElementById('a-type').value,
-    prix:         parseFloat(document.getElementById('a-prix').value) || 0,
-    categorie:    document.getElementById('a-categorie').value,
-    localisation: document.getElementById('a-localisation')?.value.trim() || '',
+    titre:            document.getElementById('a-titre').value.trim(),
+    description:      document.getElementById('a-desc').value.trim(),
+    type_annonce:     document.getElementById('a-type').value,
+    prix:             parseFloat(document.getElementById('a-prix').value) || 0,
+    categorie:        document.getElementById('a-categorie').value,
+    localisation:     document.getElementById('a-localisation')?.value.trim() || '',
+    projet_potentiel: document.getElementById('a-projet')?.value || '',
   };
   if (!payload.titre) { showToast('Le titre est obligatoire', 'warning'); return; }
   if (!payload.localisation) { showToast('La localisation est obligatoire', 'warning'); return; }
