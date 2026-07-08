@@ -16,23 +16,10 @@ import (
 	"upcycleconnect/api/utils"
 )
 
-func (s *ConteneurService) sendNotif(userID uint, titre, contenu string) {
-	notif := &models.Notification{
-		Titre:         titre,
-		Contenu:       contenu,
-		Type:          "depot",
-		Canal:         "push",
-		IDUtilisateur: userID,
-	}
-	_ = utils.SendPushNotification(userID, titre, contenu)
-	_ = s.notifRepo.Create(notif)
-}
-
 type ConteneurService struct {
 	conteneurRepo *repositories.ConteneurRepository
 	depotRepo     *repositories.DepotRepository
 	objetRepo     *repositories.ObjetRepository
-	notifRepo     *repositories.NotificationRepository
 }
 
 func NewConteneurService() *ConteneurService {
@@ -40,7 +27,6 @@ func NewConteneurService() *ConteneurService {
 		conteneurRepo: &repositories.ConteneurRepository{},
 		depotRepo:     &repositories.DepotRepository{},
 		objetRepo:     &repositories.ObjetRepository{},
-		notifRepo:     &repositories.NotificationRepository{},
 	}
 }
 
@@ -82,8 +68,8 @@ func (s *ConteneurService) RequestDepot(particulierID, conteneurID, objetID uint
 	}
 
 	// push + email au particulier avec le code barre
-	go s.sendNotif(particulierID, "Dépôt enregistré",
-		fmt.Sprintf("Votre dépôt est en attente de validation. Code d'ouverture : %s", codeOuverture))
+	go NewNotificationService().SendNotification(particulierID, "Dépôt enregistré",
+		fmt.Sprintf("Votre dépôt est en attente de validation. Code d'ouverture : %s", codeOuverture), "depot", "push")
 
 	go func() {
 		userRepo := &repositories.UserRepository{}
@@ -114,8 +100,8 @@ func (s *ConteneurService) ValidateDepot(depotID uint, adminID uint, accept bool
 			if conteneur != nil {
 				s.conteneurRepo.UpdateNbObjets(conteneur.ID, conteneur.NbObjets+1)
 			}
-			go s.sendNotif(depot.IDParticulier, "Depot valide",
-				fmt.Sprintf("Votre depot a ete valide. Presentez le code barre %s pour deposer votre objet.", depot.CodeBarreRetrait))
+			go NewNotificationService().SendNotification(depot.IDParticulier, "Dépôt validé",
+				fmt.Sprintf("Votre dépôt a été validé. Présentez le code barre %s pour déposer votre objet.", depot.CodeBarreRetrait), "depot", "push")
 			go func(d *models.Depot) {
 				userRepo := &repositories.UserRepository{}
 				user, err := userRepo.GetByID(d.IDParticulier)
@@ -133,7 +119,7 @@ func (s *ConteneurService) ValidateDepot(depotID uint, adminID uint, accept bool
 			if motif != "" {
 				msg += " Motif : " + motif
 			}
-			go s.sendNotif(depot.IDParticulier, "Dépôt refusé", msg)
+			go NewNotificationService().SendNotification(depot.IDParticulier, "Dépôt refusé", msg, "depot", "push")
 		}
 	}
 	return err
