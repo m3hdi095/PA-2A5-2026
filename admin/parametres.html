@@ -91,21 +91,21 @@
           <h3 data-i18n="params_section_platform">Informations de la plateforme</h3>
           <div class="form-group">
             <label class="form-label" data-i18n="params_platform_name">Nom de la plateforme</label>
-            <input type="text" class="form-control" value="UpcycleConnect"/>
+            <input type="text" class="form-control" id="cfg-nom_plateforme" value="UpcycleConnect"/>
           </div>
           <div class="form-row">
             <div class="form-group">
               <label class="form-label" data-i18n="params_platform_email">Email de contact</label>
-              <input type="email" class="form-control" value="contact@upcycleconnect.fr"/>
+              <input type="email" class="form-control" id="cfg-email_contact" value="contact@upcycleconnect.fr"/>
             </div>
             <div class="form-group">
               <label class="form-label" data-i18n="form_telephone">Téléphone</label>
-              <input type="tel" class="form-control" value="+33 1 00 00 00 00"/>
+              <input type="tel" class="form-control" id="cfg-telephone" value="+33 1 00 00 00 00"/>
             </div>
           </div>
           <div class="form-group">
             <label class="form-label" data-i18n="params_platform_adresse">Adresse du siège</label>
-            <input type="text" class="form-control" value="174 rue La Fayette, Paris 10e"/>
+            <input type="text" class="form-control" id="cfg-adresse_siege" value="174 rue La Fayette, Paris 10e"/>
           </div>
         </div>
         <div class="settings-section">
@@ -115,21 +115,21 @@
               <div class="toggle-label" data-i18n="params_maintenance_label">Mode maintenance</div>
               <div class="toggle-sub" data-i18n="params_maintenance_sub">Désactive l'accès public au site</div>
             </div>
-            <label class="toggle"><input type="checkbox"/><span class="toggle-slider"></span></label>
+            <label class="toggle"><input type="checkbox" id="cfg-maintenance"/><span class="toggle-slider"></span></label>
           </div>
           <div class="toggle-row">
             <div>
               <div class="toggle-label" data-i18n="params_inscriptions_label">Inscriptions ouvertes</div>
               <div class="toggle-sub" data-i18n="params_inscriptions_sub">Autoriser les nouveaux comptes</div>
             </div>
-            <label class="toggle"><input type="checkbox" checked/><span class="toggle-slider"></span></label>
+            <label class="toggle"><input type="checkbox" id="cfg-inscriptions_ouvertes" checked/><span class="toggle-slider"></span></label>
           </div>
           <div class="toggle-row">
             <div>
               <div class="toggle-label" data-i18n="params_validation_label">Validation manuelle des annonces</div>
               <div class="toggle-sub" data-i18n="params_validation_sub">Chaque annonce passe par un admin avant publication</div>
             </div>
-            <label class="toggle"><input type="checkbox" checked/><span class="toggle-slider"></span></label>
+            <label class="toggle"><input type="checkbox" id="cfg-validation_manuelle" checked/><span class="toggle-slider"></span></label>
           </div>
         </div>
         <button class="btn btn-primary" onclick="save()">
@@ -158,7 +158,7 @@
           <div class="form-row">
             <div class="form-group">
               <label class="form-label" data-i18n="params_commission">Commission ventes (%)</label>
-              <input type="number" class="form-control" value="7" min="5" max="10"/>
+              <input type="number" class="form-control" id="cfg-commission_taux" value="7" min="5" max="10"/>
             </div>
             <div class="form-group">
               <label class="form-label" data-i18n="params_tva">TVA appliquée (%)</label>
@@ -168,11 +168,11 @@
           <div class="form-row">
             <div class="form-group">
               <label class="form-label" data-i18n="params_abo_part">Abonnement particulier (€/mois)</label>
-              <input type="number" class="form-control" value="0"/>
+              <input type="number" class="form-control" value="0" readonly style="background:var(--neutral-50)"/>
             </div>
             <div class="form-group">
               <label class="form-label" data-i18n="params_abo_pro">Abonnement pro (€/mois)</label>
-              <input type="number" class="form-control" value="30"/>
+              <input type="number" class="form-control" id="cfg-tarif_abo_pro" value="30"/>
             </div>
           </div>
         </div>
@@ -188,15 +188,17 @@
       <div class="card-body">
         <div class="settings-section">
           <h3>OneSignal (push notifications)</h3>
-          <div class="form-row">
-            <div class="form-group">
-              <label class="form-label">App ID</label>
-              <input type="text" class="form-control" placeholder="xxxxxxxx-xxxx-xxxx"/>
+          <div style="display:flex;align-items:flex-start;gap:10px;background:var(--neutral-50);border:1.5px solid var(--neutral-200);border-radius:var(--radius);padding:14px;margin-bottom:16px">
+            <i class="fa-solid fa-circle-info" style="color:var(--uc-teal);margin-top:2px" aria-hidden="true"></i>
+            <div style="font-size:13px;color:var(--neutral-600);line-height:1.5">
+              Les clés OneSignal sont des <strong>secrets serveur</strong>.<br/>
+              Configurez-les dans <code style="background:var(--neutral-200);padding:1px 5px;border-radius:3px">api-go/.env</code> :
+              <code style="display:block;margin-top:8px;padding:8px;background:var(--neutral-200);border-radius:4px;font-size:12px">ONESIGNAL_APP_ID=...<br>ONESIGNAL_KEY=...</code>
             </div>
-            <div class="form-group">
-              <label class="form-label">API Key REST</label>
-              <input type="password" class="form-control" placeholder="os_key_..."/>
-            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">App ID (lecture seule)</label>
+            <input type="text" class="form-control" id="cfg-onesignal_app_id" placeholder="Chargement…" readonly style="background:var(--neutral-50)"/>
           </div>
         </div>
         <div class="settings-section">
@@ -204,21 +206,21 @@
           <div class="form-row">
             <div class="form-group">
               <label class="form-label" data-i18n="params_smtp_server">Serveur SMTP</label>
-              <input type="text" class="form-control" value="smtp.upcycleconnect.fr"/>
+              <input type="text" class="form-control" id="cfg-smtp_host" value="smtp.upcycleconnect.fr"/>
             </div>
             <div class="form-group">
               <label class="form-label">Port</label>
-              <input type="number" class="form-control" value="587"/>
+              <input type="number" class="form-control" id="cfg-smtp_port" value="587"/>
             </div>
           </div>
           <div class="form-row">
             <div class="form-group">
               <label class="form-label" data-i18n="params_smtp_user">Utilisateur</label>
-              <input type="text" class="form-control" value="no-reply@upcycleconnect.fr"/>
+              <input type="text" class="form-control" id="cfg-smtp_user" value="no-reply@upcycleconnect.fr"/>
             </div>
             <div class="form-group">
               <label class="form-label" data-i18n="form_password">Mot de passe</label>
-              <input type="password" class="form-control" placeholder="••••••••"/>
+              <input type="password" class="form-control" placeholder="Configurez dans api-go/.env" readonly style="background:var(--neutral-50)"/>
             </div>
           </div>
         </div>
@@ -226,19 +228,19 @@
           <h3 data-i18n="params_section_triggers">Déclencheurs de notification</h3>
           <div class="toggle-row">
             <div><div class="toggle-label" data-i18n="params_trigger_annonce">Nouvelle annonce validée</div></div>
-            <label class="toggle"><input type="checkbox" checked/><span class="toggle-slider"></span></label>
+            <label class="toggle"><input type="checkbox" id="cfg-notif_annonce" checked/><span class="toggle-slider"></span></label>
           </div>
           <div class="toggle-row">
             <div><div class="toggle-label" data-i18n="params_trigger_conteneur">Conteneur presque plein (&gt;80%)</div></div>
-            <label class="toggle"><input type="checkbox" checked/><span class="toggle-slider"></span></label>
+            <label class="toggle"><input type="checkbox" id="cfg-notif_conteneur" checked/><span class="toggle-slider"></span></label>
           </div>
           <div class="toggle-row">
             <div><div class="toggle-label" data-i18n="params_trigger_formation">Nouvelle inscription formation</div></div>
-            <label class="toggle"><input type="checkbox" checked/><span class="toggle-slider"></span></label>
+            <label class="toggle"><input type="checkbox" id="cfg-notif_formation" checked/><span class="toggle-slider"></span></label>
           </div>
           <div class="toggle-row">
             <div><div class="toggle-label" data-i18n="params_trigger_paiement">Paiement reçu</div></div>
-            <label class="toggle"><input type="checkbox" checked/><span class="toggle-slider"></span></label>
+            <label class="toggle"><input type="checkbox" id="cfg-notif_paiement" checked/><span class="toggle-slider"></span></label>
           </div>
         </div>
         <button class="btn btn-primary" onclick="save()"><span data-i18n="btn_save">Enregistrer</span></button>
@@ -260,22 +262,22 @@
           </div>
           <div class="form-group">
             <label class="form-label" data-i18n="params_session_duration">Durée de session (secondes)</label>
-            <input type="number" class="form-control" value="3600"/>
+            <input type="number" class="form-control" id="cfg-session_duree" value="3600"/>
           </div>
         </div>
         <div class="settings-section">
           <h3 data-i18n="params_section_securite">Options de sécurité</h3>
           <div class="toggle-row">
             <div><div class="toggle-label" data-i18n="params_https_label">HTTPS forcé</div><div class="toggle-sub" data-i18n="params_https_sub">Redirige HTTP vers HTTPS</div></div>
-            <label class="toggle"><input type="checkbox" checked/><span class="toggle-slider"></span></label>
+            <label class="toggle"><input type="checkbox" id="cfg-https_force" checked/><span class="toggle-slider"></span></label>
           </div>
           <div class="toggle-row">
             <div><div class="toggle-label" data-i18n="params_rate_limit_label">Limite de tentatives de connexion</div><div class="toggle-sub" data-i18n="params_rate_limit_sub">Blocage après 5 échecs</div></div>
-            <label class="toggle"><input type="checkbox" checked/><span class="toggle-slider"></span></label>
+            <label class="toggle"><input type="checkbox" id="cfg-rate_limit" checked/><span class="toggle-slider"></span></label>
           </div>
           <div class="toggle-row">
             <div><div class="toggle-label" data-i18n="params_logs_label">Logs d'accès admin</div></div>
-            <label class="toggle"><input type="checkbox" checked/><span class="toggle-slider"></span></label>
+            <label class="toggle"><input type="checkbox" id="cfg-logs_admin" checked/><span class="toggle-slider"></span></label>
           </div>
         </div>
         <button class="btn btn-primary" onclick="save()"><span data-i18n="btn_save">Enregistrer</span></button>
@@ -296,10 +298,10 @@
         </div>
         <div class="settings-section">
           <h3 data-i18n="params_section_default_lang">Langue par défaut</h3>
-          <select class="form-control" style="max-width:220px">
-            <option>Français (FR)</option>
-            <option>English (EN)</option>
-            <option>Español (ES)</option>
+          <select class="form-control" id="cfg-langue_defaut" style="max-width:220px">
+            <option value="fr">Français (FR)</option>
+            <option value="en">English (EN)</option>
+            <option value="es">Español (ES)</option>
           </select>
         </div>
         <button class="btn btn-primary" style="margin-top:16px" onclick="save()"><span data-i18n="btn_save">Enregistrer</span></button>
@@ -372,22 +374,31 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
   } catch(e) {}
 
-  // Restore settings from localStorage for all non-compte panels
-  ['general','paiement','securite','notifications'].forEach(panel => {
-    try {
-      const saved = JSON.parse(localStorage.getItem('uc_settings_' + panel) || 'null');
-      if (!saved) return;
-      const el = document.getElementById('panel-' + panel);
-      if (!el) return;
-      el.querySelectorAll('input[type="text"],input[type="email"],input[type="tel"],input[type="number"],input[type="password"],select').forEach(inp => {
-        if (inp.id && saved[inp.id] !== undefined) inp.value = saved[inp.id];
+  // Charger la config plateforme depuis l'API
+  try {
+    const cfgRes = await apiFetch('/admin/config');
+    if (cfgRes?.ok) {
+      const cfg = await cfgRes.json();
+      Object.entries(cfg).forEach(([key, val]) => {
+        const el = document.getElementById('cfg-' + key);
+        if (!el) return;
+        if (el.type === 'checkbox') {
+          el.checked = val === 'true' || val === true;
+        } else {
+          el.value = val;
+        }
       });
-      el.querySelectorAll('input[type="checkbox"]').forEach(cb => {
-        const key = cb.closest('.toggle-row')?.querySelector('.toggle-label')?.textContent?.trim() || cb.name;
-        if (key && saved['cb_' + key] !== undefined) cb.checked = saved['cb_' + key];
-      });
-    } catch {}
-  });
+    }
+  } catch {}
+  // OneSignal App ID depuis la config publique (lecture seule)
+  try {
+    const pubRes = await fetch(apiBase + '/config');
+    if (pubRes?.ok) {
+      const pub = await pubRes.json();
+      const onesignalEl = document.getElementById('cfg-onesignal_app_id');
+      if (onesignalEl && pub.onesignal_app_id) onesignalEl.value = pub.onesignal_app_id;
+    }
+  } catch {}
 
   // Nav tabs
   document.querySelectorAll('.settings-nav-item').forEach(btn => {
@@ -475,18 +486,32 @@ window.save = async () => {
     showToast('Erreur lors de la mise à jour', 'error');
     return;
   }
-  // Save panel settings to localStorage
+  // Envoyer la config du panel actif à l'API
   const panel = document.getElementById('panel-' + activePanel);
   if (panel) {
     const data = {};
-    panel.querySelectorAll('input[type="text"],input[type="email"],input[type="tel"],input[type="number"],select').forEach(inp => {
-      if (inp.id) data[inp.id] = inp.value;
+    panel.querySelectorAll('[id^="cfg-"]').forEach(el => {
+      if (el.readOnly) return;
+      const key = el.id.replace('cfg-', '');
+      if (el.type === 'checkbox') {
+        data[key] = String(el.checked);
+      } else {
+        data[key] = el.value;
+      }
     });
-    panel.querySelectorAll('input[type="checkbox"]').forEach(cb => {
-      const key = cb.closest('.toggle-row')?.querySelector('.toggle-label')?.textContent?.trim() || cb.name;
-      if (key) data['cb_' + key] = cb.checked;
-    });
-    localStorage.setItem('uc_settings_' + activePanel, JSON.stringify(data));
+    try {
+      const res = await apiFetch('/admin/config', {
+        method: 'PUT',
+        body: JSON.stringify(data),
+      });
+      if (!res?.ok) {
+        showToast(t('params_toast_error') || 'Erreur lors de la sauvegarde', 'error');
+        return;
+      }
+    } catch {
+      showToast(t('params_toast_error') || 'Erreur réseau', 'error');
+      return;
+    }
   }
   showToast(t('params_toast_saved') || 'Paramètres enregistrés', 'success');
 };

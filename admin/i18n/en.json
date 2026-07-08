@@ -322,6 +322,7 @@
   "params_pwd_nouveau":        "New password",
   "params_pwd_confirm":        "Confirm password",
   "params_toast_saved":        "Settings saved!",
+  "params_toast_error":        "Error while saving",
   "params_toast_lang_removed": "Language removed",
   "params_prompt_lang_code":   "ISO code (e.g. de, it, pt):",
   "params_toast_lang_prefix":  "Create",
@@ -413,5 +414,22 @@
   "tourn_err_date":            "Date is required.",
   "tourn_err_create":          "Error creating round.",
   "tourn_creating":            "Creating…",
-  "tourn_toast_created":       "Round created successfully"
+  "tourn_toast_created":       "Round created successfully",
+
+  "nav_contrats":              "Contracts",
+  "nav_tournees":              "Routes",
+  "nav_role_admin":            "Administrator",
+  "page_dashboard":            "Dashboard",
+  "page_users":                "Users",
+  "page_validations":          "Validations",
+  "page_categories":           "Categories",
+  "page_prestations":          "Services",
+  "page_factures":             "Billing",
+  "page_conteneurs":           "Containers",
+  "page_notifications":        "Notifications",
+  "page_parametres":           "Settings",
+  "page_contrats":             "Contracts",
+  "page_publicite":            "Advertising",
+  "page_tournees":             "Collection routes",
+  "page_publicites":           "Advertising"
 }
