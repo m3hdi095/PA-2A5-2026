@@ -196,9 +196,12 @@ func (s *EvenementService) ValidateEvenement(id uint, adminID uint, decision str
             }
         }
         // notif push à tous les particuliers pour les informer du nouvel événement
-        go utils.BroadcastPushNotification("particuliers",
-            "Nouvel événement disponible !",
-            titre+" — Inscrivez-vous dès maintenant.")
+        go func() {
+            notifSvc := NewNotificationService()
+            _, _ = notifSvc.BroadcastToSegment("particuliers",
+                "Nouvel événement disponible !",
+                titre+" — Inscrivez-vous dès maintenant.")
+        }()
     }
     return nil
 }
