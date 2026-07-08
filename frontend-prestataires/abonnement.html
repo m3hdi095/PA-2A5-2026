@@ -446,9 +446,12 @@ window.confirmerStripe = async () => {
       return;
     }
 
-    // 3. activer le premium côté serveur
+    // 3. activer le premium côté serveur (on envoie l'id du PaymentIntent pour vérification)
     if (paymentIntent.status === 'succeeded') {
-      const res = await apiFetch('/abonnements/upgrade', { method: 'POST' });
+      const res = await apiFetch('/abonnements/upgrade', {
+        method: 'POST',
+        body: JSON.stringify({ payment_intent_id: paymentIntent.id }),
+      });
       if (res?.ok) {
         fermerUpgrade();
         showToast('Abonnement Premium activé !', 'success');

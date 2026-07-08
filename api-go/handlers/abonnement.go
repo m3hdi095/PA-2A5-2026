@@ -1,6 +1,4 @@
 // abonnements premium pour les professionnels
-// L'upgrade se fait côté Stripe.js (le front confirme), on reçoit juste la ref ici.
-// TODO: valider la ref_stripe côté serveur via l'API Stripe avant d'activer le premium
 
 package handlers
 
@@ -31,12 +29,24 @@ func GetMonAbonnement(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(abonnement)
 }
 
-// passage en premium via le webhook Stripe normalement, mais ce endpoint c'est le cas manuel
-// le front appelle ca apres confirmation Stripe.js mais on re-verifie pas la ref_stripe ici, c'est un TODO
+// passage en premium : le front envoie le payment_intent_id après confirmation Stripe.js,
+// on vérifie côté serveur que le paiement a bien été reçu avant d'activer le compte
 func UpgradeAbonnement(w http.ResponseWriter, r *http.Request) {
 	role := r.Context().Value(middleware.ContextRole).(string)
 	if role != "professionnel" {
 		http.Error(w, `{"error":"Réservé aux professionnels"}`, http.StatusForbidden)
+		return
+	}
+	var req struct {
+		PaymentIntentID string `json:"payment_intent_id"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil || req.PaymentIntentID == "" {
+		jsonError(w, "payment_intent_id manquant", http.StatusBadRequest)
+		return
+	}
+	paiementSvc := services.NewPaiementService()
+	if err := paiementSvc.ConfirmPayment(req.PaymentIntentID); err != nil {
+		jsonError(w, "paiement non confirmé par Stripe", http.StatusPaymentRequired)
 		return
 	}
 	userID := r.Context().Value(middleware.ContextUserID).(uint)
@@ -44,7 +54,6 @@ func UpgradeAbonnement(w http.ResponseWriter, r *http.Request) {
 		jsonError(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	// Crée la facture immédiatement (le webhook Stripe ne peut pas atteindre localhost en dev)
 	go creerFactureManuel(userID, "abonnement")
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(map[string]string{"status": "premium activé"})

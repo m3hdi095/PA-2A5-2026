@@ -2,7 +2,6 @@ package services
 
 // articles de conseil rediges par les salaries
 // les articles arrivent en en_attente, l'admin valide ou refuse
-// FIXME: pas de notif quand l'admin valide ou refuse, a brancher
 
 import (
 	"errors"
@@ -130,10 +129,26 @@ func (s *ConseilService) Valider(articleID uint, decision string, adminID uint) 
 	if decision != "publie" && decision != "refuse" {
 		return errors.New("décision invalide")
 	}
+	var auteurID uint
+	database.DB.QueryRow(`SELECT id_salarie_redacteur FROM conseil WHERE id_conseil = ?`, articleID).Scan(&auteurID)
 	_, err := database.DB.Exec(
 		`UPDATE conseil SET statut = ?, id_admin_validation = ? WHERE id_conseil = ?`,
 		decision, adminID, articleID,
 	)
+	if err == nil && auteurID != 0 {
+		notifSvc := NewNotificationService()
+		if decision == "publie" {
+			_ = notifSvc.SendNotification(auteurID,
+				"Article publié !",
+				"Votre article a été validé et est maintenant visible par la communauté.",
+				"info", "push")
+		} else {
+			_ = notifSvc.SendNotification(auteurID,
+				"Article refusé",
+				"Votre article n'a pas été validé. Contactez un administrateur pour plus d'informations.",
+				"warning", "push")
+		}
+	}
 	return err
 }
 

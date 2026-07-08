@@ -1,6 +1,4 @@
 // envoi et lecture des notifications in-app et push OneSignal
-// FIXME: SendNotification devrait vérifier que l'expéditeur a le droit d'écrire au destinataire
-// FIXME: n'importe quel utilisateur peut ecrire a n'importe qui, a corriger avant prod
 
 package handlers
 
@@ -16,7 +14,11 @@ import (
 var notificationService = services.NewNotificationService()
 
 func SendNotification(w http.ResponseWriter, r *http.Request) {
-    _ = r.Context().Value(middleware.ContextUserID).(uint)
+    role := r.Context().Value(middleware.ContextRole).(string)
+    if role != "admin" && role != "salarie" {
+        http.Error(w, `{"error":"Accès interdit"}`, http.StatusForbidden)
+        return
+    }
     var req struct {
         ToUserID uint   `json:"to_user_id"`
         Title    string `json:"title"`
@@ -24,11 +26,10 @@ func SendNotification(w http.ResponseWriter, r *http.Request) {
         Type     string `json:"type"`
         Canal    string `json:"canal"`
     }
-    if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+    if err := json.NewDecoder(r.Body).Decode(&req); err != nil || req.ToUserID == 0 || req.Title == "" {
         http.Error(w, `{"error":"Données invalides"}`, http.StatusBadRequest)
         return
     }
-    // pour l'instant n'importe qui peut ecrire a n'importe qui, c'est le FIXME du haut
     if err := notificationService.SendNotification(req.ToUserID, req.Title, req.Message, req.Type, req.Canal); err != nil {
         http.Error(w, `{"error":"Erreur d'envoi"}`, http.StatusInternalServerError)
         return
