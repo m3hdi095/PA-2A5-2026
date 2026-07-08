@@ -80,6 +80,7 @@ const PAGE_NOMS = {
   profil:       'Mon profil',
   contrats:     'Mes contrats',
   publicites:   'Publicités',
+  forum:        'Forum communautaire',
 };
 
 function buildSidebarHTML() {

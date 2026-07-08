@@ -65,6 +65,7 @@ const PAGE_NOMS = {
   planning:   'Planning',
   depot:      'Dépôt en conteneur',
   conseils:   'Espace conseil',
+  forum:      'Forum communautaire',
   profil:     'Mon profil',
 };
 
