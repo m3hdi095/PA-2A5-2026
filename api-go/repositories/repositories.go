@@ -72,7 +72,7 @@ func (r *UserRepository) Create(user *models.Utilisateur) error {
 	case "particulier":
 		database.DB.Exec(`INSERT IGNORE INTO particulier (id_particulier, upcycling_score_total) VALUES (?, 0)`, user.ID)
 	case "professionnel":
-		database.DB.Exec(`INSERT IGNORE INTO professionnel (id_professionnel, nom_entreprise, siret, type_metier, niveau_abonnement) VALUES (?, '', '', '', 'free')`, user.ID)
+		database.DB.Exec(`INSERT IGNORE INTO professionnel (id_professionnel, nom_entreprise, siret, type_metier, niveau_abonnement) VALUES (?, '', '', '', 'freemium')`, user.ID)
 	}
 	return nil
 }

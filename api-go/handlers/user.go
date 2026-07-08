@@ -2,13 +2,13 @@ package handlers
 
 // user.go : lecture et mise à jour du profil de l'utilisateur connecté.
 // le role vient du JWT, l'utilisateur ne peut pas le modifier lui-meme
-// TODO: permettre le changement de mot de passe avec vérification de l'ancien
 
 import (
 	"upcycleconnect/api/middleware"
 	"encoding/json"
 	"net/http"
 
+	"upcycleconnect/api/database"
 	"upcycleconnect/api/models"
 	"upcycleconnect/api/repositories"
 	"upcycleconnect/api/services"
@@ -61,6 +61,20 @@ func ChangePassword(w http.ResponseWriter, r *http.Request) {
 	}
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(map[string]string{"status": "ok"})
+}
+
+func DeactivateMyAccount(w http.ResponseWriter, r *http.Request) {
+	userID := r.Context().Value(middleware.ContextUserID).(uint)
+	_, err := database.DB.Exec(
+		`UPDATE utilisateur SET actif = 0, email = CONCAT('deleted_', id_utilisateur, '_', email) WHERE id_utilisateur = ?`,
+		userID,
+	)
+	if err != nil {
+		jsonError(w, "Erreur lors de la désactivation", http.StatusInternalServerError)
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]string{"status": "compte désactivé"})
 }
 
 func MarkTutorialSeen(w http.ResponseWriter, r *http.Request) {

@@ -1,6 +1,5 @@
 // CRUD des evenements et formations crees par les salaries
 // les evenements crées passent en attente_validation, un admin doit valider avant que ca soit visible
-// TODO: envoyer une notif push aux particuliers quand un événement est validé
 
 package handlers
 
@@ -275,7 +274,7 @@ func envoyerEmailFormateurInscription(participantID, eventID uint) {
     database.DB.QueryRow(
         `SELECT u.email, u.prenom, e.titre,
                 (SELECT CONCAT(p.prenom, ' ', p.nom) FROM utilisateur p WHERE p.id_utilisateur = ?) AS participant,
-                (SELECT COUNT(*) FROM inscription i WHERE i.id_evenement = e.id_evenement AND i.statut = 'confirme') AS nb
+                (SELECT COUNT(*) FROM inscription i WHERE i.id_evenement = e.id_evenement AND i.statut IN ('paye','non_paye')) AS nb
          FROM evenement e
          JOIN salarie s ON s.id_salarie = e.id_salarie_createur
          JOIN utilisateur u ON u.id_utilisateur = s.id_utilisateur

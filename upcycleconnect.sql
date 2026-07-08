@@ -721,3 +721,10 @@ INSERT INTO alerte_materiau (id_alerte, id_professionnel, categorie, type_annonc
 -- données de démo : commentaire en attente de modération sur le conseil 1
 INSERT INTO commentaire_conseil (id_commentaire, id_conseil, id_utilisateur, contenu, statut) VALUES
 (1, 1, 2, 'Super article, j\'ai essayé la jardinière en palette ce weekend, ça marche très bien !', 'en_attente');
+
+-- configuration dynamique de la plateforme (clé-valeur, admin-only)
+CREATE TABLE IF NOT EXISTS config_plateforme (
+  cle VARCHAR(100) PRIMARY KEY,
+  valeur TEXT NOT NULL DEFAULT '',
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;

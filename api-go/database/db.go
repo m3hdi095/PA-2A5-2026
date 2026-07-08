@@ -38,4 +38,10 @@ func Connect() {
     }
 
     log.Println("Connecté à la base de données")
+
+    DB.Exec(`CREATE TABLE IF NOT EXISTS config_plateforme (
+        cle VARCHAR(100) PRIMARY KEY,
+        valeur TEXT NOT NULL DEFAULT '',
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4`)
 }

@@ -301,12 +301,36 @@ func ReserverAnnonce(w http.ResponseWriter, r *http.Request) {
 		jsonError(w, "vous ne pouvez pas réserver votre propre annonce", http.StatusBadRequest)
 		return
 	}
-	var montant float64
-	var commissionTaux float64
-	if annonce.TypeAnnonce == "vente" {
-		montant = annonce.Prix
-		commissionTaux = 10.0
+
+	var req struct {
+		PaymentIntentID string `json:"payment_intent_id"`
 	}
+	json.NewDecoder(r.Body).Decode(&req)
+
+	var montant float64
+	commissionTaux := 10.0
+	if annonce.TypeAnnonce == "vente" && annonce.Prix > 0 {
+		montant = annonce.Prix
+		if req.PaymentIntentID == "" {
+			jsonError(w, "payment_intent_id requis pour une annonce payante", http.StatusPaymentRequired)
+			return
+		}
+		paiementSvc := services.NewPaiementService()
+		if err := paiementSvc.ConfirmPayment(req.PaymentIntentID); err != nil {
+			jsonError(w, "paiement non confirmé par Stripe", http.StatusPaymentRequired)
+			return
+		}
+		// 5 % pour les vendeurs professionnels premium, 10 % sinon
+		var niveauAbo string
+		database.DB.QueryRow(
+			`SELECT niveau_abonnement FROM professionnel WHERE id_professionnel = ?`,
+			annonce.IDUtilisateur,
+		).Scan(&niveauAbo)
+		if niveauAbo == "premium" {
+			commissionTaux = 5.0
+		}
+	}
+
 	_, dbErr := database.DB.Exec(
 		`INSERT INTO transaction_achat (montant, commission_taux, statut, id_annonce, id_acheteur, id_vendeur)
 		 VALUES (?, ?, 'payee', ?, ?, ?)`,
@@ -318,6 +342,9 @@ func ReserverAnnonce(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	database.DB.Exec(`UPDATE annonce SET statut = 'desactivee' WHERE id_annonce = ?`, annonce.ID)
+	if annonce.TypeAnnonce == "vente" && annonce.Prix > 0 {
+		go creerFactureManuel(acheteurID, "transaction")
+	}
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(map[string]string{"status": "reservee"})

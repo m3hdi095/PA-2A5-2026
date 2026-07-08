@@ -176,7 +176,7 @@ func (s *EvenementService) ValidateEvenement(id uint, adminID uint, decision str
     if err := s.evenementRepo.UpdateStatus(id, decision); err != nil {
         return err
     }
-    // planning auto-rempli pour le salarié créateur
+    // planning auto-rempli pour le salarié créateur + notif push à tous les particuliers
     if decision == "valide" {
         var titre string
         var dateDebut time.Time
@@ -195,6 +195,10 @@ func (s *EvenementService) ValidateEvenement(id uint, adminID uint, decision str
                 )
             }
         }
+        // notif push à tous les particuliers pour les informer du nouvel événement
+        go utils.BroadcastPushNotification("particuliers",
+            "Nouvel événement disponible !",
+            titre+" — Inscrivez-vous dès maintenant.")
     }
     return nil
 }

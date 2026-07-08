@@ -91,6 +91,7 @@ func main() {
 	// Profil utilisateur
 	mux.HandleFunc("GET /api/users/me", middleware.AuthMiddleware(handlers.GetCurrentUser))
 	mux.HandleFunc("PUT /api/users/me", middleware.AuthMiddleware(handlers.UpdateUser))
+	mux.HandleFunc("DELETE /api/users/me", middleware.AuthMiddleware(handlers.DeactivateMyAccount))
 	mux.HandleFunc("POST /api/users/change-password", middleware.AuthMiddleware(handlers.ChangePassword))
 	mux.HandleFunc("POST /api/users/tutorial", middleware.AuthMiddleware(handlers.MarkTutorialSeen))
 	// FIXME: le tutoriel devrait aussi vérifier que l'utilisateur est un particulier
@@ -243,6 +244,8 @@ func main() {
     mux.HandleFunc("POST /api/categories", middleware.AuthMiddleware(middleware.RoleMiddleware("admin")(handlers.CreateCategorie)))
     mux.HandleFunc("PUT /api/categories/{id}", middleware.AuthMiddleware(middleware.RoleMiddleware("admin")(handlers.UpdateCategorie)))
     mux.HandleFunc("DELETE /api/categories/{id}", middleware.AuthMiddleware(middleware.RoleMiddleware("admin")(handlers.DeleteCategorie)))
+    mux.HandleFunc("GET /api/admin/config", middleware.AuthMiddleware(middleware.RoleMiddleware("admin")(handlers.GetAdminConfig)))
+    mux.HandleFunc("PUT /api/admin/config", middleware.AuthMiddleware(middleware.RoleMiddleware("admin")(handlers.UpdateAdminConfig)))
 
 	// CORS pour les appels du front en dev
 	handler := middleware.CORS(mux)
